@@ -33,17 +33,19 @@
           </div>
 
           <Alert v-if="error" variant="destructive">
+            <AlertCircle class="h-4 w-4" />
             <AlertDescription>
               {{ error }}
             </AlertDescription>
           </Alert>
 
-          <Button
-            type="submit"
-            class="w-full"
-            :disabled="isSubmitting"
+          <Button 
+            type="submit" 
+            class="w-full" 
+            :disabled="isSubmitting || loading"
           >
-            {{ isSubmitting ? 'Signing in...' : 'Sign in' }}
+            <Loader2 v-if="isSubmitting || loading" class="mr-2 h-4 w-4 animate-spin" />
+            {{ isSubmitting || loading ? 'Signing in...' : 'Sign in' }}
           </Button>
         </form>
       </CardContent>
@@ -52,11 +54,13 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed } from 'vue'
+import { ref, computed, onMounted } from 'vue'
+import { AlertCircle, Loader2 } from 'lucide-vue-next'
 
 const email = ref('')
 const password = ref('')
 const isSubmitting = ref(false)
+const loading = ref(false)
 const error = ref<string | null>(null)
 const { fetch } = useUserSession()
 
@@ -68,6 +72,13 @@ const returnUrl = computed(() => {
     return redirect
   }
   return '/dashboard'
+})
+
+// Clear form and errors when component mounts
+onMounted(() => {
+  email.value = ''
+  password.value = ''
+  error.value = null
 })
 
 const handleLogin = async () => {
@@ -106,6 +117,7 @@ const handleLogin = async () => {
     error.value = err.data?.error || err.message || 'Login failed. Please try again.'
   } finally {
     isSubmitting.value = false
+    loading.value = false
   }
 }
 </script>

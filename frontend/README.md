@@ -1,75 +1,235 @@
-# Nuxt Minimal Starter
+# Forecaster Enterprise - Frontend
 
-Look at the [Nuxt documentation](https://nuxt.com/docs/getting-started/introduction) to learn more.
+A modern, enterprise-grade forecasting dashboard built with Nuxt 4 and Nuxt UI, featuring comprehensive authentication, user management, and a clean, intuitive interface.
 
-## Setup
+## Overview
 
-Make sure to install dependencies:
+Forecaster Enterprise is a full-stack application for inventory forecasting and management. This frontend application provides a responsive, secure dashboard interface for managing forecasts, inventory, and team members.
+
+**Backend**: FastAPI backend using `uv` for package management (see `/backend` directory)
+
+### Key Features
+
+- **Secure Authentication**: JWT-based authentication with session management using `nuxt-auth-utils`
+- **User Management**: Complete member management system with role-based access control (Admin/User)
+- **Modern UI**: Built with Nuxt UI components following official design patterns
+- **Dashboard Layout**: Collapsible sidebar navigation with responsive design
+- **Settings Management**: Comprehensive settings pages with tabs (General, Members, Notifications, Security)
+- **API Integration**: Seamless integration with FastAPI backend through Nuxt server routes
+
+## Tech Stack
+
+- **Framework**: [Nuxt 4](https://nuxt.com) - Vue.js meta-framework
+- **UI Library**: [Nuxt UI](https://ui.nuxt.com) - Official Nuxt UI component library
+- **Authentication**: [nuxt-auth-utils](https://github.com/nuxt-modules/auth-utils) - Official Nuxt authentication utilities
+- **Validation**: [Zod](https://zod.dev) - TypeScript-first schema validation
+- **Icons**: [Lucide Vue Next](https://lucide.dev) - Beautiful icon library
+- **Styling**: Tailwind CSS 4
+
+## Architecture
+
+### Authentication Flow
+
+```
+┌─────────────┐         ┌──────────────┐         ┌─────────────┐
+│   Browser   │         │  Nuxt Server │         │  FastAPI    │
+│   (Client)  │────────▶│   Routes    │────────▶│   Backend   │
+└─────────────┘         └──────────────┘         └─────────────┘
+     Session Cookie          JWT Token              JWT Validation
+```
+
+- **Client**: Makes requests to Nuxt server routes (`/api/*`)
+- **Nuxt Server Routes**: Handle authentication, forward requests to FastAPI backend
+- **FastAPI Backend**: Validates JWT tokens and processes business logic
+- **Session Management**: JWT tokens stored server-side, never exposed to browser JavaScript
+
+### Project Structure
+
+```
+frontend/
+├── app/
+│   ├── components/          # Vue components
+│   │   ├── GeneralSection.vue
+│   │   ├── MembersSection.vue
+│   │   └── SettingsLayout.vue
+│   ├── composables/         # Vue composables
+│   │   └── useApi.ts        # API client composable
+│   ├── layouts/             # Layout components
+│   │   ├── dashboard.vue    # Main dashboard layout with sidebar
+│   │   └── default.vue
+│   ├── middleware/          # Route middleware
+│   │   └── auth.ts          # Authentication middleware
+│   └── pages/               # File-based routing
+│       ├── dashboard.vue
+│       ├── login.vue
+│       └── settings/        # Settings pages with tabs
+│           ├── index.vue    # General settings
+│           ├── members.vue  # Member management
+│           ├── notifications.vue
+│           └── security.vue
+├── server/
+│   ├── api/                 # Nuxt server routes (API endpoints)
+│   │   ├── login.post.ts
+│   │   ├── me.get.ts
+│   │   └── users/           # User management endpoints
+│   ├── middleware/          # Server middleware
+│   │   └── security-headers.ts
+│   └── utils/               # Server utilities
+│       ├── api.ts           # Authenticated fetch utilities
+│       └── security-logger.ts
+└── nuxt.config.ts           # Nuxt configuration
+```
+
+## Authentication
+
+The application uses `nuxt-auth-utils` following the [official Nuxt 4.x authentication guide](https://nuxt.com/docs/4.x/guide/recipes/sessions-and-authentication).
+
+### Features
+
+- **Secure Session Management**: JWT tokens stored server-side in encrypted session cookies
+- **Automatic Token Validation**: Tokens validated on each authenticated request
+- **Role-Based Access Control**: Admin-only endpoints for user management
+- **Security Logging**: All authentication events logged for security monitoring
+
+### Usage
+
+**Protected Routes:**
+```vue
+<script setup>
+definePageMeta({
+  layout: 'dashboard',
+  middleware: 'auth'
+})
+</script>
+```
+
+**Accessing User Session:**
+```vue
+<script setup>
+const { loggedIn, user, clear: clearSession } = useUserSession()
+
+if (loggedIn.value) {
+  console.log(user.value?.email)
+}
+</script>
+```
+
+**Making Authenticated API Calls:**
+```vue
+<script setup>
+const { apiCall } = useApi()
+
+const fetchData = async () => {
+  const data = await apiCall('/users', { method: 'GET' })
+}
+</script>
+```
+
+For detailed authentication documentation, see [AUTH_SETUP.md](./AUTH_SETUP.md).
+
+## Development Setup
+
+### Prerequisites
+
+- Node.js 18+ 
+- npm, pnpm, yarn, or bun
+
+### Installation
 
 ```bash
-# npm
+# Install dependencies
 npm install
-
-# pnpm
+# or
 pnpm install
-
-# yarn
-yarn install
-
-# bun
-bun install
 ```
 
-## Development Server
+### Environment Variables
 
-Start the development server on `http://localhost:3000`:
+Create a `.env` file in the root directory:
+
+```env
+NUXT_SESSION_PASSWORD=your-secure-random-password-with-at-least-32-characters
+NUXT_PUBLIC_API_BASE_URL=http://localhost:8000
+```
+
+**Note**: `NUXT_SESSION_PASSWORD` is automatically generated in development if not set.
+
+### Development Server
 
 ```bash
-# npm
 npm run dev
-
-# pnpm
-pnpm dev
-
-# yarn
-yarn dev
-
-# bun
-bun run dev
 ```
 
-## Production
+The application will be available at `http://localhost:3000`.
 
-Build the application for production:
+### Production Build
 
 ```bash
-# npm
+# Build for production
 npm run build
 
-# pnpm
-pnpm build
-
-# yarn
-yarn build
-
-# bun
-bun run build
-```
-
-Locally preview production build:
-
-```bash
-# npm
+# Preview production build locally
 npm run preview
-
-# pnpm
-pnpm preview
-
-# yarn
-yarn preview
-
-# bun
-bun run preview
 ```
 
-Check out the [deployment documentation](https://nuxt.com/docs/getting-started/deployment) for more information.
+## Key Pages
+
+### Dashboard (`/dashboard`)
+Main dashboard with overview metrics and navigation.
+
+### Settings (`/settings`)
+Comprehensive settings management with tabbed interface:
+- **General**: Account information and preferences
+- **Members**: User management with role assignment
+- **Notifications**: Notification preferences (coming soon)
+- **Security**: Security settings (coming soon)
+
+### Member Management
+- View all members with search functionality
+- Invite new members by email
+- Edit member roles (Admin/User)
+- Activate/deactivate members
+- Delete members
+
+## API Integration
+
+All API calls go through Nuxt server routes (`/api/*`) which:
+1. Handle authentication automatically
+2. Forward requests to FastAPI backend
+3. Manage JWT tokens securely
+4. Handle errors gracefully
+
+**Server Route Example:**
+```typescript
+// server/api/users.get.ts
+export default defineEventHandler(async (event) => {
+  const users = await authenticatedFetch(event, '/users')
+  return users
+})
+```
+
+**Client Usage:**
+```typescript
+const { apiCall } = useApi()
+const users = await apiCall('/users')
+```
+
+## Security Features
+
+- **HttpOnly Cookies**: Session cookies cannot be accessed via JavaScript
+- **Secure Cookies**: Cookies only sent over HTTPS in production
+- **JWT Token Protection**: Tokens never exposed to client-side code
+- **Automatic Token Validation**: Invalid tokens automatically clear session
+- **Security Logging**: All authentication events logged
+- **Security Headers**: CSP, XSS protection, and other security headers configured
+
+## Documentation
+
+- [AUTH_SETUP.md](./AUTH_SETUP.md) - Detailed authentication setup and usage
+- [Nuxt Documentation](https://nuxt.com/docs)
+- [Nuxt UI Documentation](https://ui.nuxt.com)
+- [nuxt-auth-utils](https://github.com/nuxt-modules/auth-utils)
+
+## License
+
+Private - Enterprise Use Only

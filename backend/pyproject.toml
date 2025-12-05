@@ -8,12 +8,13 @@ dependencies = [
     "uvicorn[standard]>=0.35.0",
     "sqlalchemy>=2.0.0",
     "pydantic>=2.11.7",
+    "email-validator>=2.1.0",  # Required for EmailStr validation
     "pydantic-settings>=2.0.0",
     "python-jose[cryptography]>=3.3.0",
     "passlib[bcrypt]>=1.7.4",
     "python-dotenv>=1.1.1",
     "python-multipart>=0.0.6",
-    "psycopg2-binary>=2.9.9",  # PostgreSQL adapter
+    "asyncpg>=0.29.0",  # Async PostgreSQL adapter
     "alembic>=1.13.0",  # Database migrations
     "slowapi>=0.1.9",  # Rate limiting
 ]

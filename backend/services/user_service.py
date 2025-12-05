@@ -1,4 +1,5 @@
-from sqlalchemy.orm import Session
+from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy import select
 from fastapi import HTTPException, status
 
 from models import User, UserRole
@@ -6,22 +7,25 @@ from auth import get_password_hash, verify_password
 from schemas.auth import UserCreate, UserUpdate, validate_password
 
 
-def get_user_by_email(db: Session, email: str) -> User | None:
+async def get_user_by_email(db: AsyncSession, email: str) -> User | None:
     """Get user by email"""
-    return db.query(User).filter(User.email == email).first()
+    result = await db.execute(select(User).filter(User.email == email))
+    return result.scalar_one_or_none()
 
 
-def get_user_by_id(db: Session, user_id: str) -> User | None:
+async def get_user_by_id(db: AsyncSession, user_id: str) -> User | None:
     """Get user by ID"""
-    return db.query(User).filter(User.id == user_id).first()
+    result = await db.execute(select(User).filter(User.id == user_id))
+    return result.scalar_one_or_none()
 
 
-def get_all_users(db: Session) -> list[User]:
+async def get_all_users(db: AsyncSession) -> list[User]:
     """Get all users"""
-    return db.query(User).all()
+    result = await db.execute(select(User))
+    return list(result.scalars().all())
 
 
-def create_user(db: Session, user_data: UserCreate) -> User:
+async def create_user(db: AsyncSession, user_data: UserCreate) -> User:
     """Create a new user"""
     # Validate password
     try:
@@ -33,7 +37,7 @@ def create_user(db: Session, user_data: UserCreate) -> User:
         )
     
     # Check if user already exists
-    existing_user = get_user_by_email(db, user_data.email)
+    existing_user = await get_user_by_email(db, user_data.email)
     if existing_user:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
@@ -49,15 +53,15 @@ def create_user(db: Session, user_data: UserCreate) -> User:
     )
     
     db.add(new_user)
-    db.commit()
-    db.refresh(new_user)
+    await db.commit()
+    await db.refresh(new_user)
     
     return new_user
 
 
-def update_user(db: Session, user_id: str, user_data: UserUpdate) -> User:
+async def update_user(db: AsyncSession, user_id: str, user_data: UserUpdate) -> User:
     """Update user"""
-    user = get_user_by_id(db, user_id)
+    user = await get_user_by_id(db, user_id)
     if not user:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
@@ -76,13 +80,13 @@ def update_user(db: Session, user_id: str, user_data: UserUpdate) -> User:
     if user_data.is_active is not None:
         user.is_active = user_data.is_active
     
-    db.commit()
-    db.refresh(user)
+    await db.commit()
+    await db.refresh(user)
     
     return user
 
 
-def delete_user(db: Session, user_id: str, current_user_id: str) -> None:
+async def delete_user(db: AsyncSession, user_id: str, current_user_id: str) -> None:
     """Delete user"""
     if user_id == current_user_id:
         raise HTTPException(
@@ -90,20 +94,20 @@ def delete_user(db: Session, user_id: str, current_user_id: str) -> None:
             detail="Cannot delete your own account"
         )
     
-    user = get_user_by_id(db, user_id)
+    user = await get_user_by_id(db, user_id)
     if not user:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="User not found"
         )
     
-    db.delete(user)
-    db.commit()
+    await db.delete(user)
+    await db.commit()
 
 
-def authenticate_user(db: Session, email: str, password: str) -> User | None:
+async def authenticate_user(db: AsyncSession, email: str, password: str) -> User | None:
     """Authenticate user with email and password"""
-    user = get_user_by_email(db, email)
+    user = await get_user_by_email(db, email)
     if not user:
         return None
     
@@ -111,4 +115,3 @@ def authenticate_user(db: Session, email: str, password: str) -> User | None:
         return None
     
     return user
-

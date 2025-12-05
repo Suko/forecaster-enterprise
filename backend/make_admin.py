@@ -4,29 +4,33 @@ Script to make a user an admin
 Usage: python make_admin.py <email>
 """
 import sys
-from sqlalchemy.orm import Session
-from models import get_db, User, UserRole
+import asyncio
+from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy import select
+from models import AsyncSessionLocal, User, UserRole
 
-def make_admin(email: str):
+
+async def make_admin(email: str):
     """Make a user an admin by email"""
-    db: Session = next(get_db())
-    
-    user = db.query(User).filter(User.email == email).first()
-    
-    if not user:
-        print(f"Error: User with email '{email}' not found")
-        return False
-    
-    if user.role == UserRole.ADMIN.value:
-        print(f"User '{email}' is already an admin")
+    async with AsyncSessionLocal() as db:
+        result = await db.execute(select(User).filter(User.email == email))
+        user = result.scalar_one_or_none()
+        
+        if not user:
+            print(f"Error: User with email '{email}' not found")
+            return False
+        
+        if user.role == UserRole.ADMIN.value:
+            print(f"User '{email}' is already an admin")
+            return True
+        
+        user.role = UserRole.ADMIN.value
+        await db.commit()
+        await db.refresh(user)
+        
+        print(f"Successfully updated user '{email}' to admin role")
         return True
-    
-    user.role = UserRole.ADMIN.value
-    db.commit()
-    db.refresh(user)
-    
-    print(f"Successfully updated user '{email}' to admin role")
-    return True
+
 
 if __name__ == "__main__":
     if len(sys.argv) < 2:
@@ -35,5 +39,4 @@ if __name__ == "__main__":
         sys.exit(1)
     
     email = sys.argv[1]
-    make_admin(email)
-
+    asyncio.run(make_admin(email))

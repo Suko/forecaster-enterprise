@@ -1,13 +1,15 @@
 from fastapi import Depends, HTTPException, status, Request
 from jose import JWTError
-from sqlalchemy.orm import Session
+from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy import select
 
-from models import get_db, User, UserRole
+from models import get_db, User
 from .jwt import decode_token
+
 
 async def get_current_user(
     request: Request,
-    db: Session = Depends(get_db)
+    db: AsyncSession = Depends(get_db)
 ) -> User:
     """
     Dependency to get the current authenticated user from Authorization header.
@@ -37,20 +39,22 @@ async def get_current_user(
     except JWTError:
         raise credentials_exception
 
-    user = db.query(User).filter(User.email == email).first()
+    result = await db.execute(select(User).filter(User.email == email))
+    user = result.scalar_one_or_none()
+    
     if user is None or not user.is_active:
         raise credentials_exception
 
     return user
 
+
 async def require_admin(current_user: User = Depends(get_current_user)):
     """
     Dependency to require admin role
     """
-    if current_user.role != UserRole.ADMIN.value:
+    if current_user.role != "admin":
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Admin access required"
         )
     return current_user
-

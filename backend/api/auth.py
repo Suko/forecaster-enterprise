@@ -1,6 +1,6 @@
 from fastapi import APIRouter, Depends, HTTPException, status, Request
 from fastapi.security import OAuth2PasswordRequestForm
-from sqlalchemy.orm import Session
+from sqlalchemy.ext.asyncio import AsyncSession
 from typing import List
 from slowapi.errors import RateLimitExceeded
 
@@ -24,7 +24,7 @@ router = APIRouter(prefix="/auth", tags=["auth"])
 async def login(
     request: Request,
     form_data: OAuth2PasswordRequestForm = Depends(),
-    db: Session = Depends(get_db)
+    db: AsyncSession = Depends(get_db)
 ):
     """
     Login endpoint - returns JWT access token
@@ -39,14 +39,14 @@ async def login(
         raise
     
     # OAuth2PasswordRequestForm uses 'username' field for email
-    return login_user(request, db, form_data.username, form_data.password)
+    return await login_user(request, db, form_data.username, form_data.password)
 
 
 @router.post("/register", response_model=UserResponse, status_code=status.HTTP_201_CREATED)
 async def register(
     request: Request,
     user_data: UserCreate,
-    db: Session = Depends(get_db)
+    db: AsyncSession = Depends(get_db)
 ):
     """
     Register a new user
@@ -56,7 +56,7 @@ async def register(
     # Check rate limits
     check_rate_limit(request)
     
-    return register_user(request, db, user_data)
+    return await register_user(request, db, user_data)
 
 
 @router.get("/me", response_model=UserResponse)
@@ -72,12 +72,12 @@ async def get_current_user_info(
 @router.get("/users", response_model=List[UserResponse])
 async def list_users(
     current_user: User = Depends(require_admin),
-    db: Session = Depends(get_db)
+    db: AsyncSession = Depends(get_db)
 ):
     """
     List all users (admin only)
     """
-    return get_all_users(db)
+    return await get_all_users(db)
 
 
 @router.post("/users", response_model=UserResponse, status_code=status.HTTP_201_CREATED)
@@ -85,13 +85,13 @@ async def create_user_endpoint(
     request: Request,
     user_data: UserCreate,
     current_user: User = Depends(require_admin),
-    db: Session = Depends(get_db)
+    db: AsyncSession = Depends(get_db)
 ):
     """
     Create a new user (admin only)
     """
     check_rate_limit(request)
-    return create_user(db, user_data)
+    return await create_user(db, user_data)
 
 
 @router.patch("/users/{user_id}", response_model=UserResponse)
@@ -99,22 +99,22 @@ async def update_user_endpoint(
     user_id: str,
     user_data: UserUpdate,
     current_user: User = Depends(require_admin),
-    db: Session = Depends(get_db)
+    db: AsyncSession = Depends(get_db)
 ):
     """
     Update user (admin only)
     """
-    return update_user(db, user_id, user_data)
+    return await update_user(db, user_id, user_data)
 
 
 @router.delete("/users/{user_id}", status_code=status.HTTP_204_NO_CONTENT)
 async def delete_user_endpoint(
     user_id: str,
     current_user: User = Depends(require_admin),
-    db: Session = Depends(get_db)
+    db: AsyncSession = Depends(get_db)
 ):
     """
     Delete user (admin only)
     """
-    delete_user(db, user_id, current_user.id)
+    await delete_user(db, user_id, current_user.id)
     return None

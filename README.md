@@ -129,8 +129,9 @@ forecaster_enterprise/
 │  - Auth module (JWT, password hashing, security)           │
 │  - Schemas (Pydantic models for validation)               │
 │  - Core utilities (rate limiting, validation)             │
+│  - Async/await throughout (async SQLAlchemy, asyncpg)     │
 │  - Package manager: uv                                      │
-│  - Database: PostgreSQL                                    │
+│  - Database: PostgreSQL (async)                            │
 └─────────────────────────────────────────────────────────────┘
 ```
 
@@ -138,20 +139,26 @@ forecaster_enterprise/
 
 The backend follows FastAPI best practices with clear separation of concerns:
 
-- **API Layer** (`api/`): Thin route handlers that delegate to services
+- **API Layer** (`api/`): Thin async route handlers that delegate to services
 - **Schemas** (`schemas/`): Pydantic models for request/response validation
-- **Services** (`services/`): Business logic and data operations
-- **Models** (`models/`): SQLAlchemy database models
+- **Services** (`services/`): Async business logic and data operations
+- **Models** (`models/`): SQLAlchemy async database models
 - **Core** (`core/`): Shared utilities (rate limiting, validation)
 - **Auth** (`auth/`): Authentication and security utilities
+
+**Async/Await**: The entire backend uses async/await for optimal performance:
+- All routes are async functions
+- All service functions are async
+- Database operations use async SQLAlchemy with asyncpg
+- This allows FastAPI to handle concurrent requests efficiently
 
 ## Stack Usage
 
 | Component | Technology | Purpose |
 |-----------|-----------|---------|
-| **Backend** | FastAPI | API server, auth endpoints, user management |
+| **Backend** | FastAPI | API server, auth endpoints, user management (async) |
 | **Package Manager** | uv | Python dependency management |
-| **Database** | PostgreSQL | User data, auth tokens |
+| **Database** | PostgreSQL | User data, auth tokens (async with asyncpg) |
 | **Migrations** | Alembic | Database schema management |
 | **Frontend** | Nuxt 4 | SSR framework, routing, auth integration |
 | **Auth Module** | nuxt-auth-utils | JWT token management, session handling |

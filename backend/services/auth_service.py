@@ -1,4 +1,4 @@
-from sqlalchemy.orm import Session
+from sqlalchemy.ext.asyncio import AsyncSession
 from fastapi import HTTPException, status, Request
 
 from models import User
@@ -11,14 +11,14 @@ from auth.security_logger import (
 )
 
 
-def login_user(
+async def login_user(
     request: Request,
-    db: Session,
+    db: AsyncSession,
     email: str,
     password: str
 ) -> dict:
     """Authenticate user and return access token"""
-    user = authenticate_user(db, email, password)
+    user = await authenticate_user(db, email, password)
     
     if not user:
         log_login_failure(request, email=email, reason="Invalid credentials")
@@ -44,14 +44,14 @@ def login_user(
     return {"access_token": access_token, "token_type": "bearer"}
 
 
-def register_user(
+async def register_user(
     request: Request,
-    db: Session,
+    db: AsyncSession,
     user_data
 ):
     """Register a new user"""
     try:
-        user = create_user_service(db, user_data)
+        user = await create_user_service(db, user_data)
         return user
     except HTTPException:
         raise
@@ -60,4 +60,3 @@ def register_user(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail=str(e)
         )
-

@@ -2,7 +2,7 @@
 from .database import (
     Base,
     engine,
-    SessionLocal,
+    AsyncSessionLocal,
     create_tables,
     get_db,
     init_db,
@@ -18,7 +18,7 @@ __all__ = [
     # Base
     "Base",
     "engine",
-    "SessionLocal",
+    "AsyncSessionLocal",
     "create_tables",
     "get_db",
     "init_db",

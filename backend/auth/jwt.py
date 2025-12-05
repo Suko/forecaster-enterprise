@@ -24,12 +24,28 @@ def create_refresh_token(data: dict):
     to_encode.update({"exp": expire, "type": "refresh"})
     return jwt.encode(to_encode, settings.secret_key, algorithm=settings.algorithm)
 
-def decode_token(token: str):
+def decode_token(token: str, expected_type: str = "access"):
     """
-    Decode and validate JWT token
+    Decode and validate JWT token with type checking
+    
+    Args:
+        token: JWT token string
+        expected_type: Expected token type ("access" or "refresh")
+    
+    Returns:
+        Decoded token payload
+    
+    Raises:
+        JWTError: If token is invalid, expired, or wrong type
     """
     try:
         payload = jwt.decode(token, settings.secret_key, algorithms=[settings.algorithm])
+        
+        # Validate token type
+        token_type = payload.get("type")
+        if token_type != expected_type:
+            raise JWTError(f"Invalid token type. Expected '{expected_type}', got '{token_type}'")
+        
         return payload
     except JWTError as e:
         raise e

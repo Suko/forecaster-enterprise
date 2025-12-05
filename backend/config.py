@@ -1,10 +1,14 @@
 from pydantic_settings import BaseSettings
 from typing import Optional
 import os
+import secrets
+import warnings
 from pathlib import Path
+from urllib.parse import urlparse, parse_qs, urlencode, urlunparse
 from dotenv import load_dotenv
 
 # Load .env file from multiple possible locations
+# Use override=False to prevent .env from overwriting runtime environment variables
 _backend_dir = Path(__file__).parent
 _env_locations = [
     _backend_dir / ".env",  # Primary: backend/.env
@@ -16,11 +20,38 @@ _env_locations = [
 _env_loaded = False
 for env_path in _env_locations:
     if env_path.exists():
-        load_dotenv(env_path, override=True)
+        load_dotenv(env_path, override=False)  # Don't override existing env vars
         _env_loaded = True
         break
 
 # If no .env file found, that's OK - rely on existing environment variables
+
+def _generate_dev_secret_key() -> str:
+    """Generate a strong secret key for development use only"""
+    return secrets.token_urlsafe(32)
+
+def _enforce_database_tls(database_url: str) -> str:
+    """
+    Enforce TLS for remote database connections.
+    Localhost connections are allowed without TLS for development.
+    """
+    parsed = urlparse(database_url)
+    is_localhost = parsed.hostname in ["localhost", "127.0.0.1", "::1"]
+    
+    if is_localhost:
+        return database_url
+    
+    # For remote databases, enforce TLS
+    query_params = parse_qs(parsed.query)
+    sslmode = query_params.get("sslmode", [None])[0]
+    
+    if sslmode not in ["require", "prefer", "verify-ca", "verify-full"]:
+        query_params["sslmode"] = ["require"]
+        new_query = urlencode(query_params, doseq=True)
+        parsed = parsed._replace(query=new_query)
+        return urlunparse(parsed)
+    
+    return database_url
 
 class Settings(BaseSettings):
     # App settings
@@ -29,13 +60,15 @@ class Settings(BaseSettings):
     debug: bool = os.getenv("DEBUG", "false").lower() in ["true", "1", "yes"]
 
     # Database URL - PostgreSQL
-    database_url: str = os.getenv(
+    _raw_database_url: str = os.getenv(
         "DATABASE_URL",
         "postgresql://postgres:postgres@localhost:5432/forecaster_enterprise"
     )
+    database_url: str = ""  # Will be set in model_post_init
 
     # Security - JWT
-    secret_key: str = os.getenv("JWT_SECRET_KEY", "")
+    _raw_secret_key: str = os.getenv("JWT_SECRET_KEY", "")
+    secret_key: str = ""  # Will be set in model_post_init
     algorithm: str = os.getenv("JWT_ALGORITHM", "HS256")
     access_token_expire_minutes: int = int(os.getenv("JWT_ACCESS_TOKEN_EXPIRE_MINUTES", "30"))
 
@@ -51,9 +84,45 @@ class Settings(BaseSettings):
 
     def model_post_init(self, __context) -> None:
         """Validate configuration after initialization"""
-        # Ensure JWT secret key is set in production
-        if not self.secret_key and self.environment.lower() not in ["development", "dev", "local"]:
-            raise ValueError("JWT_SECRET_KEY must be set in production environment")
+        is_dev = self.environment.lower() in ["development", "dev", "local"]
+        
+        # JWT Secret Key - Required in all environments
+        if not self._raw_secret_key:
+            if is_dev:
+                # Generate a strong dev key but warn
+                self.secret_key = _generate_dev_secret_key()
+                warnings.warn(
+                    "JWT_SECRET_KEY not set. Generated a temporary key for development. "
+                    "Set JWT_SECRET_KEY in production!",
+                    UserWarning
+                )
+            else:
+                raise ValueError(
+                    "JWT_SECRET_KEY must be set in production environment. "
+                    "Set the JWT_SECRET_KEY environment variable."
+                )
+        else:
+            if len(self._raw_secret_key) < 32:
+                raise ValueError("JWT_SECRET_KEY must be at least 32 characters long")
+            self.secret_key = self._raw_secret_key
+        
+        # Database URL - Enforce TLS for remote connections
+        self.database_url = _enforce_database_tls(self._raw_database_url)
+        
+        # Debug mode - Disable in production
+        if self.debug and not is_dev:
+            raise ValueError(
+                "DEBUG mode cannot be enabled in production. "
+                "Set ENVIRONMENT=development for debug mode."
+            )
+        
+        # API Host - Restrict binding in production
+        if not is_dev and self.api_host == "0.0.0.0":
+            warnings.warn(
+                "API_HOST=0.0.0.0 is not recommended in production. "
+                "Consider binding to 127.0.0.1 and using a reverse proxy.",
+                UserWarning
+            )
 
     class Config:
         env_file = ".env"

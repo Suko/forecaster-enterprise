@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue'
 import { LayoutDashboard, Users, UserCheck, Activity, PanelLeft, MessageSquare } from 'lucide-vue-next'
-import { useUserSession } from '#auth-utils'
 
 const sidebarExpanded = ref(true)
 const { user } = useUserSession()

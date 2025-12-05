@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 import { LogOut, User, Bell, Sun, Moon, Menu, Settings } from 'lucide-vue-next'
-import { useUserSession } from '#auth-utils'
 
 const { user, clear } = useUserSession()
 const isLoggingOut = ref(false)

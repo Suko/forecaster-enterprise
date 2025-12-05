@@ -1,18 +1,17 @@
-from fastapi import Depends, HTTPException, status, Cookie, Request
+from fastapi import Depends, HTTPException, status, Request
 from jose import JWTError
 from sqlalchemy.orm import Session
-from typing import Optional
 
 from models import get_db, User, UserRole
 from .jwt import decode_token
 
 async def get_current_user(
     request: Request,
-    db: Session = Depends(get_db),
-    access_token: Optional[str] = Cookie(None)
+    db: Session = Depends(get_db)
 ) -> User:
     """
-    Dependency to get the current authenticated user from cookie or Authorization header
+    Dependency to get the current authenticated user from Authorization header.
+    Only accepts Bearer tokens via Authorization header for security.
     """
     credentials_exception = HTTPException(
         status_code=status.HTTP_401_UNAUTHORIZED,
@@ -20,25 +19,22 @@ async def get_current_user(
         headers={"WWW-Authenticate": "Bearer"},
     )
 
-    # Try to get token from Authorization header first
-    token = None
+    # Get token from Authorization header only
     authorization = request.headers.get("Authorization")
-    if authorization and authorization.startswith("Bearer "):
-        token = authorization.split(" ")[1]
-    elif access_token:
-        # Fallback to cookie
-        token = access_token
-
-    # No token found in either header or cookies
+    if not authorization or not authorization.startswith("Bearer "):
+        raise credentials_exception
+    
+    token = authorization.split(" ")[1]
     if not token:
         raise credentials_exception
 
     try:
-        payload = decode_token(token)
+        # Decode and validate token (expects access token type)
+        payload = decode_token(token, expected_type="access")
         email: str = payload.get("sub")
         if email is None:
             raise credentials_exception
-    except (JWTError, Exception):
+    except JWTError:
         raise credentials_exception
 
     user = db.query(User).filter(User.email == email).first()

@@ -94,16 +94,15 @@ async def test_create_user_duplicate_email(test_session: AsyncSession, test_user
 @pytest.mark.asyncio
 async def test_create_user_short_password(test_session: AsyncSession):
     """Test creating user with short password."""
-    user_data = UserCreate(
-        email="shortpass@example.com",
-        password="short",
-        name="Short Pass"
-    )
+    from pydantic import ValidationError
     
-    with pytest.raises(HTTPException) as exc_info:
-        await create_user(test_session, user_data)
-    
-    assert exc_info.value.status_code == 400
+    # Pydantic validation will catch short password before function is called
+    with pytest.raises(ValidationError):
+        UserCreate(
+            email="shortpass@example.com",
+            password="short",  # Too short - Pydantic validator will reject
+            name="Short Pass"
+        )
 
 
 @pytest.mark.asyncio

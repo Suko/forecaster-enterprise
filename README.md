@@ -53,14 +53,22 @@ All configuration is managed through `.env` file in the project root. See `.env.
 ```
 forecaster_enterprise/
 ├── backend/                    # FastAPI backend
-│   ├── api/                    # API routes/endpoints
-│   │   └── auth.py            # Auth endpoints (login, register, /me)
+│   ├── api/                    # API routes/endpoints (thin layer)
+│   │   └── auth.py            # Auth routes (delegates to services)
+│   ├── schemas/                # Pydantic models (request/response)
+│   │   └── auth.py            # Token, UserResponse, UserCreate, UserUpdate
+│   ├── services/               # Business logic layer
+│   │   ├── auth_service.py    # Authentication business logic
+│   │   └── user_service.py    # User management business logic
+│   ├── core/                   # Core utilities
+│   │   └── rate_limit.py     # Rate limiting and password validation
 │   ├── auth/                   # Auth module
 │   │   ├── __init__.py
 │   │   ├── security.py         # Password hashing
 │   │   ├── jwt.py              # JWT token creation/validation
-│   │   └── dependencies.py      # FastAPI auth dependencies
-│   ├── models/                 # Database models
+│   │   ├── dependencies.py      # FastAPI auth dependencies
+│   │   └── security_logger.py  # Security event logging
+│   ├── models/                 # Database models (SQLAlchemy)
 │   │   ├── __init__.py
 │   │   ├── database.py         # Database setup
 │   │   └── user.py             # User, Role models
@@ -107,13 +115,35 @@ forecaster_enterprise/
                        │ HTTP/REST API
 ┌──────────────────────▼──────────────────────────────────────┐
 │                 Backend (FastAPI)                           │
+│  ┌─────────────────────────────────────────────────────┐  │
+│  │  API Layer (api/) - Thin route handlers             │  │
+│  └──────────────────┬──────────────────────────────────┘  │
+│                      │                                      │
+│  ┌──────────────────▼──────────────────────────────────┐  │
+│  │  Services Layer (services/) - Business logic        │  │
+│  └──────────────────┬──────────────────────────────────┘  │
+│                      │                                      │
+│  ┌──────────────────▼──────────────────────────────────┐  │
+│  │  Models Layer (models/) - SQLAlchemy ORM             │  │
+│  └────────────────────────────────────────────────────┘  │
 │  - Auth module (JWT, password hashing, security)           │
-│  - User management (CRUD, roles, admin access)             │
-│  - Database models (SQLAlchemy ORM)                        │
+│  - Schemas (Pydantic models for validation)               │
+│  - Core utilities (rate limiting, validation)             │
 │  - Package manager: uv                                      │
 │  - Database: PostgreSQL                                    │
 └─────────────────────────────────────────────────────────────┘
 ```
+
+### Backend Architecture (FastAPI Best Practices)
+
+The backend follows FastAPI best practices with clear separation of concerns:
+
+- **API Layer** (`api/`): Thin route handlers that delegate to services
+- **Schemas** (`schemas/`): Pydantic models for request/response validation
+- **Services** (`services/`): Business logic and data operations
+- **Models** (`models/`): SQLAlchemy database models
+- **Core** (`core/`): Shared utilities (rate limiting, validation)
+- **Auth** (`auth/`): Authentication and security utilities
 
 ## Stack Usage
 

@@ -1,0 +1,63 @@
+from sqlalchemy.orm import Session
+from fastapi import HTTPException, status, Request
+
+from models import User
+from auth import create_access_token
+from services.user_service import authenticate_user, create_user as create_user_service
+from auth.security_logger import (
+    log_login_success,
+    log_login_failure,
+    log_rate_limit,
+)
+
+
+def login_user(
+    request: Request,
+    db: Session,
+    email: str,
+    password: str
+) -> dict:
+    """Authenticate user and return access token"""
+    user = authenticate_user(db, email, password)
+    
+    if not user:
+        log_login_failure(request, email=email, reason="Invalid credentials")
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Incorrect email or password",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+    
+    if not user.is_active:
+        log_login_failure(request, email=email, reason="Account inactive")
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="User account is inactive"
+        )
+    
+    # Create access token
+    access_token = create_access_token(data={"sub": user.email})
+    
+    # Log successful login
+    log_login_success(request, email=user.email)
+    
+    return {"access_token": access_token, "token_type": "bearer"}
+
+
+def register_user(
+    request: Request,
+    db: Session,
+    user_data
+):
+    """Register a new user"""
+    try:
+        user = create_user_service(db, user_data)
+        return user
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=str(e)
+        )
+

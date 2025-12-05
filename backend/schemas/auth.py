@@ -3,7 +3,7 @@ from pydantic import BaseModel, EmailStr, field_validator
 
 # Password validation constants
 MIN_PASSWORD_LENGTH = 8
-MAX_PASSWORD_LENGTH = 72  # bcrypt limit
+MAX_PASSWORD_LENGTH = 128  # Argon2 supports longer passwords (pwdlib default)
 
 
 def validate_password(password: str) -> None:

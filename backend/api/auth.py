@@ -51,7 +51,7 @@ async def register(
     """
     Register a new user
     Rate limited to prevent abuse
-    Password validation: 8-72 characters (bcrypt limit)
+    Password validation: 8-128 characters
     """
     # Check rate limits
     check_rate_limit(request)

@@ -58,7 +58,6 @@ async def test_get_all_users(test_session: AsyncSession, test_user: User, test_a
 
 
 @pytest.mark.asyncio
-@pytest.mark.skip(reason="Requires passlib/bcrypt integration - functionality verified in production")
 async def test_create_user(test_session: AsyncSession):
     """Test creating a new user."""
     user_data = UserCreate(

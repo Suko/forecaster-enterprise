@@ -24,7 +24,7 @@ def test_validate_password_too_short():
 
 def test_validate_password_too_long():
     """Test password validation with too long password."""
-    long_password = "a" * 73  # 73 characters (exceeds bcrypt limit)
+    long_password = "a" * 129  # 129 characters (exceeds pwdlib/Argon2 limit)
     
     with pytest.raises(ValueError) as exc_info:
         validate_password(long_password)
@@ -39,7 +39,7 @@ def test_validate_password_min_length():
 
 def test_validate_password_max_length():
     """Test password validation with maximum length."""
-    max_password = "a" * 72  # Exactly 72 characters (bcrypt limit)
+    max_password = "a" * 128  # Maximum password length (pwdlib/Argon2)
     validate_password(max_password)
 
 

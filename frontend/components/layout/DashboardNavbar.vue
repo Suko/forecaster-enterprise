@@ -54,15 +54,15 @@ const handleLogout = async () => {
       </Button>
       <div class="border-x-[1px] border-gray-300 h-[24px] w-[1px] mx-2"></div>
       <div class="relative">
-        <DropdownMenu v-slot="{ open, toggle }">
+        <DropdownMenu>
           <DropdownMenuTrigger as-child>
-            <Button variant="ghost" class="relative h-8 w-8 rounded-full" @click="toggle">
+            <Button variant="ghost" class="relative h-8 w-8 rounded-full">
               <Avatar class="h-8 w-8">
                 <AvatarFallback>{{ (user?.name || user?.email)?.charAt(0).toUpperCase() }}</AvatarFallback>
               </Avatar>
             </Button>
           </DropdownMenuTrigger>
-          <DropdownMenuContent v-if="open" class="w-56" align="end" :sideOffset="4">
+          <DropdownMenuContent class="w-56" align="end" :sideOffset="4">
           <DropdownMenuLabel class="p-0 font-normal">
             <div class="flex items-center gap-2 px-1 py-1.5 text-sm">
               <Avatar class="h-8 w-8">

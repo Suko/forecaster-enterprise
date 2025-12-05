@@ -1,6 +1,5 @@
-import { setUserSession } from '#auth-utils/server'
-
 export default defineEventHandler(async (event) => {
+  // setUserSession is auto-imported by nuxt-auth-utils
   const body = await readBody(event)
   const config = useRuntimeConfig()
 

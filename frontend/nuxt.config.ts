@@ -19,6 +19,12 @@ export default defineNuxtConfig({
     session: {
       maxAge: 60 * 60 * 24 * 7 // 1 week
     }
-  }
+  },
+  postcss: {
+    plugins: {
+      tailwindcss: {},
+      autoprefixer: {},
+    },
+  },
 })
 

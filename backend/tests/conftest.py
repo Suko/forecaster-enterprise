@@ -77,12 +77,17 @@ async def test_client(test_session: AsyncSession):
 @pytest.fixture
 async def test_user(test_session: AsyncSession) -> User:
     """Create a test user."""
-    from auth import get_password_hash
+    from passlib.context import CryptContext
+    
+    # Use CryptContext directly to avoid bcrypt initialization issues in tests
+    pwd_context = CryptContext(schemes=['bcrypt'], deprecated='auto')
+    password = "testpass123"
+    hashed_password = pwd_context.hash(password)
     
     user = User(
         email="test@example.com",
         name="Test User",
-        hashed_password=get_password_hash("testpassword123"),
+        hashed_password=hashed_password,
         role="user",
         is_active=True,
     )
@@ -95,12 +100,17 @@ async def test_user(test_session: AsyncSession) -> User:
 @pytest.fixture
 async def test_admin_user(test_session: AsyncSession) -> User:
     """Create a test admin user."""
-    from auth import get_password_hash
+    from passlib.context import CryptContext
+    
+    # Use CryptContext directly to avoid bcrypt initialization issues in tests
+    pwd_context = CryptContext(schemes=['bcrypt'], deprecated='auto')
+    password = "adminpass123"
+    hashed_password = pwd_context.hash(password)
     
     user = User(
         email="admin@example.com",
         name="Admin User",
-        hashed_password=get_password_hash("adminpassword123"),
+        hashed_password=hashed_password,
         role="admin",
         is_active=True,
     )

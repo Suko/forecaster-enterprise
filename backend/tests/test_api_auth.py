@@ -46,7 +46,7 @@ async def test_login_endpoint(test_client: AsyncClient, test_user: User):
         "/auth/login",
         data={
             "username": test_user.email,
-            "password": "testpassword123"
+            "password": "testpass123"
         }
     )
     

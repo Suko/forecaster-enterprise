@@ -187,7 +187,7 @@ async def test_delete_user_not_found(test_session: AsyncSession, test_admin_user
 @pytest.mark.asyncio
 async def test_authenticate_user(test_session: AsyncSession, test_user: User):
     """Test authenticating user with correct password."""
-    user = await authenticate_user(test_session, test_user.email, "testpassword123")
+    user = await authenticate_user(test_session, test_user.email, "testpass123")
     assert user is not None
     assert user.email == test_user.email
 

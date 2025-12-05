@@ -11,7 +11,7 @@ from models.user import User
 @pytest.mark.asyncio
 async def test_login_user_success(test_session: AsyncSession, test_user: User, mock_request: Request):
     """Test successful user login."""
-    result = await login_user(mock_request, test_session, test_user.email, "testpassword123")
+    result = await login_user(mock_request, test_session, test_user.email, "testpass123")
     
     assert "access_token" in result
     assert "token_type" in result
@@ -36,7 +36,7 @@ async def test_login_user_inactive_account(test_session: AsyncSession, test_user
     await test_session.commit()
     
     with pytest.raises(HTTPException) as exc_info:
-        await login_user(mock_request, test_session, test_user.email, "testpassword123")
+        await login_user(mock_request, test_session, test_user.email, "testpass123")
     
     assert exc_info.value.status_code == 403
     assert "inactive" in exc_info.value.detail.lower()

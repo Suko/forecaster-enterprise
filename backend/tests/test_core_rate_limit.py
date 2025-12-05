@@ -62,18 +62,47 @@ def test_check_rate_limit_enabled(monkeypatch):
     from core.rate_limit import _rate_limit_storage
     _rate_limit_storage.clear()
     
-    monkeypatch.setattr(settings, "rate_limit_enabled", True)
-    monkeypatch.setattr(settings, "rate_limit_per_minute", 1)
-    monkeypatch.setattr(settings, "rate_limit_per_hour", 10)
+    # Save original values
+    original_enabled = settings.rate_limit_enabled
+    original_per_minute = settings.rate_limit_per_minute
+    original_per_hour = settings.rate_limit_per_hour
     
-    mock_request = Mock()
-    mock_request.client = Mock()
-    mock_request.client.host = "127.0.0.1"
-    
-    # First request should pass
-    check_rate_limit(mock_request)
-    
-    # Second request should fail (exceeds per-minute limit)
-    with pytest.raises(RateLimitExceeded):
-        check_rate_limit(mock_request)
+    try:
+        # Set test values directly (monkeypatch doesn't work well with Pydantic settings)
+        settings.rate_limit_enabled = True
+        settings.rate_limit_per_minute = 1
+        settings.rate_limit_per_hour = 10
+        
+        # Create mock request that works with get_remote_address
+        from fastapi import Request
+        from unittest.mock import MagicMock
+        
+        mock_request = MagicMock(spec=Request)
+        mock_request.client = MagicMock()
+        mock_request.client.host = "127.0.0.1"
+        mock_request.client.port = 12345
+        
+        # Mock get_remote_address at the module level
+        import core.rate_limit
+        original_get_remote = core.rate_limit.get_remote_address
+        core.rate_limit.get_remote_address = lambda req: "127.0.0.1"
+        
+        try:
+            # First request should pass
+            check_rate_limit(mock_request)
+            
+            # Second request should fail (exceeds per-minute limit)
+            with pytest.raises(RateLimitExceeded) as exc_info:
+                check_rate_limit(mock_request)
+            
+            assert "rate limit exceeded" in str(exc_info.value.detail).lower()
+        finally:
+            # Restore get_remote_address
+            core.rate_limit.get_remote_address = original_get_remote
+    finally:
+        # Restore original values
+        settings.rate_limit_enabled = original_enabled
+        settings.rate_limit_per_minute = original_per_minute
+        settings.rate_limit_per_hour = original_per_hour
+        _rate_limit_storage.clear()
 

@@ -13,28 +13,28 @@
       </template>
 
       <div class="space-y-4">
-        <UFormGroup label="Company Name" name="companyName">
+        <UFormField label="Company Name" name="companyName">
           <UInput
             v-model="formState.companyName"
             placeholder="Enter company name"
           />
-        </UFormGroup>
+        </UFormField>
 
-        <UFormGroup label="Timezone" name="timezone">
+        <UFormField label="Timezone" name="timezone">
           <USelect
             v-model="formState.timezone"
             :options="timezoneOptions"
             placeholder="Select timezone"
           />
-        </UFormGroup>
+        </UFormField>
 
-        <UFormGroup label="Language" name="language">
+        <UFormField label="Language" name="language">
           <USelect
             v-model="formState.language"
             :options="languageOptions"
             placeholder="Select language"
           />
-        </UFormGroup>
+        </UFormField>
       </div>
 
       <template #footer>

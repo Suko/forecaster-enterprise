@@ -51,14 +51,14 @@
               <span class="text-sm lowercase">{{ user.role }}</span>
             </template>
           </USelectMenu>
-          <UDropdown :items="getUserActions(user)">
+          <UDropdownMenu :items="getUserActions(user)">
             <UButton
               icon="i-lucide-more-vertical"
               color="gray"
               variant="ghost"
               size="sm"
             />
-          </UDropdown>
+          </UDropdownMenu>
         </div>
       </div>
 
@@ -86,15 +86,15 @@
           :state="formState"
           @submit="handleSubmit"
         >
-          <UFormGroup label="Email" name="email" required>
+          <UFormField label="Email" name="email" required>
             <UInput
               v-model="formState.email"
               type="email"
               :disabled="!!editingUser"
             />
-          </UFormGroup>
+          </UFormField>
 
-          <UFormGroup
+          <UFormField
             v-if="!editingUser"
             label="Password"
             name="password"
@@ -104,25 +104,25 @@
               v-model="formState.password"
               type="password"
             />
-          </UFormGroup>
+          </UFormField>
 
-          <UFormGroup label="Name" name="name">
+          <UFormField label="Name" name="name">
             <UInput v-model="formState.name" />
-          </UFormGroup>
+          </UFormField>
 
-          <UFormGroup label="Role" name="role" required>
+          <UFormField label="Role" name="role" required>
             <USelect
               v-model="formState.role"
               :options="roleOptions"
             />
-          </UFormGroup>
+          </UFormField>
 
-          <UFormGroup label="Status" name="is_active">
-            <UToggle
+          <UFormField label="Status" name="is_active">
+            <USwitch
               v-model="formState.is_active"
               label="Active"
             />
-          </UFormGroup>
+          </UFormField>
 
           <template #footer>
             <div class="flex justify-end gap-2">

@@ -2,9 +2,9 @@
   <div class="min-h-screen flex items-center justify-center bg-background">
     <Card class="w-full max-w-sm">
       <CardHeader class="space-y-4 px-6 py-2.5">
-        <CardTitle class="text-2xl text-left">Login</CardTitle>
+        <CardTitle class="text-2xl text-left">Admin Login</CardTitle>
         <CardDescription class="text-left">
-          Enter your credentials to access the dashboard
+          Enter your credentials to access the admin dashboard
         </CardDescription>
       </CardHeader>
       <CardContent>
@@ -53,24 +53,21 @@
 
 <script setup lang="ts">
 import { ref, computed } from 'vue'
-import { useRouter, useRoute } from 'vue-router'
-import { useUserSession } from '#auth-utils'
 
 const email = ref('')
 const password = ref('')
 const isSubmitting = ref(false)
 const error = ref<string | null>(null)
-const { fetch, loggedIn } = useUserSession()
-const router = useRouter()
-const route = useRoute()
+const { fetch } = useUserSession()
 
 // Get return URL from query parameters
+const route = useRoute()
 const returnUrl = computed(() => {
   const redirect = route.query.redirect as string
   if (redirect && redirect !== '/login' && redirect !== '/') {
     return redirect
   }
-  return '/'
+  return '/dashboard'
 })
 
 const handleLogin = async () => {
@@ -101,7 +98,7 @@ const handleLogin = async () => {
       await fetch()
       
       // Redirect to return URL or dashboard
-      await router.push(returnUrl.value)
+      await navigateTo(returnUrl.value)
     } else {
       error.value = response.error || 'Login failed'
     }

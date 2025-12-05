@@ -26,5 +26,12 @@ export default defineNuxtConfig({
       autoprefixer: {},
     },
   },
+  // Component auto-import configuration
+  components: [
+    {
+      path: '~/components',
+      pathPrefix: false,
+    },
+  ],
 })
 

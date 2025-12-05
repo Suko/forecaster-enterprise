@@ -1,4 +1,4 @@
-from fastapi import Request, status
+from fastapi import Request
 from slowapi.util import get_remote_address
 from slowapi.errors import RateLimitExceeded
 from datetime import datetime, timedelta
@@ -30,7 +30,6 @@ def check_rate_limit(request: Request) -> None:
     recent_minute = [ts for ts in _rate_limit_storage[client_id] if ts > minute_ago]
     if len(recent_minute) >= settings.rate_limit_per_minute:
         raise RateLimitExceeded(
-            status_code=status.HTTP_429_TOO_MANY_REQUESTS,
             detail=f"Rate limit exceeded: {settings.rate_limit_per_minute} requests per minute"
         )
     
@@ -39,7 +38,6 @@ def check_rate_limit(request: Request) -> None:
     recent_hour = [ts for ts in _rate_limit_storage[client_id] if ts > hour_ago]
     if len(recent_hour) >= settings.rate_limit_per_hour:
         raise RateLimitExceeded(
-            status_code=status.HTTP_429_TOO_MANY_REQUESTS,
             detail=f"Rate limit exceeded: {settings.rate_limit_per_hour} requests per hour"
         )
     

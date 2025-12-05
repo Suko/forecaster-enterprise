@@ -29,8 +29,10 @@
 5. **Start backend:**
    ```bash
    cd backend
-   python3 -m uvicorn main:app --reload --host 0.0.0.0 --port 8000
+   uv run uvicorn main:app --reload --host 0.0.0.0 --port 8000
    ```
+   
+   **Note:** Always use `uv run` to ensure you're using the correct virtual environment with all dependencies.
 
 6. **Test endpoints:**
    ```bash

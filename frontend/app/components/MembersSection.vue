@@ -227,7 +227,9 @@ const schema = computed(() => {
   } else {
     return z.object({
       ...baseSchema,
-      password: z.string().min(8, 'Password must be at least 8 characters')
+      password: z.string()
+        .min(8, 'Password must be at least 8 characters')
+        .max(128, 'Password must be no more than 128 characters')
     })
   }
 })

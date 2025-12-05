@@ -3,7 +3,7 @@ import { authenticatedFetch } from '../utils/api'
 
 const bodySchema = z.object({
   email: z.string().email(),
-  password: z.string().min(8),
+  password: z.string().min(8).max(128),
   name: z.string().optional(),
 })
 

@@ -186,11 +186,13 @@ async def test_delete_user_endpoint(test_client: AsyncClient, test_user: User, t
     
     assert response.status_code == 204
     
-    # Verify user is deleted
+    # Verify user is deleted by checking the list
     response = await test_client.get(
-        f"/auth/users/{test_user.id}",
+        "/auth/users",
         headers={"Authorization": f"Bearer {token}"}
     )
-    # Should return 404 or 403 depending on implementation
-    assert response.status_code in [404, 403]
+    assert response.status_code == 200
+    users = response.json()
+    user_ids = [user["id"] for user in users]
+    assert test_user.id not in user_ids
 

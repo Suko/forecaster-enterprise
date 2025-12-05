@@ -2,6 +2,7 @@ import pytest
 from fastapi import HTTPException, Request
 from sqlalchemy.ext.asyncio import AsyncSession
 from unittest.mock import Mock
+from pydantic import ValidationError
 
 from services.auth_service import login_user, register_user
 from schemas.auth import UserCreate
@@ -85,15 +86,16 @@ async def test_register_user_duplicate_email(test_session: AsyncSession, test_us
 
 @pytest.mark.asyncio
 async def test_register_user_short_password(test_session: AsyncSession, mock_request: Request):
-    """Test registration with short password."""
-    user_data = UserCreate(
-        email="shortpass@example.com",
-        password="short",
-        name="Short Pass"
-    )
+    """Test registration with short password - Pydantic validates before service layer."""
+    # Pydantic validation happens at model creation, not in service
+    with pytest.raises(ValidationError) as exc_info:
+        UserCreate(
+            email="shortpass@example.com",
+            password="short",
+            name="Short Pass"
+        )
     
-    with pytest.raises(HTTPException) as exc_info:
-        await register_user(mock_request, test_session, user_data)
-    
-    assert exc_info.value.status_code == 400
+    # Verify the validation error is about password length
+    errors = exc_info.value.errors()
+    assert any("password" in str(error.get("loc", [])).lower() for error in errors)
 

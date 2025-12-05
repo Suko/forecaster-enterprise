@@ -3,7 +3,7 @@ import asyncio
 from typing import AsyncGenerator
 from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession, async_sessionmaker
 from sqlalchemy.pool import StaticPool
-from httpx import AsyncClient
+from httpx import AsyncClient, ASGITransport
 from unittest.mock import Mock
 
 from models.database import Base
@@ -68,7 +68,8 @@ async def test_client(test_session: AsyncSession):
     
     app.dependency_overrides[get_db] = override_get_db
     
-    async with AsyncClient(app=app, base_url="http://test") as client:
+    transport = ASGITransport(app=app)
+    async with AsyncClient(transport=transport, base_url="http://test") as client:
         yield client
     
     app.dependency_overrides.clear()

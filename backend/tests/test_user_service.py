@@ -187,6 +187,11 @@ async def test_delete_user_not_found(test_session: AsyncSession, test_admin_user
 @pytest.mark.asyncio
 async def test_authenticate_user(test_session: AsyncSession, test_user: User):
     """Test authenticating user with correct password."""
+    # Use bcrypt directly to verify password (bypasses passlib init issues)
+    import bcrypt
+    # Verify the password hash matches
+    assert bcrypt.checkpw(b"testpass123", test_user.hashed_password.encode('utf-8'))
+    # Test the authenticate function
     user = await authenticate_user(test_session, test_user.email, "testpass123")
     assert user is not None
     assert user.email == test_user.email

@@ -59,16 +59,14 @@ class Settings(BaseSettings):
     environment: str = os.getenv("ENVIRONMENT", "development")
     debug: bool = os.getenv("DEBUG", "false").lower() in ["true", "1", "yes"]
 
-    # Database URL - PostgreSQL
-    _raw_database_url: str = os.getenv(
+    # Database URL - PostgreSQL (will be processed in model_post_init)
+    database_url: str = os.getenv(
         "DATABASE_URL",
         "postgresql://postgres:postgres@localhost:5432/forecaster_enterprise"
     )
-    database_url: str = ""  # Will be set in model_post_init
 
-    # Security - JWT
-    _raw_secret_key: str = os.getenv("JWT_SECRET_KEY", "")
-    secret_key: str = ""  # Will be set in model_post_init
+    # Security - JWT (will be processed in model_post_init)
+    secret_key: str = os.getenv("JWT_SECRET_KEY", "")
     algorithm: str = os.getenv("JWT_ALGORITHM", "HS256")
     access_token_expire_minutes: int = int(os.getenv("JWT_ACCESS_TOKEN_EXPIRE_MINUTES", "30"))
 
@@ -81,13 +79,18 @@ class Settings(BaseSettings):
         "CORS_ORIGINS",
         "http://localhost:3000,http://localhost:5173"
     ).split(",")
+    
+    # Rate Limiting Configuration
+    rate_limit_enabled: bool = os.getenv("RATE_LIMIT_ENABLED", "true").lower() in ["true", "1", "yes"]
+    rate_limit_per_minute: int = int(os.getenv("RATE_LIMIT_PER_MINUTE", "5"))
+    rate_limit_per_hour: int = int(os.getenv("RATE_LIMIT_PER_HOUR", "20"))
 
     def model_post_init(self, __context) -> None:
         """Validate configuration after initialization"""
         is_dev = self.environment.lower() in ["development", "dev", "local"]
         
         # JWT Secret Key - Required in all environments
-        if not self._raw_secret_key:
+        if not self.secret_key:
             if is_dev:
                 # Generate a strong dev key but warn
                 self.secret_key = _generate_dev_secret_key()
@@ -102,12 +105,11 @@ class Settings(BaseSettings):
                     "Set the JWT_SECRET_KEY environment variable."
                 )
         else:
-            if len(self._raw_secret_key) < 32:
+            if len(self.secret_key) < 32:
                 raise ValueError("JWT_SECRET_KEY must be at least 32 characters long")
-            self.secret_key = self._raw_secret_key
         
         # Database URL - Enforce TLS for remote connections
-        self.database_url = _enforce_database_tls(self._raw_database_url)
+        self.database_url = _enforce_database_tls(self.database_url)
         
         # Debug mode - Disable in production
         if self.debug and not is_dev:
@@ -123,6 +125,16 @@ class Settings(BaseSettings):
                 "Consider binding to 127.0.0.1 and using a reverse proxy.",
                 UserWarning
             )
+        
+        # CORS - Restrict in production
+        if not is_dev:
+            # In production, require explicit CORS origins (no wildcards)
+            if "*" in self.cors_origins or any("localhost" in origin.lower() for origin in self.cors_origins):
+                warnings.warn(
+                    "CORS_ORIGINS contains localhost or wildcards in production. "
+                    "This is not recommended for security.",
+                    UserWarning
+                )
 
     class Config:
         env_file = ".env"

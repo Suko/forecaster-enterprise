@@ -1,5 +1,7 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
+from slowapi.errors import RateLimitExceeded
 from config import settings
 
 from models import init_db
@@ -15,13 +17,28 @@ app = FastAPI(
     debug=settings.debug,
 )
 
+# Rate limit exception handler
+@app.exception_handler(RateLimitExceeded)
+async def rate_limit_handler(request: Request, exc: RateLimitExceeded):
+    """Handle rate limit exceeded errors"""
+    return JSONResponse(
+        status_code=exc.status_code,
+        content={
+            "detail": exc.detail or "Rate limit exceeded. Please try again later.",
+            "error": "rate_limit_exceeded"
+        },
+        headers={"Retry-After": "60"}
+    )
+
 # CORS middleware - uses settings from .env
+# More restrictive in production
+is_dev = settings.environment.lower() in ["development", "dev", "local"]
 app.add_middleware(
     CORSMiddleware,
     allow_origins=settings.cors_origins,
     allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
+    allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"] if not is_dev else ["*"],
+    allow_headers=["Authorization", "Content-Type"] if not is_dev else ["*"],
 )
 
 # Include routers

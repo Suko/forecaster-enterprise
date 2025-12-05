@@ -1,11 +1,12 @@
 // https://nuxt.com/docs/api/configuration/nuxt-config
 export default defineNuxtConfig({
-  compatibilityDate: '2024-11-01',
+  compatibilityDate: '2025-07-15',
   devtools: { enabled: true },
   modules: [
-    'nuxt-auth-utils',
-    '@nuxtjs/tailwindcss'
+    '@nuxt/ui',
+    'nuxt-auth-utils'
   ],
+  css: ['~/assets/css/main.css'],
   runtimeConfig: {
     // Private keys (only available on server-side)
     apiBaseUrl: process.env.API_BASE_URL || 'http://localhost:8000',
@@ -14,24 +15,8 @@ export default defineNuxtConfig({
       apiBaseUrl: process.env.API_BASE_URL || 'http://localhost:8000'
     }
   },
-  auth: {
-    // Session configuration
-    session: {
-      maxAge: 60 * 60 * 24 * 7 // 1 week
-    }
-  },
-  postcss: {
-    plugins: {
-      tailwindcss: {},
-      autoprefixer: {},
-    },
-  },
-  // Component auto-import configuration
-  components: [
-    {
-      path: '~/components',
-      pathPrefix: false,
-    },
-  ],
+  // Note: nuxt-auth-utils automatically uses HttpOnly cookies
+  // Session cookies are encrypted and secure by default
+  // Configure via NUXT_SESSION_PASSWORD environment variable
+  // For production, ensure NUXT_SESSION_PASSWORD is set to a strong 32+ character secret
 })
-

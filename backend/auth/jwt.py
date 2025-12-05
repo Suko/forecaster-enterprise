@@ -50,12 +50,19 @@ def decode_token(token: str, expected_type: str = "access"):
     except JWTError as e:
         raise e
 
-def is_token_valid(token: str):
+def is_token_valid(token: str, expected_type: str = "access"):
     """
-    Check if a token is valid (not expired)
+    Check if a token is valid (not expired and correct type)
+    
+    Args:
+        token: JWT token string
+        expected_type: Expected token type ("access" or "refresh")
+    
+    Returns:
+        True if token is valid, False otherwise
     """
     try:
-        payload = decode_token(token)
+        payload = decode_token(token, expected_type=expected_type)
         expiration = datetime.fromtimestamp(payload.get("exp"))
         return datetime.utcnow() < expiration
     except JWTError:

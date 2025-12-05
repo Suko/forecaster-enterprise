@@ -92,7 +92,6 @@ async def test_create_user_duplicate_email(test_session: AsyncSession, test_user
 
 
 @pytest.mark.asyncio
-@pytest.mark.skip(reason="Requires passlib/bcrypt integration - password validation works in production")
 async def test_create_user_short_password(test_session: AsyncSession):
     """Test creating user with short password."""
     user_data = UserCreate(
@@ -187,7 +186,6 @@ async def test_delete_user_not_found(test_session: AsyncSession, test_admin_user
 
 
 @pytest.mark.asyncio
-@pytest.mark.skip(reason="Requires passlib/bcrypt integration - functionality verified in production")
 async def test_authenticate_user(test_session: AsyncSession, test_user: User):
     """Test authenticating user with correct password."""
     user = await authenticate_user(test_session, test_user.email, "testpass123")
@@ -196,7 +194,6 @@ async def test_authenticate_user(test_session: AsyncSession, test_user: User):
 
 
 @pytest.mark.asyncio
-@pytest.mark.skip(reason="Requires passlib/bcrypt integration - functionality verified in production")
 async def test_authenticate_user_wrong_password(test_session: AsyncSession, test_user: User):
     """Test authenticating user with wrong password."""
     user = await authenticate_user(test_session, test_user.email, "wrongpassword")

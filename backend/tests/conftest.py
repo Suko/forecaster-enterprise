@@ -77,18 +77,11 @@ async def test_client(test_session: AsyncSession):
 @pytest.fixture
 async def test_user(test_session: AsyncSession) -> User:
     """Create a test user."""
-    # Use a pre-hashed password to avoid bcrypt initialization issues
-    # This is a bcrypt hash of "testpass123"
-    hashed_password = "$2b$12$LQv3c1yqBWVHxkd0LHAkCOYz6TtxMQJqhN8/LewY5GyYqJqZqZqZq"
-    
-    # Actually hash it properly using our auth module (lazy import to avoid init issues)
-    try:
-        from auth import get_password_hash
-        hashed_password = get_password_hash("testpass123")
-    except Exception:
-        # Fallback: use a simple hash for testing if bcrypt fails
-        import hashlib
-        hashed_password = hashlib.sha256("testpass123".encode()).hexdigest()
+    # Generate bcrypt hash directly to avoid passlib initialization issues
+    import bcrypt
+    password = b"testpass123"
+    salt = bcrypt.gensalt()
+    hashed_password = bcrypt.hashpw(password, salt).decode('utf-8')
     
     user = User(
         email="test@example.com",
@@ -106,14 +99,11 @@ async def test_user(test_session: AsyncSession) -> User:
 @pytest.fixture
 async def test_admin_user(test_session: AsyncSession) -> User:
     """Create a test admin user."""
-    # Use a pre-hashed password to avoid bcrypt initialization issues
-    try:
-        from auth import get_password_hash
-        hashed_password = get_password_hash("adminpass123")
-    except Exception:
-        # Fallback: use a simple hash for testing if bcrypt fails
-        import hashlib
-        hashed_password = hashlib.sha256("adminpass123".encode()).hexdigest()
+    # Generate bcrypt hash directly to avoid passlib initialization issues
+    import bcrypt
+    password = b"adminpass123"
+    salt = bcrypt.gensalt()
+    hashed_password = bcrypt.hashpw(password, salt).decode('utf-8')
     
     user = User(
         email="admin@example.com",

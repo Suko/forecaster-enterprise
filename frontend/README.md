@@ -11,10 +11,10 @@ Forecaster Enterprise is a full-stack application for inventory forecasting and 
 ### Key Features
 
 - **Secure Authentication**: JWT-based authentication with session management using `nuxt-auth-utils`
-- **User Management**: Complete member management system with role-based access control (Admin/User)
+- **User Management**: Complete user management system with role-based access control (Admin/User)
 - **Modern UI**: Built with Nuxt UI components following official design patterns
 - **Dashboard Layout**: Collapsible sidebar navigation with responsive design
-- **Settings Management**: Comprehensive settings pages with tabs (General, Members, Notifications, Security)
+- **Settings Management**: Comprehensive settings pages with tabs (General, Users, Notifications, Security)
 - **API Integration**: Seamless integration with FastAPI backend through Nuxt server routes
 
 ## Tech Stack
@@ -50,7 +50,7 @@ frontend/
 ├── app/
 │   ├── components/          # Vue components
 │   │   ├── GeneralSection.vue
-│   │   ├── MembersSection.vue
+│   │   ├── UsersSection.vue
 │   │   └── SettingsLayout.vue
 │   ├── composables/         # Vue composables
 │   │   └── useApi.ts        # API client composable
@@ -64,7 +64,7 @@ frontend/
 │       ├── login.vue
 │       └── settings/        # Settings pages with tabs
 │           ├── index.vue    # General settings
-│           ├── members.vue  # Member management
+│           ├── users.vue    # User management
 │           ├── notifications.vue
 │           └── security.vue
 ├── server/
@@ -180,16 +180,16 @@ Main dashboard with overview metrics and navigation.
 ### Settings (`/settings`)
 Comprehensive settings management with tabbed interface:
 - **General**: Account information and preferences
-- **Members**: User management with role assignment
+- **Users**: User management with role assignment
 - **Notifications**: Notification preferences (coming soon)
 - **Security**: Security settings (coming soon)
 
-### Member Management
-- View all members with search functionality
-- Invite new members by email
-- Edit member roles (Admin/User)
-- Activate/deactivate members
-- Delete members
+### User Management
+- View all users with search functionality
+- Invite new users by email
+- Edit user roles (Admin/User)
+- Activate/deactivate users
+- Delete users
 
 ## API Integration
 

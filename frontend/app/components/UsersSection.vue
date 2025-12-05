@@ -2,9 +2,9 @@
   <div class="space-y-6">
     <div class="flex justify-between items-start">
       <div>
-        <h2 class="text-2xl font-semibold text-gray-900 dark:text-white">Members</h2>
+        <h2 class="text-2xl font-semibold text-gray-900 dark:text-white">Users</h2>
         <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">
-          Invite new members by email address.
+          Invite new users by email address.
         </p>
       </div>
       <UButton
@@ -18,7 +18,7 @@
     <UInput
       v-model="searchQuery"
       icon="i-lucide-search"
-      placeholder="Search members"
+      placeholder="Search users"
       class="w-full"
     />
 
@@ -68,7 +68,7 @@
 
       <div v-if="!loading && filteredUsers.length === 0" class="text-center py-12">
         <p class="text-gray-500 dark:text-gray-400">
-          {{ searchQuery ? 'No members found' : 'No members yet' }}
+          {{ searchQuery ? 'No users found' : 'No users yet' }}
         </p>
       </div>
     </div>
@@ -77,7 +77,7 @@
       <UCard>
         <template #header>
           <h3 class="text-lg font-semibold">
-            {{ editingUser ? 'Edit Member' : 'Add Member' }}
+            {{ editingUser ? 'Edit User' : 'Add User' }}
           </h3>
         </template>
 
@@ -148,7 +148,7 @@
     <UModal v-model="showDeleteModal" :ui="{ width: 'sm:max-w-md' }">
       <UCard>
         <template #header>
-          <h3 class="text-lg font-semibold text-red-600">Delete Member</h3>
+          <h3 class="text-lg font-semibold text-red-600">Delete User</h3>
         </template>
 
         <p class="text-gray-600 mb-4">

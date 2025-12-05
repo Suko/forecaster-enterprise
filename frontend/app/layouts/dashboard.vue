@@ -26,9 +26,9 @@ const settingsItem = ref<NavigationMenuItem>({
   defaultOpen: false,
   children: [
     {
-      label: 'Members',
+      label: 'Users',
       icon: 'i-lucide-users',
-      to: '/settings/members',
+      to: '/settings/users',
       active: false
     }
   ]
@@ -38,7 +38,7 @@ watch(() => route.path, (path) => {
   settingsItem.value.active = path.startsWith('/settings')
   settingsItem.value.defaultOpen = path.startsWith('/settings')
   if (settingsItem.value.children) {
-    settingsItem.value.children[0].active = path === '/settings/members'
+    settingsItem.value.children[0].active = path === '/settings/users'
   }
 }, { immediate: true })
 

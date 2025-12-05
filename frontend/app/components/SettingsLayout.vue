@@ -27,9 +27,9 @@
         </slot>
       </template>
       
-      <template #members>
-        <slot name="members">
-          <MembersSection />
+      <template #users>
+        <slot name="users">
+          <UsersSection />
         </slot>
       </template>
       
@@ -65,9 +65,9 @@ const tabs: TabsItem[] = [
     slot: 'general'
   },
   {
-    label: 'Members',
-    value: 'members',
-    slot: 'members'
+    label: 'Users',
+    value: 'users',
+    slot: 'users'
   },
   {
     label: 'Notifications',
@@ -85,8 +85,8 @@ const activeTab = computed(() => {
   if (route.path === '/settings' || route.path === '/settings/') {
     return 'general'
   }
-  if (route.path === '/settings/members') {
-    return 'members'
+  if (route.path === '/settings/users') {
+    return 'users'
   }
   if (route.path === '/settings/notifications') {
     return 'notifications'

@@ -77,11 +77,11 @@ async def test_client(test_session: AsyncSession):
 @pytest.fixture
 async def test_user(test_session: AsyncSession) -> User:
     """Create a test user."""
-    # Generate bcrypt hash directly to avoid passlib initialization issues
-    import bcrypt
-    password = b"testpass123"
-    salt = bcrypt.gensalt()
-    hashed_password = bcrypt.hashpw(password, salt).decode('utf-8')
+    # Use pwdlib (same as production) for consistent hashing
+    from pwdlib import PasswordHash
+    password_hash = PasswordHash.recommended()
+    password = "testpass123"
+    hashed_password = password_hash.hash(password)
     
     user = User(
         email="test@example.com",
@@ -99,11 +99,11 @@ async def test_user(test_session: AsyncSession) -> User:
 @pytest.fixture
 async def test_admin_user(test_session: AsyncSession) -> User:
     """Create a test admin user."""
-    # Generate bcrypt hash directly to avoid passlib initialization issues
-    import bcrypt
-    password = b"adminpass123"
-    salt = bcrypt.gensalt()
-    hashed_password = bcrypt.hashpw(password, salt).decode('utf-8')
+    # Use pwdlib (same as production) for consistent hashing
+    from pwdlib import PasswordHash
+    password_hash = PasswordHash.recommended()
+    password = "adminpass123"
+    hashed_password = password_hash.hash(password)
     
     user = User(
         email="admin@example.com",

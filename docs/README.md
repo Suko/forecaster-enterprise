@@ -12,17 +12,14 @@ docs/
 │   ├── STRUCTURE_ANALYSIS.md    # Backend architecture analysis
 │   └── TESTING.md               # Testing guidelines
 │
-└── forecasting/                 # Forecasting API documentation
-    ├── EXPERT_ANALYSIS.md       # ⭐ Expert architecture review & recommendations
-    ├── MVP_DESIGN.md            # MVP design and specifications
-    ├── ARCHITECTURE.md          # 5-layer architecture design
-    ├── DATA_MODELS.md           # Database, request, and response models
-    ├── INTEGRATION.md           # Integration with existing backend
-    ├── API_DESIGN.md            # Full API design (multi-model architecture)
-    ├── DESIGN_REVIEW.md         # Design complexity review
-    ├── FORECASTING_PLAN.md      # Initial forecasting plan
-    ├── INDUSTRY_STANDARDS.md    # Industry standards reference
-    └── STANDARDS_COMPLIANCE.md  # Standards compliance checklist
+└── forecasting/                 # Forecasting API documentation (7 files)
+    ├── MVP_UNIFIED.md           # ⭐⭐ START HERE - Complete MVP guide
+    ├── ARCHITECTURE.md          # Full architecture (MVP + Future)
+    ├── DATA_MODELS.md           # Full data models (MVP + Future)
+    ├── API_DESIGN.md            # Full API design (Phase 2+)
+    ├── EXPERT_ANALYSIS.md       # Architecture review & roadmap
+    ├── INDUSTRY_STANDARDS.md    # Formula reference
+    └── INTEGRATION.md           # Backend integration guide
 ```
 
 ## Quick Links
@@ -36,31 +33,48 @@ docs/
 - [Testing Guidelines](backend/TESTING.md)
 
 ### Forecasting
-- [Expert Analysis](forecasting/EXPERT_ANALYSIS.md) - ⭐ **Expert review, gaps, and recommendations**
-- [MVP Design](forecasting/MVP_DESIGN.md) - **Start here for implementation**
-- [Architecture](forecasting/ARCHITECTURE.md) - 5-layer architecture design
-- [Data Models](forecasting/DATA_MODELS.md) - Database, request, and response models
-- [Integration](forecasting/INTEGRATION.md) - Integration with existing backend
-- [API Design](forecasting/API_DESIGN.md) - Full multi-model architecture
-- [Industry Standards](forecasting/INDUSTRY_STANDARDS.md) - Standards reference
-- [Standards Compliance](forecasting/STANDARDS_COMPLIANCE.md) - Compliance checklist
+- [**MVP Unified**](forecasting/MVP_UNIFIED.md) - ⭐⭐ **START HERE - Complete MVP guide**
+- [Architecture](forecasting/ARCHITECTURE.md) - Full architecture (MVP + Future)
+- [Data Models](forecasting/DATA_MODELS.md) - Full schemas (MVP + Future)
+- [API Design](forecasting/API_DESIGN.md) - Multi-model design (Phase 2+)
+- [Expert Analysis](forecasting/EXPERT_ANALYSIS.md) - Gaps & recommendations
+- [Industry Standards](forecasting/INDUSTRY_STANDARDS.md) - Formula reference
+- [Integration](forecasting/INTEGRATION.md) - Backend integration
 
 ---
 
 ## Documentation Status
 
 **Forecasting API:**
-- ✅ Expert Analysis - Comprehensive review and recommendations
-- ✅ MVP Design - Complete
-- ✅ Architecture - 5-layer design documented
-- ✅ Data Models - Database and API schemas defined
-- ✅ Integration Plan - Backend integration documented
-- ✅ Industry Standards - Documented
-- ✅ Standards Compliance - Verified
+- ✅ **MVP Unified** - Complete 4-section guide
+- ✅ Architecture - Full layer structure
+- ✅ Data Models - Full schemas
+- ✅ API Design - Phase 2+ roadmap
+- ✅ Expert Analysis - Gaps & recommendations
+- ✅ Industry Standards - Formula reference
+- ✅ Integration - Backend guide
 - ⏳ Implementation - Pending
 
 **Backend:**
 - ✅ Architecture - Documented
 - ✅ Testing - Guidelines available
 - ✅ Authentication - Setup guide available
+
+---
+
+## Document Hierarchy
+
+```
+MVP_UNIFIED.md (START HERE)
+    │
+    ├─── Contains: System Overview, Data Models, Docs Summary, Executive Guide
+    │
+    └─── For deeper details:
+         ├─── ARCHITECTURE.md (full layer structure)
+         ├─── DATA_MODELS.md (all schemas, Phase 2 tables)
+         ├─── API_DESIGN.md (multi-model Phase 2+)
+         ├─── EXPERT_ANALYSIS.md (gaps & recommendations)
+         ├─── INDUSTRY_STANDARDS.md (formula references)
+         └─── INTEGRATION.md (backend integration)
+```
 

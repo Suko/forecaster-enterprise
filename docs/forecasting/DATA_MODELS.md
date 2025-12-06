@@ -1,6 +1,11 @@
 # Forecasting Module - Data Models
 
-**Status:** Planning Phase  
+**Status:** ✅ Complete  
+**Scope:** Full Data Models (MVP + Future Phases)  
+**Quick Start:** See [MVP_UNIFIED.md](MVP_UNIFIED.md) for minimal MVP models
+
+---
+
 **Last Updated:** 2025-01-XX
 
 ---

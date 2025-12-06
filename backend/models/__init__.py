@@ -14,6 +14,13 @@ from .user import (
     UserRole,
 )
 
+# Export forecast models
+from .forecast import (
+    ForecastRun,
+    ForecastResult,
+    ForecastStatus,
+)
+
 __all__ = [
     # Base
     "Base",
@@ -25,5 +32,9 @@ __all__ = [
     # User models
     "User",
     "UserRole",
+    # Forecast models
+    "ForecastRun",
+    "ForecastResult",
+    "ForecastStatus",
 ]
 

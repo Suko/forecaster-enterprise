@@ -1,4 +1,5 @@
-from . import auth
+"""API routes"""
 
-__all__ = ["auth"]
+from . import auth, forecast
 
+__all__ = ["auth", "forecast"]

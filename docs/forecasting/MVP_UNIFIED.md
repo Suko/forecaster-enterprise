@@ -2,7 +2,31 @@
 
 **Version:** 1.0  
 **Date:** 2025-01-XX  
-**Status:** MVP Ready for Implementation
+**Status:** ✅ Implementation In Progress
+
+## Implementation Status
+
+**Last Updated:** 2025-12-06
+
+### ✅ Completed
+- Database migration (`forecast_runs`, `forecast_results` tables)
+- SQLAlchemy models (`ForecastRun`, `ForecastResult`)
+- BaseForecastModel abstract interface
+- Chronos2Model wrapper
+- MovingAverageModel (7-day)
+- ForecastService orchestration
+- InventoryCalculator (industry standard formulas)
+- QualityCalculator (MAPE/MAE/RMSE)
+- Pydantic schemas (all request/response models)
+- API endpoints (4 endpoints implemented)
+- Authentication integration
+
+### ⚠️ In Progress / TODO
+- Data access layer (`_fetch_historical_data()` - placeholder)
+- Result fetching for API responses (basic structure, needs DB queries)
+- Unit tests
+- Integration tests
+- ETL integration (ts_demand_daily table population)
 
 ---
 
@@ -66,17 +90,21 @@ A forecasting API that predicts future demand for inventory items using:
 | `Chronos2Model` | ML predictions | `forecasting/modes/ml/` |
 | `MovingAverageModel` | Baseline predictions | `forecasting/modes/statistical/` |
 | `InventoryCalculator` | DIR, ROP, Safety Stock | `forecasting/applications/inventory/` |
+| `QualityCalculator` | Calculate MAPE/MAE/RMSE | `forecasting/services/` |
 | `ForecastRun` (DB) | Track forecast executions | `models/forecast.py` |
-| `ForecastResult` (DB) | Store predictions | `models/forecast.py` |
+| `ForecastResult` (DB) | Store predictions + actuals | `models/forecast.py` |
 | Request/Response Schemas | API contracts | `schemas/forecast.py` |
 | API Endpoints | HTTP interface | `api/forecast.py` |
+| **Actuals Backfill Endpoint** | Update actual values | `api/forecast.py` |
+| **Quality View Endpoint** | View MAPE/MAE/RMSE | `api/forecast.py` |
 
 ### Can Add Later (Phase 2+)
 
 | Component | Purpose | Phase |
 |-----------|---------|-------|
 | Additional statistical methods (MA30, Exponential) | More baselines | Phase 2 |
-| Performance tracking service | Compare method accuracy | Phase 2 |
+| Performance tracking service | Automated accuracy tracking | Phase 2 |
+| `forecast_method_performance` table | Store aggregated metrics | Phase 2 |
 | Model versioning | Track model changes | Phase 2 |
 | **Data quality monitoring** | Alerts, anomaly detection | Phase 2 |
 | **Data quality events table** | Store quality issues | Phase 2 |
@@ -369,6 +397,61 @@ Response:
 }
 ```
 
+### Endpoint 3: Backfill Actuals (MVP - For Quality Testing)
+
+```
+POST /api/v1/forecasts/actuals
+
+Request:
+{
+  "item_id": "SKU001",
+  "actuals": [
+    {"date": "2024-01-02", "actual_value": 130.0},
+    {"date": "2024-01-03", "actual_value": 125.0}
+  ]
+}
+
+Response:
+{
+  "updated_count": 2,
+  "message": "Actuals backfilled successfully"
+}
+```
+
+**Purpose:** Update `forecast_results.actual_value` so we can calculate quality metrics.
+
+### Endpoint 4: View Quality Metrics (MVP - Simple Query)
+
+```
+GET /api/v1/forecasts/quality/{item_id}?start_date=2024-01-01&end_date=2024-01-31
+
+Response:
+{
+  "item_id": "SKU001",
+  "period": {"start": "2024-01-01", "end": "2024-01-31"},
+  "methods": [
+    {
+      "method": "chronos-2",
+      "predictions_count": 30,
+      "actuals_count": 30,
+      "mape": 8.2,
+      "mae": 10.5,
+      "rmse": 14.3
+    },
+    {
+      "method": "statistical_ma7",
+      "predictions_count": 30,
+      "actuals_count": 30,
+      "mape": 12.5,
+      "mae": 15.2,
+      "rmse": 19.8
+    }
+  ]
+}
+```
+
+**Purpose:** Calculate and view MAPE/MAE/RMSE for both methods (MVP: simple calculation, Phase 2: automated tracking)
+
 ## 3.4 Data Flow (Single Diagram)
 
 ```
@@ -447,15 +530,20 @@ Response:
 
 ### Phase 1: MVP (Weeks 1-3)
 
-- [ ] Create database migration for `forecast_runs`, `forecast_results`
-- [ ] Implement `BaseForecastModel` interface
-- [ ] Implement `Chronos2Model` wrapper
-- [ ] Implement `MovingAverageModel` (7-day)
-- [ ] Implement `ForecastService` (orchestration)
-- [ ] Implement `InventoryCalculator` (formulas)
-- [ ] Create Pydantic schemas (request/response) - includes automatic validation
-- [ ] Create API endpoints (forecast, inventory)
-- [ ] Add authentication integration
+- [x] Create database migration for `forecast_runs`, `forecast_results`
+- [x] Implement `BaseForecastModel` interface
+- [x] Implement `Chronos2Model` wrapper
+- [x] Implement `MovingAverageModel` (7-day)
+- [x] Implement `ForecastService` (orchestration)
+- [x] Implement `InventoryCalculator` (formulas)
+- [x] Implement `QualityCalculator` (MAPE/MAE/RMSE)
+- [x] Create Pydantic schemas (request/response) - includes automatic validation
+- [x] Create API endpoints (forecast, inventory, actuals, quality)
+- [x] Add actuals backfill endpoint (for quality testing)
+- [x] Add basic quality calculation (MAPE/MAE/RMSE)
+- [x] Add authentication integration
+- [ ] **Implement data access layer** (`_fetch_historical_data()` from ts_demand_daily)
+- [ ] **Complete API response building** (fetch results from DB)
 - [ ] Write unit tests
 - [ ] Write integration tests
 
@@ -479,12 +567,15 @@ Response:
 
 ### Phase 2: Enhancement (Weeks 4-6)
 
-- [ ] Add performance tracking table
-- [ ] Add accuracy calculation (backfill actuals)
-- [ ] Add MAPE/MAE/RMSE calculation
+- [ ] Add performance tracking table (`forecast_method_performance`)
+- [ ] **Enhance** accuracy calculation (automated, scheduled)
+- [ ] **Enhance** MAPE/MAE/RMSE (full performance service)
+- [ ] Add performance API endpoint (view metrics)
 - [ ] Add additional statistical methods
 - [ ] Add location_id support
 - [ ] Add scheduler for automatic cycle
+
+**Note:** MVP includes basic actuals backfill and manual quality calculation. Phase 2 adds automated tracking and performance service.
 
 ---
 
@@ -649,6 +740,33 @@ The system improves over time through:
 - Phase 1: MVP (current)
 - Phase 2: Performance tracking, more methods
 - Phase 3: Advanced analytics, drift detection
+
+---
+
+## Quality Testing After MVP
+
+**✅ What's Ready for Testing:**
+
+1. **Storage**: Both method predictions stored in `forecast_results`
+2. **Actuals Backfill**: API endpoint to update `actual_value` column
+3. **Quality Calculation**: Simple function to calculate MAPE/MAE/RMSE
+4. **Quality View**: API endpoint to view metrics for both methods
+5. **Comparison**: Can compare chronos-2 vs statistical_ma7 accuracy
+
+**Workflow After MVP:**
+```
+1. Generate forecasts (both methods stored)
+2. Wait for actual sales data
+3. Backfill actuals via API: POST /api/v1/forecasts/actuals
+4. View quality metrics: GET /api/v1/forecasts/quality/{item_id}
+5. Compare which method performed better
+```
+
+**What's Enhanced in Phase 2:**
+- Automated actuals backfill (from ETL)
+- Performance tracking table (aggregated metrics)
+- Scheduled quality reports
+- Historical trend analysis
 
 ---
 

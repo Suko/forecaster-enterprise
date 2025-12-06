@@ -1,127 +1,60 @@
+"""
+Pytest configuration and shared fixtures
+"""
 import pytest
-import asyncio
-from typing import AsyncGenerator
-from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession, async_sessionmaker
+import pandas as pd
+from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine, async_sessionmaker
 from sqlalchemy.pool import StaticPool
-from httpx import AsyncClient, ASGITransport
-from unittest.mock import Mock
 
 from models.database import Base
-from models.user import User
-from main import app
-from models import get_db
+from tests.fixtures.test_data_loader import TestDataLoader
 
 
-# Test database URL (in-memory SQLite for testing)
+# Test database (in-memory SQLite for fast tests)
 TEST_DATABASE_URL = "sqlite+aiosqlite:///:memory:"
 
+test_engine = create_async_engine(
+    TEST_DATABASE_URL,
+    connect_args={"check_same_thread": False},
+    poolclass=StaticPool,
+)
 
-@pytest.fixture(scope="session")
-def event_loop():
-    """Create an instance of the default event loop for the test session."""
-    loop = asyncio.get_event_loop_policy().new_event_loop()
-    yield loop
-    loop.close()
+TestSessionLocal = async_sessionmaker(
+    test_engine,
+    class_=AsyncSession,
+    expire_on_commit=False,
+)
 
 
-@pytest.fixture(scope="function")
-async def test_engine():
-    """Create a test database engine."""
-    engine = create_async_engine(
-        TEST_DATABASE_URL,
-        connect_args={"check_same_thread": False},
-        poolclass=StaticPool,
-    )
-    
-    # Create all tables
-    async with engine.begin() as conn:
+@pytest.fixture
+async def db_session():
+    """Create test database session"""
+    async with test_engine.begin() as conn:
         await conn.run_sync(Base.metadata.create_all)
     
-    yield engine
-    
-    # Drop all tables
-    async with engine.begin() as conn:
-        await conn.run_sync(Base.metadata.drop_all)
-    
-    await engine.dispose()
-
-
-@pytest.fixture(scope="function")
-async def test_session(test_engine) -> AsyncGenerator[AsyncSession, None]:
-    """Create a test database session."""
-    async_session_maker = async_sessionmaker(
-        test_engine,
-        class_=AsyncSession,
-        expire_on_commit=False,
-    )
-    
-    async with async_session_maker() as session:
+    async with TestSessionLocal() as session:
         yield session
-        await session.rollback()
+    
+    async with test_engine.begin() as conn:
+        await conn.run_sync(Base.metadata.drop_all)
 
 
 @pytest.fixture
-async def test_client(test_session: AsyncSession):
-    """Create a test client with database override."""
-    async def override_get_db():
-        yield test_session
-    
-    app.dependency_overrides[get_db] = override_get_db
-    
-    transport = ASGITransport(app=app)
-    async with AsyncClient(transport=transport, base_url="http://test") as client:
-        yield client
-    
-    app.dependency_overrides.clear()
+def test_data_loader():
+    """Load test data from CSV"""
+    return TestDataLoader()
 
 
 @pytest.fixture
-async def test_user(test_session: AsyncSession) -> User:
-    """Create a test user."""
-    # Use pwdlib (same as production) for consistent hashing
-    from pwdlib import PasswordHash
-    password_hash = PasswordHash.recommended()
-    password = "testpass123"
-    hashed_password = password_hash.hash(password)
-    
-    user = User(
-        email="test@example.com",
-        name="Test User",
-        hashed_password=hashed_password,
-        role="user",
-        is_active=True,
-    )
-    test_session.add(user)
-    await test_session.commit()
-    await test_session.refresh(user)
-    return user
+def sample_item_data(test_data_loader):
+    """Get sample item data for testing"""
+    # Use SKU001 which should have good data
+    return test_data_loader.get_item_data("SKU001")
 
 
 @pytest.fixture
-async def test_admin_user(test_session: AsyncSession) -> User:
-    """Create a test admin user."""
-    # Use pwdlib (same as production) for consistent hashing
-    from pwdlib import PasswordHash
-    password_hash = PasswordHash.recommended()
-    password = "adminpass123"
-    hashed_password = password_hash.hash(password)
-    
-    user = User(
-        email="admin@example.com",
-        name="Admin User",
-        hashed_password=hashed_password,
-        role="admin",
-        is_active=True,
-    )
-    test_session.add(user)
-    await test_session.commit()
-    await test_session.refresh(user)
-    return user
-
-
-@pytest.fixture
-def mock_request():
-    """Create a mock request object."""
-    request = Mock()
-    request.headers = {}
-    return request
+def sample_item_ids(test_data_loader):
+    """Get sample item IDs for testing"""
+    items = test_data_loader.get_available_items()
+    # Return first 3 items for testing
+    return items[:3] if len(items) >= 3 else items

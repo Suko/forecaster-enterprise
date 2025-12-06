@@ -37,6 +37,7 @@ async def create_tables():
     """Create all database tables"""
     # Import here to avoid circular imports
     from . import user
+    from . import forecast
     async with engine.begin() as conn:
         await conn.run_sync(Base.metadata.create_all)
 

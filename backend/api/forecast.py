@@ -1,0 +1,286 @@
+"""
+Forecast API Endpoints
+
+Endpoints for forecasting and inventory calculations.
+"""
+from fastapi import APIRouter, Depends, HTTPException, status, Query
+from sqlalchemy.ext.asyncio import AsyncSession
+from typing import Optional
+from datetime import date
+
+from models import get_db, User
+from auth import get_current_user
+from schemas.forecast import (
+    ForecastRequest,
+    ForecastResponse,
+    InventoryCalculationRequest,
+    InventoryCalculationResponse,
+    BackfillActualsRequest,
+    BackfillActualsResponse,
+    QualityResponse,
+)
+from forecasting.services.forecast_service import ForecastService
+from forecasting.services.quality_calculator import QualityCalculator
+from forecasting.applications.inventory.calculator import InventoryCalculator
+
+router = APIRouter(prefix="/api/v1", tags=["forecast"])
+
+
+@router.post("/forecast", response_model=ForecastResponse, status_code=status.HTTP_201_CREATED)
+async def create_forecast(
+    request: ForecastRequest,
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+):
+    """
+    Generate forecast for specified items.
+    
+    Returns predictions from recommended method (primary if successful, baseline if not).
+    Both methods are stored in database for future quality analysis.
+    """
+    # For MVP, use user_id as client_id (single-tenant per user)
+    client_id = current_user.id
+    
+    service = ForecastService(db)
+    
+    try:
+        forecast_run = await service.generate_forecast(
+            client_id=client_id,
+            user_id=current_user.id,
+            item_ids=request.item_ids,
+            prediction_length=request.prediction_length,
+            primary_model=request.model or "chronos-2",
+            include_baseline=request.include_baseline,
+        )
+        
+        # Fetch results for response
+        # TODO: Implement result fetching from database
+        # For now, return basic response structure
+        
+        return ForecastResponse(
+            forecast_id=forecast_run.forecast_run_id,
+            primary_model=forecast_run.primary_model,
+            forecasts=[],  # TODO: Populate from forecast_results
+        )
+        
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Forecast generation failed: {str(e)}",
+        )
+
+
+@router.post("/inventory/calculate", response_model=InventoryCalculationResponse, status_code=status.HTTP_201_CREATED)
+async def calculate_inventory(
+    request: InventoryCalculationRequest,
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+):
+    """
+    Calculate inventory metrics from forecasts.
+    
+    Generates forecast first, then calculates inventory metrics using industry-standard formulas.
+    """
+    client_id = current_user.id
+    
+    forecast_service = ForecastService(db)
+    inventory_calc = InventoryCalculator()
+    
+    try:
+        # Generate forecast
+        forecast_run = await forecast_service.generate_forecast(
+            client_id=client_id,
+            user_id=current_user.id,
+            item_ids=request.item_ids,
+            prediction_length=request.prediction_length,
+            primary_model=request.model or "chronos-2",
+            include_baseline=False,  # Only need one method for inventory
+        )
+        
+        # TODO: Fetch forecast results and calculate inventory metrics
+        # For now, return basic structure
+        
+        results = []
+        for item_id in request.item_ids:
+            if item_id not in request.inventory_params:
+                continue
+            
+            params = request.inventory_params[item_id]
+            
+            # TODO: Get forecast summary (avg daily demand, total forecast)
+            # Placeholder values
+            avg_daily_demand = 100.0  # TODO: Calculate from forecast
+            total_forecast = avg_daily_demand * request.prediction_length
+            
+            # Calculate inventory metrics
+            dir_value = inventory_calc.calculate_days_of_inventory_remaining(
+                params.current_stock,
+                avg_daily_demand,
+            )
+            
+            safety_stock = inventory_calc.calculate_safety_stock(
+                avg_daily_demand,
+                params.lead_time_days,
+                params.safety_stock_days,
+                params.service_level,
+            )
+            
+            reorder_point = inventory_calc.calculate_reorder_point(
+                avg_daily_demand,
+                params.lead_time_days,
+                safety_stock,
+            )
+            
+            recommended_qty = inventory_calc.calculate_recommended_order_quantity(
+                total_forecast,
+                safety_stock,
+                params.current_stock,
+                params.moq,
+            )
+            
+            stockout_risk = inventory_calc.calculate_stockout_risk(
+                total_forecast,
+                params.current_stock,
+            )
+            
+            stockout_date = inventory_calc.calculate_stockout_date(
+                params.current_stock,
+                avg_daily_demand,
+            )
+            
+            recommendations = inventory_calc.get_recommended_action(
+                dir_value,
+                stockout_risk,
+            )
+            
+            from schemas.forecast import InventoryMetrics, Recommendations, InventoryResult
+            
+            results.append(
+                InventoryResult(
+                    item_id=item_id,
+                    inventory_metrics=InventoryMetrics(
+                        current_stock=params.current_stock,
+                        days_of_inventory_remaining=dir_value,
+                        safety_stock=safety_stock,
+                        reorder_point=reorder_point,
+                        recommended_order_quantity=recommended_qty,
+                        stockout_risk=stockout_risk,
+                        stockout_date=stockout_date,
+                    ),
+                    recommendations=Recommendations(**recommendations),
+                )
+            )
+        
+        return InventoryCalculationResponse(
+            calculation_id=forecast_run.forecast_run_id,
+            results=results,
+        )
+        
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Inventory calculation failed: {str(e)}",
+        )
+
+
+@router.post("/forecasts/actuals", response_model=BackfillActualsResponse)
+async def backfill_actuals(
+    request: BackfillActualsRequest,
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+):
+    """
+    Backfill actual values for quality testing.
+    
+    Updates forecast_results.actual_value for specified item and dates.
+    Enables calculation of accuracy metrics (MAPE, MAE, RMSE).
+    """
+    from sqlalchemy import select, and_, update
+    from models.forecast import ForecastResult
+    
+    client_id = current_user.id
+    updated_count = 0
+    
+    try:
+        for actual in request.actuals:
+            # Find matching forecast results
+            query = select(ForecastResult).where(
+                and_(
+                    ForecastResult.client_id == client_id,
+                    ForecastResult.item_id == request.item_id,
+                    ForecastResult.date == actual.date,
+                    ForecastResult.actual_value.is_(None),  # Only update if not already set
+                )
+            )
+            
+            result = await db.execute(query)
+            results = result.scalars().all()
+            
+            # Update all methods for this date
+            for forecast_result in results:
+                forecast_result.actual_value = actual.actual_value
+                updated_count += 1
+        
+        await db.commit()
+        
+        return BackfillActualsResponse(
+            updated_count=updated_count,
+            message=f"Updated {updated_count} forecast results with actual values",
+        )
+        
+    except Exception as e:
+        await db.rollback()
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Failed to backfill actuals: {str(e)}",
+        )
+
+
+@router.get("/forecasts/quality/{item_id}", response_model=QualityResponse)
+async def get_quality_metrics(
+    item_id: str,
+    start_date: Optional[date] = Query(None, description="Start date for analysis"),
+    end_date: Optional[date] = Query(None, description="End date for analysis"),
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+):
+    """
+    Get quality metrics (MAPE, MAE, RMSE, Bias) for an item.
+    
+    Compares accuracy of different forecasting methods.
+    Requires actual values to be backfilled first.
+    """
+    quality_calc = QualityCalculator(db)
+    
+    # Calculate metrics for both methods
+    methods = ["chronos-2", "statistical_ma7"]
+    method_qualities = []
+    
+    for method in methods:
+        metrics = await quality_calc.calculate_quality_metrics(
+            item_id=item_id,
+            method=method,
+            start_date=start_date,
+            end_date=end_date,
+        )
+        
+        from schemas.forecast import MethodQuality
+        
+        method_qualities.append(
+            MethodQuality(
+                method=method,
+                predictions_count=metrics["sample_size"],
+                actuals_count=metrics["sample_size"],
+                mape=metrics["mape"],
+                mae=metrics["mae"],
+                rmse=metrics["rmse"],
+                bias=metrics["bias"],
+            )
+        )
+    
+    return QualityResponse(
+        item_id=item_id,
+        period={"start": start_date, "end": end_date},
+        methods=method_qualities,
+    )
+

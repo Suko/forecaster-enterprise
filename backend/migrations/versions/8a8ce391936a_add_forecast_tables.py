@@ -23,8 +23,8 @@ def upgrade() -> None:
     # Create forecast_runs table
     op.create_table(
         'forecast_runs',
-        sa.Column('forecast_run_id', sa.String(), primary_key=True),
-        sa.Column('client_id', sa.String(), nullable=False),
+        sa.Column('forecast_run_id', postgresql.UUID(as_uuid=True), primary_key=True, server_default=sa.text('gen_random_uuid()')),
+        sa.Column('client_id', postgresql.UUID(as_uuid=True), nullable=False),
         sa.Column('user_id', sa.String(), nullable=False),
         sa.Column('primary_model', sa.String(50), nullable=False, server_default='chronos-2'),
         sa.Column('prediction_length', sa.Integer(), nullable=False),
@@ -42,9 +42,9 @@ def upgrade() -> None:
     # Create forecast_results table
     op.create_table(
         'forecast_results',
-        sa.Column('result_id', sa.String(), primary_key=True),
-        sa.Column('forecast_run_id', sa.String(), nullable=False),
-        sa.Column('client_id', sa.String(), nullable=False),
+        sa.Column('result_id', postgresql.UUID(as_uuid=True), primary_key=True, server_default=sa.text('gen_random_uuid()')),
+        sa.Column('forecast_run_id', postgresql.UUID(as_uuid=True), nullable=False),
+        sa.Column('client_id', postgresql.UUID(as_uuid=True), nullable=False),
         sa.Column('item_id', sa.String(255), nullable=False),
         sa.Column('method', sa.String(50), nullable=False),
         sa.Column('date', sa.Date(), nullable=False),

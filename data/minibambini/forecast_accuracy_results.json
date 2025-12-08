@@ -1,0 +1,67 @@
+[
+  {
+    "item_id": "MB-SNUGI-2173D2-63BE",
+    "train_days": 732,
+    "test_days": 30,
+    "train_sales": 66.0,
+    "test_sales": 4.0,
+    "mape": 100.0,
+    "mae": 0.13333333333333333,
+    "rmse": 0.4472135954999579,
+    "bias": -0.13333333333333333,
+    "avg_actual": 0.13333333333333333,
+    "avg_forecast": 0.0
+  },
+  {
+    "item_id": "MB-SNUGI-2173D2-2F97",
+    "train_days": 732,
+    "test_days": 30,
+    "train_sales": 50.0,
+    "test_sales": 2.0,
+    "mape": 100.0,
+    "mae": 0.06666666666666667,
+    "rmse": 0.2581988897471611,
+    "bias": -0.06666666666666667,
+    "avg_actual": 0.06666666666666667,
+    "avg_forecast": 0.0
+  },
+  {
+    "item_id": "MB-SNUGI-2173D2-3932",
+    "train_days": 732,
+    "test_days": 30,
+    "train_sales": 42.0,
+    "test_sales": 0.0,
+    "mape": null,
+    "mae": null,
+    "rmse": null,
+    "bias": null,
+    "avg_actual": 0.0,
+    "avg_forecast": 0.0
+  },
+  {
+    "item_id": "MB-CARRI-26D14D-7730",
+    "train_days": 732,
+    "test_days": 30,
+    "train_sales": 36.0,
+    "test_sales": 1.0,
+    "mape": 100.0,
+    "mae": 0.03333333333333333,
+    "rmse": 0.18257418583505536,
+    "bias": -0.03333333333333333,
+    "avg_actual": 0.03333333333333333,
+    "avg_forecast": 0.0
+  },
+  {
+    "item_id": "MB-BESAF-DA597B-3F48",
+    "train_days": 732,
+    "test_days": 30,
+    "train_sales": 29.0,
+    "test_sales": 1.0,
+    "mape": 100.0,
+    "mae": 0.03333333333333333,
+    "rmse": 0.18257418583505536,
+    "bias": -0.03333333333333333,
+    "avg_actual": 0.03333333333333333,
+    "avg_forecast": 0.0
+  }
+]

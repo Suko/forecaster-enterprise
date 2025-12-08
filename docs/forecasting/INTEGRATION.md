@@ -35,11 +35,18 @@ backend/
 ```
 backend/
 ├── forecasting/                    # NEW: Forecasting module
-│   ├── core/                       # Pure forecasting
-│   ├── features/                   # Features & covariates
+│   ├── core/                       # Core abstractions
+│   │   └── models/                 # BaseForecastModel interface
 │   ├── modes/                      # Forecasting methods
+│   │   ├── ml/                     # ML models (Chronos-2)
+│   │   ├── statistical/            # Statistical models (MA7)
+│   │   └── factory.py              # ModelFactory
 │   ├── applications/               # Business applications
+│   │   └── inventory/              # InventoryCalculator
 │   └── services/                   # Service orchestration
+│       ├── forecast_service.py     # ForecastService (orchestration)
+│       ├── data_access.py          # DataAccess (database/test data)
+│       └── quality_calculator.py   # QualityCalculator (MAPE/MAE/RMSE)
 │
 ├── api/                            # EXISTING: API routes
 │   ├── auth.py                     # Existing
@@ -49,10 +56,14 @@ backend/
 │   ├── auth.py                     # Existing
 │   └── forecast.py                 # NEW: Forecast schemas
 │
+├── models/                          # EXISTING: Database models
+│   ├── user.py                     # Existing
+│   └── forecast.py                 # NEW: ForecastRun, ForecastResult
+│
 └── services/                        # EXISTING: Services
     ├── auth_service.py             # Existing
-    ├── user_service.py             # Existing
-    └── (forecasting services are in forecasting/services/)
+    └── user_service.py             # Existing
+    # Note: Forecasting services are in forecasting/services/
 ```
 
 ---
@@ -117,17 +128,15 @@ class ForecastResponse(BaseModel):
 ```python
 # forecasting/services/forecast_service.py
 from forecasting.modes.factory import ModelFactory
-from forecasting.features.covariates import CovariateService
-from forecasting.core.pipelines import ForecastPipeline
+from forecasting.services.data_access import DataAccess
+from forecasting.core.models.base import BaseForecastModel
 
 class ForecastService:
     """Forecast orchestration service"""
-    def __init__(
-        self,
-        model_factory: ModelFactory,
-        covariate_service: CovariateService,
-        pipeline: ForecastPipeline
-    ):
+    def __init__(self, db: AsyncSession, use_test_data: bool = False):
+        self.db = db
+        self.model_factory = ModelFactory()
+        self.data_access = DataAccess(db, use_test_data=use_test_data)
         # Orchestrates forecasting module
 ```
 
@@ -138,23 +147,20 @@ class ForecastService:
 ### Service Registration
 
 ```python
-# backend/api/forecast.py or backend/core/dependencies.py
+# backend/api/forecast.py
 from forecasting.services.forecast_service import ForecastService
-from forecasting.modes.factory import ModelFactory
-from forecasting.features.covariates import CovariateService
-from forecasting.core.pipelines import ForecastPipeline
+from models import get_db
 
-def get_forecast_service() -> ForecastService:
-    """Dependency injection for forecast service"""
-    model_factory = ModelFactory()
-    covariate_service = CovariateService()
-    pipeline = ForecastPipeline()
-    
-    return ForecastService(
-        model_factory=model_factory,
-        covariate_service=covariate_service,
-        pipeline=pipeline
-    )
+@router.post("/forecast")
+async def create_forecast(
+    request: ForecastRequest,
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+):
+    """Forecast endpoint"""
+    # Service is created with database session
+    service = ForecastService(db, use_test_data=True)  # Auto-detect in production
+    return await service.generate_forecast(...)
 ```
 
 ### FastAPI Integration
@@ -182,11 +188,13 @@ app.include_router(forecast.router)
 |-----------|----------|--------|
 | API Routes | `backend/api/forecast.py` | Follows existing pattern |
 | Schemas | `backend/schemas/forecast.py` | Follows existing pattern |
+| Database Models | `backend/models/forecast.py` | Follows existing pattern |
 | Service Orchestration | `forecasting/services/forecast_service.py` | Module-specific |
-| Core Logic | `forecasting/core/` | Module-specific |
-| Features | `forecasting/features/` | Module-specific |
-| Models | `forecasting/modes/` | Module-specific |
-| Applications | `forecasting/applications/` | Module-specific |
+| Data Access | `forecasting/services/data_access.py` | Module-specific |
+| Quality Metrics | `forecasting/services/quality_calculator.py` | Module-specific |
+| Core Logic | `forecasting/core/models/base.py` | Module-specific |
+| Forecasting Models | `forecasting/modes/` | Module-specific |
+| Inventory Calculator | `forecasting/applications/inventory/calculator.py` | Module-specific |
 
 ---
 
@@ -205,8 +213,9 @@ from forecasting.services.forecast_service import ForecastService  # Forecasting
 ```python
 # forecasting/services/forecast_service.py
 from forecasting.modes.factory import ModelFactory  # Forecasting module
-from forecasting.features.covariates import CovariateService  # Forecasting module
-from forecasting.core.pipelines import ForecastPipeline  # Forecasting module
+from forecasting.services.data_access import DataAccess  # Forecasting module
+from forecasting.core.models.base import BaseForecastModel  # Forecasting module
+from models.forecast import ForecastRun, ForecastResult  # Backend models
 ```
 
 ### From Core

@@ -10,6 +10,28 @@
 
 ---
 
+## ⚠️ Important: MVP vs Future Phases
+
+**Current MVP Implementation:**
+- ✅ `core/models/base.py` - BaseForecastModel interface
+- ✅ `modes/ml/chronos2.py` - Chronos-2 model
+- ✅ `modes/statistical/moving_average.py` - MA7 model
+- ✅ `modes/factory.py` - ModelFactory
+- ✅ `applications/inventory/calculator.py` - InventoryCalculator
+- ✅ `services/forecast_service.py` - ForecastService
+- ✅ `services/data_access.py` - DataAccess (database/test data)
+- ✅ `services/quality_calculator.py` - QualityCalculator
+
+**Future Phases (Not Yet Implemented):**
+- ⏳ `features/` directory - Covariate preparation (Phase 2+)
+- ⏳ `ForecastPipeline` - Core pipeline orchestration (Phase 2+)
+- ⏳ `CovariateService` - Covariate service (Phase 2+)
+- ⏳ Additional ML models (TimesFM, Moirai, etc.) (Phase 2+)
+
+**Note:** This document describes the full architecture including future phases. For MVP implementation details, see [MVP_UNIFIED.md](MVP_UNIFIED.md).
+
+---
+
 ## Architecture Overview
 
 ### Design Principles
@@ -64,6 +86,9 @@ Both cycles follow the same data flow but are triggered differently.
                     │  - Generate Full Daily Series│
                     │  - Calculate Covariates      │
                     │  - Populate Dimensions       │
+                    │                              │
+                    │  Sync: Daily OR On-Demand    │
+                    │  (Triggered by forecast req)  │
                     └──────────────┬───────────────┘
                                    │
                                    ▼
@@ -338,27 +363,24 @@ Both cycles follow the same data flow but are triggered differently.
 ```
 forecasting/
 ├── core/                    # Pure forecasting (no business logic)
-│   ├── models/              # Model abstractions (BaseForecastModel)
-│   ├── pipelines/           # Forecasting pipelines
-│   └── utils/               # Core utilities (data validation, etc.)
-│
-├── features/                # Features & covariates
-│   ├── covariates/          # Covariate preparation
-│   ├── transformers/        # Data transformations
-│   └── validators/          # Feature validation
+│   └── models/              # Model abstractions (BaseForecastModel)
+│       └── base.py          # BaseForecastModel interface
 │
 ├── modes/                   # Forecasting methods/modes
-│   ├── ml/                  # ML models (Chronos-2, TimesFM, etc.)
-│   ├── statistical/         # Statistical methods (MA, exponential, etc.)
-│   └── ensemble/            # Ensemble methods (future)
+│   ├── ml/                  # ML models
+│   │   └── chronos2.py      # Chronos-2 model wrapper
+│   ├── statistical/         # Statistical methods
+│   │   └── moving_average.py  # MA7 model
+│   └── factory.py           # ModelFactory
 │
 ├── applications/            # Business applications
-│   ├── inventory/           # Inventory forecasting
-│   ├── profitability/       # Profitability analysis (future)
-│   └── demand/              # Demand planning (future)
+│   └── inventory/           # Inventory calculations
+│       └── calculator.py    # InventoryCalculator (APICS formulas)
 │
 └── services/                # Service orchestration (NOT API routes)
-    └── forecast_service.py  # Orchestrates forecasting across layers
+    ├── forecast_service.py  # ForecastService (orchestration)
+    ├── data_access.py       # DataAccess (database/test data)
+    └── quality_calculator.py # QualityCalculator (MAPE/MAE/RMSE)
 ```
 
 ---

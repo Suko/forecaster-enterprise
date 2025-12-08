@@ -46,6 +46,15 @@ This document defines all data models required for the forecasting module, organ
 
 **Location:** `backend/models/forecast.py`
 
+**✅ Implementation Note:** The actual implementation uses **dialect-aware types**:
+- `GUID()` - Uses PostgreSQL `UUID` in production, `CHAR(36)` in SQLite tests
+- `JSONBType()` - Uses PostgreSQL `JSONB` in production, `JSON` in SQLite tests
+
+This provides:
+- ✅ **Production:** Full PostgreSQL benefits (UUID indexing, JSONB performance)
+- ✅ **Tests:** SQLite compatibility (works with in-memory database)
+- ✅ **Automatic:** SQLAlchemy handles the conversion based on database dialect
+
 ### 1.1 ForecastRun
 
 **Purpose:** Tracks forecast execution metadata and configuration.
@@ -54,43 +63,28 @@ This document defines all data models required for the forecasting module, organ
 class ForecastRun(Base):
     __tablename__ = "forecast_runs"
     
-    # Primary Key
-    forecast_run_id = Column(UUID, primary_key=True, default=uuid.uuid4)
+    # Primary Key (UUID in PostgreSQL, CHAR(36) in SQLite)
+    forecast_run_id = Column(GUID(), primary_key=True, default=uuid.uuid4)
     
-    # Multi-tenancy
-    client_id = Column(UUID, nullable=False, index=True)
-    user_id = Column(UUID, ForeignKey("users.id"), nullable=False)
+    # Multi-tenancy (UUID in PostgreSQL, CHAR(36) in SQLite)
+    client_id = Column(GUID(), nullable=False, index=True)
+    user_id = Column(String, ForeignKey("users.id"), nullable=False)  # Keep String for FK compatibility
     
     # Model Configuration
     primary_model = Column(String(50), nullable=False, default="chronos-2")
-    model_version = Column(String(50))  # e.g., "chronos-t5-tiny-v1"
-    methods_run = Column(JSON)  # List of methods executed: ["chronos-2", "statistical_ma7"]
-    recommended_method = Column(String(50))  # Method used for response
-    
-    # Forecast Parameters
     prediction_length = Column(Integer, nullable=False)  # Days ahead (e.g., 30)
-    quantile_levels = Column(JSON)  # [0.1, 0.5, 0.9]
+    item_ids = Column(JSON)  # List of items forecasted (JSON for SQLite, JSONB in PostgreSQL)
     
-    # Training Data Metadata
-    training_start_date = Column(Date)
-    training_end_date = Column(Date)
-    item_ids = Column(JSON)  # List of items forecasted
-    
-    # Execution Metadata
+    # Results
+    recommended_method = Column(String(50))  # Method used for response
     status = Column(String(20), nullable=False, default="pending")  # pending, completed, failed
     error_message = Column(Text)
-    runtime_ms = Column(Integer)
     
     # Timestamps
     created_at = Column(DateTime(timezone=True), server_default=func.now())
-    updated_at = Column(DateTime(timezone=True), onupdate=func.now())
-    
-    # Indexes
-    __table_args__ = (
-        Index('idx_forecast_runs_client_status', 'client_id', 'status'),
-        Index('idx_forecast_runs_created', 'created_at'),
-    )
 ```
+
+**Note:** Actual implementation is simplified for MVP. Future fields (model_version, methods_run, quantile_levels, training dates, runtime_ms, updated_at) can be added in Phase 2.
 
 **Relationships:**
 - `user_id` → `users.id`
@@ -108,39 +102,35 @@ class ForecastRun(Base):
 class ForecastResult(Base):
     __tablename__ = "forecast_results"
     
-    # Primary Key
-    result_id = Column(UUID, primary_key=True, default=uuid.uuid4)
+    # Primary Key (UUID in PostgreSQL, CHAR(36) in SQLite)
+    result_id = Column(GUID(), primary_key=True, default=uuid.uuid4)
     
-    # Foreign Keys
-    forecast_run_id = Column(UUID, ForeignKey("forecast_runs.forecast_run_id"), nullable=False)
+    # Foreign Keys (UUID in PostgreSQL, CHAR(36) in SQLite)
+    forecast_run_id = Column(GUID(), ForeignKey("forecast_runs.forecast_run_id"), nullable=False)
+    client_id = Column(GUID(), nullable=False, index=True)
     
-    # Multi-tenancy
-    client_id = Column(UUID, nullable=False, index=True)
-    
-    # Item & Location
+    # Item & Method
     item_id = Column(String(255), nullable=False, index=True)
-    location_id = Column(UUID, nullable=True, index=True)  # Optional for MVP
-    
-    # Method Identification
-    method = Column(String(50), nullable=False)  # "chronos-2", "statistical_ma7", etc.
+    method = Column(String(50), nullable=False)  # "chronos-2", "statistical_ma7"
     
     # Forecast Date
     date = Column(Date, nullable=False)
     horizon_day = Column(Integer, nullable=False)  # Days ahead: 1, 2, 3, ...
     
     # Forecast Values (Industry Standard Quantiles)
-    point_forecast = Column(Numeric(18, 2), nullable=False)  # Median (p50) or mean
-    p10 = Column(Numeric(18, 2))  # 10th percentile
+    point_forecast = Column(Numeric(18, 2), nullable=False)  # Main prediction
+    p10 = Column(Numeric(18, 2))  # 10th percentile (lower bound)
     p50 = Column(Numeric(18, 2))  # 50th percentile (median)
-    p90 = Column(Numeric(18, 2))  # 90th percentile
+    p90 = Column(Numeric(18, 2))  # 90th percentile (upper bound)
     
     # Actual Values (Backfilled Later)
-    actual_value = Column(Numeric(18, 2))  # Filled when actuals available
-    error = Column(Numeric(18, 4))  # |prediction - actual|
+    actual_value = Column(Numeric(18, 2))  # Real sales (backfilled via API)
     
     # Timestamps
     created_at = Column(DateTime(timezone=True), server_default=func.now())
-    updated_at = Column(DateTime(timezone=True), onupdate=func.now())
+```
+
+**Note:** Actual implementation is simplified for MVP. Future fields (location_id, error, updated_at) can be added in Phase 2.
     
     # Indexes for Performance
     __table_args__ = (

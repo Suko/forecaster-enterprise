@@ -41,7 +41,9 @@ async def create_forecast(
     # For MVP, use user_id as client_id (single-tenant per user)
     client_id = current_user.id
     
-    service = ForecastService(db)
+    # For MVP: use test data if ts_demand_daily table doesn't exist
+    # In production, this would check if table exists and use database
+    service = ForecastService(db, use_test_data=True)  # TODO: Auto-detect based on table existence
     
     try:
         forecast_run = await service.generate_forecast(
@@ -54,13 +56,45 @@ async def create_forecast(
         )
         
         # Fetch results for response
-        # TODO: Implement result fetching from database
-        # For now, return basic response structure
+        results_by_item = await service.get_forecast_results(
+            forecast_run_id=forecast_run.forecast_run_id,
+            method=forecast_run.recommended_method or forecast_run.primary_model,
+        )
+        
+        # Format response
+        from schemas.forecast import ItemForecast, Prediction, PredictionQuantiles
+        
+        item_forecasts = []
+        for item_id in request.item_ids:
+            if item_id not in results_by_item:
+                continue
+            
+            predictions = []
+            for pred_data in results_by_item[item_id]:
+                quantiles = None
+                if "quantiles" in pred_data:
+                    quantiles = PredictionQuantiles(**pred_data["quantiles"])
+                
+                predictions.append(
+                    Prediction(
+                        date=pred_data["date"],
+                        point_forecast=pred_data["point_forecast"],
+                        quantiles=quantiles,
+                    )
+                )
+            
+            item_forecasts.append(
+                ItemForecast(
+                    item_id=item_id,
+                    method_used=forecast_run.recommended_method or forecast_run.primary_model,
+                    predictions=predictions,
+                )
+            )
         
         return ForecastResponse(
-            forecast_id=forecast_run.forecast_run_id,
+            forecast_id=str(forecast_run.forecast_run_id),
             primary_model=forecast_run.primary_model,
-            forecasts=[],  # TODO: Populate from forecast_results
+            forecasts=item_forecasts,
         )
         
     except Exception as e:
@@ -83,7 +117,7 @@ async def calculate_inventory(
     """
     client_id = current_user.id
     
-    forecast_service = ForecastService(db)
+    forecast_service = ForecastService(db, use_test_data=True)  # TODO: Auto-detect
     inventory_calc = InventoryCalculator()
     
     try:
@@ -97,8 +131,10 @@ async def calculate_inventory(
             include_baseline=False,  # Only need one method for inventory
         )
         
-        # TODO: Fetch forecast results and calculate inventory metrics
-        # For now, return basic structure
+        # Fetch forecast results
+        results_by_item = await forecast_service.get_forecast_results(
+            forecast_run_id=forecast_run.forecast_run_id,
+        )
         
         results = []
         for item_id in request.item_ids:
@@ -107,10 +143,19 @@ async def calculate_inventory(
             
             params = request.inventory_params[item_id]
             
-            # TODO: Get forecast summary (avg daily demand, total forecast)
-            # Placeholder values
-            avg_daily_demand = 100.0  # TODO: Calculate from forecast
-            total_forecast = avg_daily_demand * request.prediction_length
+            # Calculate average daily demand from forecast
+            if item_id in results_by_item and results_by_item[item_id]:
+                predictions = results_by_item[item_id]
+                total_forecast = sum(p["point_forecast"] for p in predictions)
+                avg_daily_demand = total_forecast / len(predictions) if predictions else 0.0
+            else:
+                # Fallback if no predictions
+                avg_daily_demand = 0.0
+                total_forecast = 0.0
+            
+            if avg_daily_demand <= 0:
+                # Skip items with no forecast
+                continue
             
             # Calculate inventory metrics
             dir_value = inventory_calc.calculate_days_of_inventory_remaining(
@@ -172,7 +217,7 @@ async def calculate_inventory(
             )
         
         return InventoryCalculationResponse(
-            calculation_id=forecast_run.forecast_run_id,
+            calculation_id=str(forecast_run.forecast_run_id),
             results=results,
         )
         

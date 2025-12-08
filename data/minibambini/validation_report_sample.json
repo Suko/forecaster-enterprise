@@ -1,0 +1,32 @@
+{
+  "file": "minibambini.csv",
+  "timestamp": "2025-12-06T13:39:22.081563",
+  "stats": {
+    "total_rows": 1000,
+    "total_columns": 7,
+    "date_range_days": 7,
+    "min_date": "2023-10-01 00:00:00",
+    "max_date": "2023-10-08 00:00:00",
+    "total_sales": "27",
+    "avg_daily_sales": 0.027,
+    "zero_sales_days": "973",
+    "zero_sales_pct": 97.3,
+    "avg_inventory": 1.766,
+    "stockout_days": "338",
+    "stockout_pct": 33.800000000000004,
+    "unique_vendors": 8,
+    "unique_products": 89,
+    "unique_variants": 33,
+    "anomalies_detected": 1
+  },
+  "issues": [
+    "1 rows with negative sales (returns?)",
+    "8 completely empty rows (should be removed)"
+  ],
+  "warnings": [
+    "8 rows with missing vendor",
+    "8 rows with missing product title",
+    "8 rows with missing variant (using 'Default Title')"
+  ],
+  "status": "FAIL"
+}

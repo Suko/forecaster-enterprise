@@ -11,6 +11,68 @@ We have synthetic test data that's perfect for testing, even though the structur
 
 ---
 
+## Test Database Strategy
+
+### Two Testing Modes
+
+We support **two database backends** for testing:
+
+#### 1. **SQLite (Default)** - Fast Unit Tests
+- **When:** Default for all tests
+- **Speed:** Very fast (in-memory)
+- **Setup:** No setup required
+- **Use Case:** Unit tests, fast iteration
+
+#### 2. **PostgreSQL** - Production-Like Integration Tests
+- **When:** Set `TEST_POSTGRES=true` environment variable
+- **Speed:** Slower (real database)
+- **Setup:** Requires PostgreSQL running
+- **Use Case:** Integration tests, catching PostgreSQL-specific issues
+
+### How to Use
+
+**Default (SQLite):**
+```bash
+# Fast tests with SQLite (default)
+pytest tests/
+```
+
+**PostgreSQL:**
+```bash
+# Integration tests with PostgreSQL
+TEST_POSTGRES=true pytest tests/
+
+# Or with custom database URL
+TEST_POSTGRES=true TEST_DATABASE_URL=postgresql://user:pass@localhost:5432/test_db pytest tests/
+```
+
+### When to Use Each
+
+| Test Type | Database | Why |
+|-----------|----------|-----|
+| **Unit Tests** | SQLite | Fast, no setup, tests logic |
+| **Integration Tests** | PostgreSQL | Real database, catches DB-specific issues |
+| **CI/CD** | Both | SQLite for speed, PostgreSQL for accuracy |
+
+### PostgreSQL Test Setup
+
+**Prerequisites:**
+```bash
+# Create test database
+createdb forecaster_enterprise_test
+
+# Or via psql
+psql -U postgres -c "CREATE DATABASE forecaster_enterprise_test;"
+```
+
+**Environment Variables:**
+```bash
+export TEST_POSTGRES=true
+export TEST_DATABASE_URL=postgresql://postgres:postgres@localhost:5432/forecaster_enterprise_test
+```
+
+---
+
 ## Test Data
 
 ### Source: `synthetic_ecom_chronos2_demo.csv`
@@ -66,22 +128,23 @@ item_data = loader.get_item_data("SKU001")
 **Location:** `tests/conftest.py`
 
 **Features:**
-- In-memory SQLite database (fast tests)
+- **Auto-detects** database backend (SQLite or PostgreSQL)
 - Automatic table creation/cleanup
 - Async session fixtures
+- Works with both SQLite and PostgreSQL
 
 **Usage:**
 ```python
 @pytest.mark.asyncio
 async def test_forecast_service(db_session):
     service = ForecastService(db_session)
-    # Test with in-memory database
+    # Works with both SQLite and PostgreSQL
 ```
 
 ### 3. Test Fixtures
 
 **Available Fixtures:**
-- `db_session`: Async database session
+- `db_session`: Async database session (SQLite or PostgreSQL)
 - `test_data_loader`: TestDataLoader instance
 - `sample_item_data`: Pre-loaded SKU001 data
 - `sample_item_ids`: List of available item IDs
@@ -92,264 +155,178 @@ async def test_forecast_service(db_session):
 
 ```
 tests/
-├── conftest.py                    # Shared fixtures
+├── conftest.py                    # Shared fixtures (supports both DBs)
 ├── fixtures/
 │   ├── __init__.py
 │   └── test_data_loader.py        # CSV data loader
 ├── test_forecasting/
 │   ├── __init__.py
-│   ├── test_models.py            # Model unit tests
-│   ├── test_inventory_calculator.py
-│   ├── test_quality_calculator.py
-│   └── test_data_loader.py
+│   ├── test_data_loader.py        # Test data loader tests
+│   ├── test_models.py             # Model tests
+│   ├── test_inventory_calculator.py  # Inventory formula tests
+│   ├── test_quality_calculator.py    # Quality metric tests
+│   └── test_forecast_service.py    # Service integration tests
 └── test_api/
-    └── test_forecast_api.py      # API integration tests
-```
-
----
-
-## Testing Levels
-
-### 1. Unit Tests (Fast, Isolated)
-
-**What to Test:**
-- ✅ Model calculations (MovingAverageModel)
-- ✅ Inventory formulas (InventoryCalculator)
-- ✅ Quality metrics (QualityCalculator)
-- ✅ Data transformation (TestDataLoader)
-
-**Example:**
-```python
-def test_calculate_dir():
-    dir_value = InventoryCalculator.calculate_days_of_inventory_remaining(
-        current_stock=500,
-        avg_daily_demand=100,
-    )
-    assert dir_value == 5.0
-```
-
-### 2. Integration Tests (Service Layer)
-
-**What to Test:**
-- ✅ ForecastService with real models
-- ✅ Database storage and retrieval
-- ✅ Model factory
-- ✅ End-to-end forecast generation
-
-**Example:**
-```python
-@pytest.mark.asyncio
-async def test_forecast_service_generation(db_session, sample_item_data):
-    service = ForecastService(db_session)
-    forecast_run = await service.generate_forecast(
-        client_id="test_client",
-        user_id="test_user",
-        item_ids=["SKU001"],
-        prediction_length=7,
-    )
-    assert forecast_run.status == "completed"
-```
-
-### 3. API Integration Tests (Full Stack)
-
-**What to Test:**
-- ✅ API endpoint structure
-- ✅ Request/response validation
-- ✅ Authentication
-- ✅ Error handling
-
-**Example:**
-```python
-def test_forecast_endpoint(client, auth_token):
-    response = client.post(
-        "/api/v1/forecast",
-        json={"item_ids": ["SKU001"], "prediction_length": 30},
-        headers={"Authorization": f"Bearer {auth_token}"}
-    )
-    assert response.status_code == 201
-```
-
----
-
-## Test Data Transformation
-
-### CSV Format → Chronos-2 Format
-
-**Input (CSV):**
-```
-date, sku, sales_qty, promo_flag, holiday_flag, is_weekend
-2023-01-01, SKU001, 245, 0, 1, 1
-```
-
-**Output (Chronos-2):**
-```
-id, timestamp, target, promo_flag, holiday_flag, is_weekend
-SKU001, 2023-01-01, 245, 0, 1, 1
-```
-
-**Transformation Logic:**
-```python
-# In TestDataLoader.get_item_data()
-result_df['id'] = item_id
-result_df['timestamp'] = item_df['date']
-result_df['target'] = item_df['sales_qty']  # or 'units_sold' in production
-result_df['promo_flag'] = item_df['promo_flag'].astype(int)
-# ... other covariates
+    └── test_forecast_api.py        # API endpoint tests
 ```
 
 ---
 
 ## Running Tests
 
-### Run All Tests
+### Quick Tests (SQLite - Default)
 ```bash
-cd backend
-pytest
-```
+# All tests
+pytest tests/
 
-### Run Specific Test File
-```bash
+# Specific test file
 pytest tests/test_forecasting/test_models.py
+
+# With verbose output
+pytest tests/ -v
+
+# With coverage
+pytest tests/ --cov=forecasting --cov-report=html
 ```
 
-### Run with Coverage
+### Integration Tests (PostgreSQL)
 ```bash
-pytest --cov=forecasting --cov-report=html
+# Run all tests with PostgreSQL
+TEST_POSTGRES=true pytest tests/
+
+# Run specific test with PostgreSQL
+TEST_POSTGRES=true pytest tests/test_forecasting/test_forecast_service.py -v
+
+# With custom database
+TEST_POSTGRES=true TEST_DATABASE_URL=postgresql://user:pass@localhost:5432/test_db pytest tests/
 ```
 
-### Run Fast Tests Only (Unit Tests)
-```bash
-pytest -m "not integration"
-```
+### CI/CD Strategy
 
----
+**Recommended approach:**
+1. **Fast feedback:** Run SQLite tests first (unit tests)
+2. **Accuracy check:** Run PostgreSQL tests (integration tests)
+3. **Both in CI:** Run both in parallel or sequentially
 
-## Test Data Coverage
-
-### What the Test Data Provides
-
-| Feature | Test Data | Production |
-|---------|-----------|------------|
-| **Historical Data** | ✅ 2 years daily | ✅ From ETL |
-| **Multiple Items** | ✅ SKU001-SKU020 | ✅ All items |
-| **Covariates** | ✅ promo, holiday, weekend | ✅ From ETL |
-| **Date Range** | ✅ 2023-2024 | ✅ Current |
-| **Store/Location** | ✅ store_id | ✅ location_id |
-
-### What's Different (But OK for Testing)
-
-| Aspect | Test Data | Production | Impact |
-|--------|-----------|------------|--------|
-| **Column Names** | `sku`, `sales_qty` | `item_id`, `units_sold` | ✅ Handled by loader |
-| **Store vs Location** | `store_id` | `location_id` | ✅ Optional in MVP |
-| **Client ID** | Not in CSV | `client_id` | ✅ Can mock for tests |
-
----
-
-## Mocking Strategy
-
-### For Unit Tests
-
-**Mock External Dependencies:**
-- Chronos-2 model (don't load real model in unit tests)
-- Database queries (use fixtures)
-- External APIs
-
-**Example:**
-```python
-@pytest.fixture
-def mock_chronos_model():
-    # Mock Chronos2Model to avoid loading real model
-    pass
-```
-
-### For Integration Tests
-
-**Use Real Components:**
-- Real database (in-memory SQLite)
-- Real models (if fast enough)
-- Real data transformations
-
----
-
-## Test Scenarios
-
-### 1. Happy Path
-- ✅ Generate forecast for item with good history
-- ✅ Calculate inventory metrics
-- ✅ Backfill actuals and view quality
-
-### 2. Edge Cases
-- ⚠️ Item with insufficient history (< 7 days)
-- ⚠️ Item with no sales (all zeros)
-- ⚠️ Item with missing data
-- ⚠️ Invalid input parameters
-
-### 3. Error Handling
-- ⚠️ Model initialization failure
-- ⚠️ Database connection errors
-- ⚠️ Invalid item IDs
-- ⚠️ Missing required fields
-
----
-
-## Continuous Testing
-
-### Pre-Commit Hooks
-```bash
-# Run fast tests before commit
-pytest tests/test_forecasting/test_models.py -v
-```
-
-### CI/CD Pipeline
+**Example CI config:**
 ```yaml
-# Run all tests
-pytest --cov=forecasting --cov-report=xml
+# .github/workflows/test.yml
+- name: Run SQLite tests
+  run: pytest tests/ -v
+
+- name: Run PostgreSQL tests
+  run: |
+    TEST_POSTGRES=true pytest tests/ -v
+  env:
+    TEST_DATABASE_URL: postgresql://postgres:postgres@localhost:5432/test_db
 ```
 
 ---
 
-## Test Data Maintenance
+## Test Coverage
 
-### Adding New Test Data
+### Current Coverage
 
-1. Add CSV file to `data/sintetic_data/`
-2. Update `TestDataLoader` if format changes
-3. Add tests for new data format
+- ✅ **Unit Tests:** Models, calculators, data loader
+- ✅ **Integration Tests:** ForecastService end-to-end
+- ✅ **API Tests:** Endpoint integration (in progress)
 
-### Updating Test Data
+### What's Tested
 
-- Keep test data in sync with expected schema
-- Document any format changes
-- Update transformation logic if needed
+1. **Data Loading**
+   - CSV loading and transformation
+   - Data filtering and formatting
+
+2. **Forecasting Models**
+   - MovingAverageModel (7-day)
+   - ModelFactory
+   - BaseForecastModel interface
+
+3. **Inventory Calculations**
+   - Days of Inventory Remaining (DIR)
+   - Safety Stock
+   - Reorder Point (ROP)
+   - Recommended Order Quantity
+   - Stockout Risk
+
+4. **Quality Metrics**
+   - MAPE (Mean Absolute Percentage Error)
+   - MAE (Mean Absolute Error)
+   - RMSE (Root Mean Squared Error)
+   - Forecast Bias
+
+5. **Service Integration**
+   - ForecastService orchestration
+   - Data access (database and test data)
+   - Result storage and retrieval
 
 ---
 
 ## Best Practices
 
-1. **Fast Tests First**: Unit tests should run in < 1 second
-2. **Isolated Tests**: Each test should be independent
-3. **Use Fixtures**: Reuse test data and setup
-4. **Mock External**: Don't load real ML models in unit tests
-5. **Real Data**: Use real test data for integration tests
-6. **Clear Names**: Test names should describe what they test
+### 1. Use SQLite for Unit Tests
+- Fast iteration
+- No external dependencies
+- Tests business logic
+
+### 2. Use PostgreSQL for Integration Tests
+- Before committing major changes
+- In CI/CD pipeline
+- When testing database-specific features
+
+### 3. Test Data Isolation
+- Each test gets a fresh database session
+- Tables are created/dropped per test
+- No data leakage between tests
+
+### 4. Test Both Databases
+- Run SQLite tests frequently (fast feedback)
+- Run PostgreSQL tests before releases (accuracy)
 
 ---
 
-## Next Steps
+## Troubleshooting
 
-1. ✅ Test infrastructure created
-2. ✅ TestDataLoader implemented
-3. ⏳ Complete unit tests for all calculators
-4. ⏳ Add integration tests for ForecastService
-5. ⏳ Add API integration tests with authentication
-6. ⏳ Add performance tests (if needed)
+### PostgreSQL Tests Failing
+
+**Issue:** Cannot connect to PostgreSQL
+```bash
+# Check PostgreSQL is running
+pg_isready
+
+# Check database exists
+psql -U postgres -l | grep forecaster_enterprise_test
+
+# Create database if missing
+createdb forecaster_enterprise_test
+```
+
+**Issue:** Permission errors
+```bash
+# Grant permissions
+psql -U postgres -c "GRANT ALL PRIVILEGES ON DATABASE forecaster_enterprise_test TO postgres;"
+```
+
+### SQLite Tests Failing
+
+**Issue:** Usually indicates a code problem (not database issue)
+- Check test data is loading correctly
+- Verify model definitions match database schema
 
 ---
 
-## References
+## Summary
 
-- Test Data: `data/sintetic_data/synthetic_ecom_chronos2_demo.csv`
-- Test Loader: `tests/fixtures/test_data_loader.py`
-- Pytest Docs: https://docs.pytest.org/
+- ✅ **Default:** SQLite (fast, no setup)
+- ✅ **Optional:** PostgreSQL (production-like, catches DB issues)
+- ✅ **Best Practice:** Use both (SQLite for speed, PostgreSQL for accuracy)
+- ✅ **CI/CD:** Run both in pipeline
 
+**Quick Start:**
+```bash
+# Fast tests (SQLite)
+pytest tests/
+
+# Integration tests (PostgreSQL)
+TEST_POSTGRES=true pytest tests/
+```

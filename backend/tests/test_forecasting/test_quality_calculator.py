@@ -3,6 +3,9 @@ Unit tests for QualityCalculator
 """
 import pytest
 from forecasting.services.quality_calculator import QualityCalculator
+from models.forecast import ForecastResult, ForecastRun
+from datetime import date, timedelta
+import uuid
 
 
 class TestQualityCalculator:
@@ -58,4 +61,55 @@ class TestQualityCalculator:
         # Should calculate from non-zero values only
         assert mape is not None
         assert mape > 0
+    
+    @pytest.mark.asyncio
+    async def test_calculate_quality_metrics_with_db(self, db_session, test_client):
+        """Test async calculate_quality_metrics method with database"""
+        from sqlalchemy import select
+        
+        # Create a forecast run
+        forecast_run = ForecastRun(
+            forecast_run_id=uuid.uuid4(),
+            client_id=test_client.client_id,
+            user_id="test_user",
+            primary_model="statistical_ma7",
+            prediction_length=7,
+            item_ids=["SKU001"],
+            status="completed",
+        )
+        db_session.add(forecast_run)
+        await db_session.flush()
+        
+        # Create forecast results with actuals
+        base_date = date.today()
+        for i in range(7):
+            result = ForecastResult(
+                result_id=uuid.uuid4(),
+                forecast_run_id=forecast_run.forecast_run_id,
+                client_id=test_client.client_id,
+                item_id="SKU001",
+                method="statistical_ma7",
+                date=base_date + timedelta(days=i),
+                horizon_day=i + 1,
+                point_forecast=100.0 + i,
+                actual_value=105.0 + i,  # Actual is 5 units higher
+            )
+            db_session.add(result)
+        
+        await db_session.commit()
+        
+        # Calculate quality metrics
+        calculator = QualityCalculator(db_session)
+        metrics = await calculator.calculate_quality_metrics(
+            client_id=str(test_client.client_id),
+            item_id="SKU001",
+            method="statistical_ma7",
+        )
+        
+        assert metrics["sample_size"] == 7
+        assert metrics["mae"] is not None
+        assert metrics["mae"] > 0
+        assert metrics["bias"] is not None
+        # Should show negative bias (under-forecasting)
+        assert metrics["bias"] < 0
 

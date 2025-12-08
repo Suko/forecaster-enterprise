@@ -35,8 +35,12 @@ async def login_user(
             detail="User account is inactive"
         )
     
-    # Create access token
-    access_token = create_access_token(data={"sub": user.email})
+    # Create access token with client_id for multi-tenant architecture
+    token_data = {"sub": user.email}
+    if user.client_id:
+        token_data["client_id"] = str(user.client_id)
+    
+    access_token = create_access_token(data=token_data)
     
     # Log successful login
     log_login_success(request, email=user.email)

@@ -47,8 +47,13 @@ All configuration is managed through `.env` file in the project root. See `.env.
 **Key environment variables:**
 - `DATABASE_URL` - PostgreSQL connection string
 - `JWT_SECRET_KEY` - Secret key for JWT tokens (generate with `openssl rand -hex 32`)
+- `SERVICE_API_KEY` - Service API key for automated/system forecasts (optional, for scheduled forecasts)
 - `ENVIRONMENT` - development/production
 - `CORS_ORIGINS` - Comma-separated list of allowed origins
+
+**Security Notes:**
+- `JWT_SECRET_KEY`: Required in production, auto-generated in development (with warning)
+- `SERVICE_API_KEY`: Optional, only needed for automated/system forecasts. If not set, service API key authentication is disabled.
 
 ## Project Structure
 

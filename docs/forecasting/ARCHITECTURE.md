@@ -2,7 +2,7 @@
 
 **Status:** ✅ Complete  
 **Scope:** Full Architecture (MVP + Future Phases)  
-**Quick Start:** See [MVP_UNIFIED.md](MVP_UNIFIED.md) for simplified MVP view
+**Quick Start:** See [MVP_UNIFIED.md](MVP_UNIFIED.md) for quick reference
 
 ---
 

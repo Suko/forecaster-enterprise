@@ -2,7 +2,7 @@
 
 **Status:** ✅ Complete  
 **Scope:** Integration Guide (All Phases)  
-**Quick Start:** See [MVP_UNIFIED.md](MVP_UNIFIED.md) for MVP implementation
+**Quick Start:** See [MVP_UNIFIED.md](MVP_UNIFIED.md) for quick reference
 
 ---
 
@@ -74,25 +74,31 @@ backend/
 
 **Location:** `backend/api/forecast.py` (follows existing pattern)
 
-**Pattern:** Same as `backend/api/auth.py`
+**Pattern:** Same as `backend/api/auth.py`, but supports both JWT and service API key authentication
 
 ```python
 # backend/api/forecast.py
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, Request
 from schemas.forecast import ForecastRequest, ForecastResponse
 from forecasting.services.forecast_service import ForecastService
-from auth.dependencies import get_current_user
+from auth.service_auth import get_client_id_from_request_or_token
 
 router = APIRouter(prefix="/api/v1", tags=["forecast"])
 
 @router.post("/forecast", response_model=ForecastResponse)
 async def create_forecast(
     request: ForecastRequest,
-    current_user: User = Depends(get_current_user),
-    service: ForecastService = Depends(get_forecast_service)
+    request_obj: Request,
+    db: AsyncSession = Depends(get_db),
 ):
-    """Forecast endpoint - follows existing pattern"""
-    return await service.generate_forecast(request, current_user)
+    """Forecast endpoint - supports JWT and service API key"""
+    # Get client_id from JWT token OR service API key + request body
+    client_id = await get_client_id_from_request_or_token(
+        request_obj,
+        client_id=request.client_id,  # Optional: for service calls
+        db=db,
+    )
+    # ... rest of implementation
 ```
 
 ### Schemas

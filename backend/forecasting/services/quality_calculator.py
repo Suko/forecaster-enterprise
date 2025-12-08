@@ -90,6 +90,7 @@ class QualityCalculator:
     
     async def calculate_quality_metrics(
         self,
+        client_id: str,
         item_id: str,
         method: str,
         start_date: Optional[date] = None,
@@ -99,6 +100,7 @@ class QualityCalculator:
         Calculate quality metrics for a specific item and method.
         
         Args:
+            client_id: Client identifier (multi-tenant filter)
             item_id: Item identifier
             method: Forecasting method ("chronos-2", "statistical_ma7")
             start_date: Start date for analysis
@@ -107,9 +109,10 @@ class QualityCalculator:
         Returns:
             Dictionary with MAPE, MAE, RMSE, Bias, and sample_size
         """
-        # Build query
+        # Build query with client_id filter (unified multi-tenant)
         query = select(ForecastResult).where(
             and_(
+                ForecastResult.client_id == client_id,  # Multi-tenant filter
                 ForecastResult.item_id == item_id,
                 ForecastResult.method == method,
                 ForecastResult.actual_value.isnot(None),

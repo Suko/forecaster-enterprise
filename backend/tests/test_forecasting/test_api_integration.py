@@ -20,15 +20,15 @@ class TestForecastAPI:
         return TestClient(app)
     
     @pytest.mark.asyncio
-    async def test_get_forecast_results(self, db_session, sample_item_ids):
+    async def test_get_forecast_results(self, db_session, sample_item_ids, test_client, populate_test_data):
         """Test fetching forecast results from database"""
-        service = ForecastService(db_session, use_test_data=True)
+        service = ForecastService(db_session)
         
         item_id = sample_item_ids[0]
         
         # Generate forecast (this commits internally)
         forecast_run = await service.generate_forecast(
-            client_id="test_client",
+            client_id=str(test_client.client_id),
             user_id="test_user",
             item_ids=[item_id],
             prediction_length=7,
@@ -68,14 +68,14 @@ class TestForecastAPI:
             assert first_pred["point_forecast"] > 0
     
     @pytest.mark.asyncio
-    async def test_get_forecast_results_multiple_items(self, db_session, sample_item_ids):
+    async def test_get_forecast_results_multiple_items(self, db_session, sample_item_ids, test_client, populate_test_data):
         """Test fetching results for multiple items"""
-        service = ForecastService(db_session, use_test_data=True)
+        service = ForecastService(db_session)
         
         item_ids = sample_item_ids[:2]
         
         forecast_run = await service.generate_forecast(
-            client_id="test_client",
+            client_id=str(test_client.client_id),
             user_id="test_user",
             item_ids=item_ids,
             prediction_length=7,

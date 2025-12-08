@@ -83,9 +83,23 @@ class Chronos2Model(BaseForecastModel):
         
         try:
             # Prepare data for Chronos-2
+            # Chronos-2 expects 'item_id' column, but we use 'id'
+            # Create a copy and rename if needed
+            chronos_df = context_df.copy()
+            if "id" in chronos_df.columns and "item_id" not in chronos_df.columns:
+                chronos_df = chronos_df.rename(columns={"id": "item_id"})
+            
+            # Ensure numeric columns are numeric (Chronos-2 requires this)
+            if "target" in chronos_df.columns:
+                chronos_df["target"] = pd.to_numeric(chronos_df["target"], errors='coerce')
+            # Ensure covariate columns are numeric if they exist
+            for col in chronos_df.columns:
+                if col not in ["item_id", "timestamp"] and chronos_df[col].dtype == 'object':
+                    chronos_df[col] = pd.to_numeric(chronos_df[col], errors='coerce')
+            
             # Chronos-2 expects specific format via predict_df()
             predictions_df = self.pipeline.predict_df(
-                context_df,
+                chronos_df,
                 prediction_length=prediction_length,
                 future_df=future_covariates,
                 quantile_levels=quantile_levels,
@@ -93,7 +107,9 @@ class Chronos2Model(BaseForecastModel):
             
             # Ensure consistent column names
             result_df = pd.DataFrame()
-            result_df["id"] = predictions_df.get("id", context_df["id"].iloc[0] if not context_df.empty else "item_1")
+            # Get item_id from context (preserve original id)
+            item_id = context_df["id"].iloc[0] if not context_df.empty else (context_df.get("item_id", ["item_1"]).iloc[0] if "item_id" in context_df.columns else "item_1")
+            result_df["id"] = item_id
             result_df["timestamp"] = predictions_df.get("timestamp", pd.date_range(
                 start=context_df["timestamp"].max() + timedelta(days=1),
                 periods=prediction_length,

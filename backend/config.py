@@ -69,6 +69,9 @@ class Settings(BaseSettings):
     secret_key: str = os.getenv("JWT_SECRET_KEY", "")
     algorithm: str = os.getenv("JWT_ALGORITHM", "HS256")
     access_token_expire_minutes: int = int(os.getenv("JWT_ACCESS_TOKEN_EXPIRE_MINUTES", "30"))
+    
+    # Service API Key - For automated/system forecasts (optional)
+    service_api_key: Optional[str] = os.getenv("SERVICE_API_KEY", None)
 
     # API Configuration
     api_host: str = os.getenv("API_HOST", "0.0.0.0")

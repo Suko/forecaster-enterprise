@@ -170,3 +170,50 @@ This will:
 - `forecast_accuracy_results.json` - Accuracy test results
 - `ts_demand_daily_clean.csv` - **Cleaned data ready for forecasting** (141 MB)
 
+
+---
+
+## Data Quality Approach
+
+### Workflow: Validate → Clean → Test → Use
+
+```
+┌─────────────────────────────────────────────────────────┐
+│  1. VALIDATE DATA                                       │
+│     python validate_data.py                             │
+│     ✅ Structure OK? ✅ Quality OK? ✅ Anomalies OK?    │
+└───────────────────────┬─────────────────────────────────┘
+                        ▼
+┌─────────────────────────────────────────────────────────┐
+│  2. RUN ETL                                             │
+│     python etl_to_ts_demand_daily.py                   │
+│     ✅ Clean ✅ Generate SKUs ✅ Fill gaps ✅ Transform │
+└───────────────────────┬─────────────────────────────────┘
+                        ▼
+┌─────────────────────────────────────────────────────────┐
+│  3. TEST ACCURACY                                       │
+│     python test_forecast_accuracy_simple.py            │
+│     ✅ Split data ✅ Forecast ✅ Calculate MAPE/MAE    │
+└───────────────────────┬─────────────────────────────────┘
+                        ▼
+┌─────────────────────────────────────────────────────────┐
+│  4. USE IN PRODUCTION                                   │
+│     Only items with acceptable accuracy                 │
+└─────────────────────────────────────────────────────────┘
+```
+
+### Acceptance Criteria
+
+| MAPE | Decision |
+|------|----------|
+| < 30% | ✅ Good - Use in production |
+| 30-50% | ⚠️ Acceptable - Review before use |
+| > 50% | ❌ Reject - Data too messy |
+
+### Key Principles
+
+1. **Validate First** - Never skip validation
+2. **Clean Thoroughly** - Fix all issues before forecasting
+3. **Test Accuracy** - Don't trust forecasts without testing
+4. **Reject Bad Data** - Better to reject than produce bad forecasts
+5. **Monitor Continuously** - Re-validate as new data arrives

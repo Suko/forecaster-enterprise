@@ -1,7 +1,8 @@
 """
 Data Access Layer
 
-Fetches historical sales data from database or test data source.
+Fetches historical sales data from database (ts_demand_daily table).
+All data is stored per client_id in the database.
 """
 import pandas as pd
 from typing import List, Optional
@@ -9,27 +10,18 @@ from datetime import date, datetime
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, and_, text
 
-# For test data fallback
-import sys
-from pathlib import Path
-sys.path.append(str(Path(__file__).parent.parent.parent))
-from tests.fixtures.test_data_loader import TestDataLoader
-
 
 class DataAccess:
-    """Access historical sales data from database or test data"""
+    """Access historical sales data from database"""
     
-    def __init__(self, db: AsyncSession, use_test_data: bool = False):
+    def __init__(self, db: AsyncSession):
         """
         Initialize data access.
         
         Args:
             db: Database session
-            use_test_data: If True, use CSV test data instead of database
         """
         self.db = db
-        self.use_test_data = use_test_data
-        self.test_loader = TestDataLoader() if use_test_data else None
     
     async def fetch_historical_data(
         self,
@@ -40,12 +32,15 @@ class DataAccess:
         location_id: Optional[str] = None,
     ) -> pd.DataFrame:
         """
-        Fetch historical sales data for specified items.
+        Fetch historical sales data for specified items from database.
+        
+        All data is stored in ts_demand_daily table, filtered by client_id.
+        Test users have test data in the table, real users have real data.
         
         Returns DataFrame with columns: id, timestamp, target, [covariates]
         
         Args:
-            client_id: Client identifier
+            client_id: Client identifier (filters data per client)
             item_ids: List of item IDs
             start_date: Start date filter (optional)
             end_date: End date filter (optional)
@@ -53,47 +48,11 @@ class DataAccess:
         
         Returns:
             DataFrame with columns: id, timestamp, target, promo_flag, holiday_flag, etc.
+            Empty DataFrame if table doesn't exist or no data found.
         """
-        if self.use_test_data:
-            return await self._fetch_from_test_data(item_ids, start_date, end_date)
-        else:
-            return await self._fetch_from_database(
-                client_id, item_ids, start_date, end_date, location_id
-            )
-    
-    async def _fetch_from_test_data(
-        self,
-        item_ids: List[str],
-        start_date: Optional[date],
-        end_date: Optional[date],
-    ) -> pd.DataFrame:
-        """Fetch data from CSV test data"""
-        all_data = []
-        
-        for item_id in item_ids:
-            item_data = self.test_loader.get_item_data(
-                item_id=item_id,
-                start_date=start_date,
-                end_date=end_date,
-            )
-            if not item_data.empty:
-                all_data.append(item_data)
-        
-        if not all_data:
-            return pd.DataFrame()
-        
-        # Combine all items
-        combined_df = pd.concat(all_data, ignore_index=True)
-        
-        # Ensure required columns
-        if "id" not in combined_df.columns:
-            combined_df["id"] = combined_df.get("item_id", "")
-        if "timestamp" not in combined_df.columns:
-            combined_df["timestamp"] = combined_df.get("date", pd.NaT)
-        if "target" not in combined_df.columns:
-            combined_df["target"] = combined_df.get("sales_qty", 0)
-        
-        return combined_df
+        return await self._fetch_from_database(
+            client_id, item_ids, start_date, end_date, location_id
+        )
     
     async def _fetch_from_database(
         self,
@@ -106,7 +65,10 @@ class DataAccess:
         """
         Fetch data from ts_demand_daily table.
         
-        Note: This assumes the table exists. If not, will return empty DataFrame.
+        All data is stored per client_id. Test users have test data,
+        real users have real data - all in the same table.
+        
+        Returns empty DataFrame if table doesn't exist or no data found.
         """
         try:
             # Check if table exists

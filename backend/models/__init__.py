@@ -21,6 +21,11 @@ from .forecast import (
     ForecastStatus,
 )
 
+# Export client models
+from .client import (
+    Client,
+)
+
 __all__ = [
     # Base
     "Base",
@@ -32,6 +37,8 @@ __all__ = [
     # User models
     "User",
     "UserRole",
+    # Client models
+    "Client",
     # Forecast models
     "ForecastRun",
     "ForecastResult",

@@ -171,12 +171,33 @@ async function logout() {
 
 ### Environment Variables
 
-`.env` file contains:
+**Frontend `.env` file:**
 ```
 NUXT_SESSION_PASSWORD=your-secure-random-password-with-at-least-32-characters
 ```
 
-This is automatically generated in development if not set.
+**Backend `.env` file:**
+```
+# JWT Authentication (Required)
+JWT_SECRET_KEY=your-secret-key-here-minimum-32-characters-long
+JWT_ALGORITHM=HS256
+JWT_ACCESS_TOKEN_EXPIRE_MINUTES=30
+
+# Service API Key (Optional - for automated/system forecasts)
+SERVICE_API_KEY=your-service-api-key-here-minimum-32-characters-long
+
+# Database
+DATABASE_URL=postgresql://postgres:postgres@localhost:5432/forecaster_enterprise
+
+# Application
+ENVIRONMENT=development
+DEBUG=false
+```
+
+**Notes:**
+- `JWT_SECRET_KEY`: Required in production, auto-generated in development (with warning)
+- `SERVICE_API_KEY`: Optional, only needed for automated/system forecasts. If not set, service API key authentication is disabled.
+- See `.env.example` for all available options
 
 ## Backend Integration
 

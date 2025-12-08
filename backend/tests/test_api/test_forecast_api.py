@@ -6,7 +6,6 @@ from httpx import AsyncClient
 from fastapi.testclient import TestClient
 
 from main import app
-from tests.conftest import db_session
 
 
 class TestForecastAPI:

@@ -3,13 +3,14 @@ Forecast API Endpoints
 
 Endpoints for forecasting and inventory calculations.
 """
-from fastapi import APIRouter, Depends, HTTPException, status, Query
+from fastapi import APIRouter, Depends, HTTPException, status, Query, Request
 from sqlalchemy.ext.asyncio import AsyncSession
 from typing import Optional
 from datetime import date
 
 from models import get_db, User
 from auth import get_current_user
+from auth.service_auth import get_client_id_from_request_or_token, get_optional_client_id
 from schemas.forecast import (
     ForecastRequest,
     ForecastResponse,
@@ -29,26 +30,43 @@ router = APIRouter(prefix="/api/v1", tags=["forecast"])
 @router.post("/forecast", response_model=ForecastResponse, status_code=status.HTTP_201_CREATED)
 async def create_forecast(
     request: ForecastRequest,
-    current_user: User = Depends(get_current_user),
+    request_obj: Request,
     db: AsyncSession = Depends(get_db),
 ):
     """
     Generate forecast for specified items.
     
+    Authentication (choose one):
+    - JWT token (user calls): client_id from user's JWT token (request.client_id ignored)
+    - Service API key (system calls): X-API-Key header + client_id in request body
+    
     Returns predictions from recommended method (primary if successful, baseline if not).
     Both methods are stored in database for future quality analysis.
     """
-    # For MVP, use user_id as client_id (single-tenant per user)
-    client_id = current_user.id
+    # Get client_id from JWT token OR service API key + request body
+    # Supports both user calls (JWT) and system calls (API key)
+    client_id = await get_client_id_from_request_or_token(
+        request_obj,
+        client_id=request.client_id,  # Optional: for system calls
+        db=db,
+    )
     
-    # For MVP: use test data if ts_demand_daily table doesn't exist
-    # In production, this would check if table exists and use database
-    service = ForecastService(db, use_test_data=True)  # TODO: Auto-detect based on table existence
+    # Get user_id if available (for user calls)
+    try:
+        current_user = await get_current_user(request_obj, db)
+        user_id = current_user.id
+    except HTTPException:
+        # No JWT token - this is a system call
+        user_id = "system"
+    
+    # All data is stored in ts_demand_daily table, filtered by client_id
+    # Test users have test data in the table, real users have real data
+    service = ForecastService(db)
     
     try:
         forecast_run = await service.generate_forecast(
             client_id=client_id,
-            user_id=current_user.id,
+            user_id=user_id,
             item_ids=request.item_ids,
             prediction_length=request.prediction_length,
             primary_model=request.model or "chronos-2",
@@ -107,24 +125,41 @@ async def create_forecast(
 @router.post("/inventory/calculate", response_model=InventoryCalculationResponse, status_code=status.HTTP_201_CREATED)
 async def calculate_inventory(
     request: InventoryCalculationRequest,
-    current_user: User = Depends(get_current_user),
+    request_obj: Request,
     db: AsyncSession = Depends(get_db),
 ):
     """
     Calculate inventory metrics from forecasts.
     
+    Authentication (choose one):
+    - JWT token (user calls): client_id from user's JWT token
+    - Service API key (system calls): X-API-Key header + client_id in request body
+    
     Generates forecast first, then calculates inventory metrics using industry-standard formulas.
     """
-    client_id = current_user.id
+    # Get client_id from JWT token OR service API key + request body
+    client_id = await get_client_id_from_request_or_token(
+        request_obj,
+        client_id=request.client_id,
+        db=db,
+    )
     
-    forecast_service = ForecastService(db, use_test_data=True)  # TODO: Auto-detect
+    # Get user_id if available
+    try:
+        current_user = await get_current_user(request_obj, db)
+        user_id = current_user.id
+    except HTTPException:
+        user_id = "system"
+    
+    # All data is stored in ts_demand_daily table, filtered by client_id
+    forecast_service = ForecastService(db)
     inventory_calc = InventoryCalculator()
     
     try:
         # Generate forecast
         forecast_run = await forecast_service.generate_forecast(
             client_id=client_id,
-            user_id=current_user.id,
+            user_id=user_id,
             item_ids=request.item_ids,
             prediction_length=request.prediction_length,
             primary_model=request.model or "chronos-2",
@@ -231,11 +266,15 @@ async def calculate_inventory(
 @router.post("/forecasts/actuals", response_model=BackfillActualsResponse)
 async def backfill_actuals(
     request: BackfillActualsRequest,
-    current_user: User = Depends(get_current_user),
+    request_obj: Request,
     db: AsyncSession = Depends(get_db),
 ):
     """
     Backfill actual values for quality testing.
+    
+    Authentication (choose one):
+    - JWT token (user calls): client_id from user's JWT token
+    - Service API key (system calls): X-API-Key header (client_id from JWT/request)
     
     Updates forecast_results.actual_value for specified item and dates.
     Enables calculation of accuracy metrics (MAPE, MAE, RMSE).
@@ -243,7 +282,13 @@ async def backfill_actuals(
     from sqlalchemy import select, and_, update
     from models.forecast import ForecastResult
     
-    client_id = current_user.id
+    # Get client_id from JWT token OR service API key
+    # Note: client_id not in BackfillActualsRequest, so we get it from auth
+    client_id = await get_client_id_from_request_or_token(
+        request_obj,
+        client_id=None,  # Not in request body for this endpoint
+        db=db,
+    )
     updated_count = 0
     
     try:
@@ -284,17 +329,28 @@ async def backfill_actuals(
 @router.get("/forecasts/quality/{item_id}", response_model=QualityResponse)
 async def get_quality_metrics(
     item_id: str,
+    request_obj: Request,
     start_date: Optional[date] = Query(None, description="Start date for analysis"),
     end_date: Optional[date] = Query(None, description="End date for analysis"),
-    current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
 ):
     """
     Get quality metrics (MAPE, MAE, RMSE, Bias) for an item.
     
+    Authentication (choose one):
+    - JWT token (user calls): client_id from user's JWT token
+    - Service API key (system calls): X-API-Key header (client_id from JWT/request)
+    
     Compares accuracy of different forecasting methods.
     Requires actual values to be backfilled first.
     """
+    # Get client_id from JWT token OR service API key
+    client_id = await get_client_id_from_request_or_token(
+        request_obj,
+        client_id=None,  # Not in query params for this endpoint
+        db=db,
+    )
+    
     quality_calc = QualityCalculator(db)
     
     # Calculate metrics for both methods
@@ -303,6 +359,7 @@ async def get_quality_metrics(
     
     for method in methods:
         metrics = await quality_calc.calculate_quality_metrics(
+            client_id=client_id,  # Multi-tenant filter
             item_id=item_id,
             method=method,
             start_date=start_date,

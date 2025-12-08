@@ -18,18 +18,20 @@ from .data_access import DataAccess
 class ForecastService:
     """Orchestrates forecasting execution"""
     
-    def __init__(self, db: AsyncSession, use_test_data: bool = False):
+    def __init__(self, db: AsyncSession):
         """
         Initialize forecast service.
         
+        All data is stored in ts_demand_daily table, filtered by client_id.
+        Test users have test data in the table, real users have real data.
+        
         Args:
             db: Database session
-            use_test_data: If True, use CSV test data instead of database
         """
         self.db = db
         self.model_factory = ModelFactory()
         self._models: Dict[str, BaseForecastModel] = {}
-        self.data_access = DataAccess(db, use_test_data=use_test_data)
+        self.data_access = DataAccess(db)
     
     async def _get_model(self, model_id: str) -> BaseForecastModel:
         """Get or initialize model instance"""

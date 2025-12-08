@@ -48,6 +48,46 @@ async def get_current_user(
     return user
 
 
+def get_client_id_from_token(request: Request) -> str:
+    """
+    Extract client_id from JWT token.
+    Used for unified multi-tenant architecture (SaaS and on-premise).
+    
+    Returns:
+        client_id as string (UUID)
+    
+    Raises:
+        HTTPException: If token is invalid or client_id is missing
+    """
+    credentials_exception = HTTPException(
+        status_code=status.HTTP_401_UNAUTHORIZED,
+        detail="Not authenticated",
+        headers={"WWW-Authenticate": "Bearer"},
+    )
+    
+    authorization = request.headers.get("Authorization")
+    if not authorization or not authorization.startswith("Bearer "):
+        raise credentials_exception
+    
+    token = authorization.split(" ")[1]
+    if not token:
+        raise credentials_exception
+
+    try:
+        payload = decode_token(token, expected_type="access")
+        client_id = payload.get("client_id")
+        if client_id is None:
+            # Fallback: get from user if client_id not in token
+            # This allows gradual migration
+            email = payload.get("sub")
+            if email:
+                # Will be resolved in get_current_user
+                return None
+        return str(client_id)
+    except JWTError:
+        raise credentials_exception
+
+
 async def require_admin(current_user: User = Depends(get_current_user)):
     """
     Dependency to require admin role

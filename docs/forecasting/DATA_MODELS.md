@@ -22,23 +22,24 @@ This document defines all data models required for the forecasting module, organ
 
 ---
 
-## Important: Client/Tenant Model
+## Multi-Tenant Architecture
 
-**Current Status:** The existing backend does not have a `Client` model. The forecasting module requires `client_id` for multi-tenancy.
+**Status:** ✅ Implemented - Unified architecture for SaaS and on-premise
 
-**Options:**
-1. **Create Client Model** (Recommended for Phase 1)
-   - Add `clients` table with `client_id`, `name`, `timezone`, `currency`, etc.
-   - Link users to clients (one-to-many or many-to-many)
-   - Extract `client_id` from authenticated user or JWT token
+**Implementation:**
+- ✅ `Client` model created (`clients` table)
+- ✅ `User` model includes `client_id` foreign key
+- ✅ JWT token includes `client_id` claim
+- ✅ All queries filter by `client_id` (unified)
+- ✅ Same codebase works for both SaaS and on-premise deployments
 
-2. **Use User as Client** (MVP Simplification)
-   - For MVP, use `user_id` as `client_id` (single-tenant per user)
-   - Add proper Client model in Phase 2
+**Key Design:**
+- **Unified Schema**: Both SaaS and on-premise use same schema (includes `client_id` column)
+- **Unified Queries**: Both deployments filter by `client_id` (same code)
+- **Unified Authentication**: Both deployments get `client_id` from JWT token
+- **No Configuration Needed**: System is agnostic to deployment model
 
-**Decision:** For MVP, we'll use `user_id` as `client_id` (simplified single-tenant). Add proper Client model in Phase 2.
-
-**Note:** All forecast tables include `client_id` column for future multi-tenant support.
+**See:** [MULTI_TENANT_ARCHITECTURE.md](MULTI_TENANT_ARCHITECTURE.md) for complete design details.
 
 ---
 

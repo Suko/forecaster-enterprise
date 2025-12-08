@@ -20,6 +20,7 @@ class ForecastRequest(BaseModel):
     prediction_length: int = Field(30, ge=1, le=365, description="Forecast horizon in days")
     model: Optional[str] = Field("chronos-2", description="Primary model to use")
     include_baseline: bool = Field(True, description="Include statistical_ma7 baseline")
+    client_id: Optional[str] = Field(None, description="Client ID (required for service API key calls, optional for JWT)")
     
     class Config:
         json_schema_extra = {
@@ -52,6 +53,7 @@ class InventoryCalculationRequest(BaseModel):
         description="Inventory parameters per item_id"
     )
     model: Optional[str] = Field("chronos-2", description="Primary model to use")
+    client_id: Optional[str] = Field(None, description="Client ID (required for service API key calls, optional for JWT)")
     
     class Config:
         json_schema_extra = {

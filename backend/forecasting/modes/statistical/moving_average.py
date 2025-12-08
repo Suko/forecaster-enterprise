@@ -48,10 +48,11 @@ class MovingAverageModel(BaseForecastModel):
             quantile_levels = [0.1, 0.5, 0.9]
         
         # Calculate moving average from last N days
-        target_values = context_df["target"].values
+        # Convert to float to handle Decimal types from database
+        target_values = pd.to_numeric(context_df["target"], errors='coerce').values
         last_window = target_values[-self.window:]
-        avg_demand = np.mean(last_window)
-        std_demand = np.std(last_window) if len(last_window) > 1 else 0.0
+        avg_demand = float(np.mean(last_window))
+        std_demand = float(np.std(last_window)) if len(last_window) > 1 else 0.0
         
         # Generate forecast dates
         last_date = pd.to_datetime(context_df["timestamp"].max())

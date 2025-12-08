@@ -50,6 +50,7 @@ class ForecastService:
         primary_model: str = "chronos-2",
         include_baseline: bool = True,
         quantile_levels: List[float] = None,
+        training_end_date: Optional[date] = None,
     ) -> ForecastRun:
         """
         Generate forecast for specified items.
@@ -62,6 +63,7 @@ class ForecastService:
             primary_model: Primary model to use (default: "chronos-2")
             include_baseline: Whether to run statistical_ma7 baseline
             quantile_levels: Quantiles to return (default: [0.1, 0.5, 0.9])
+            training_end_date: Optional cutoff date for training data (for backtesting)
         
         Returns:
             ForecastRun with stored results
@@ -94,10 +96,11 @@ class ForecastService:
                 try:
                     model = await self._get_model(method_id)
                     
-                    # Fetch historical data
+                    # Fetch historical data (limit to training_end_date if provided)
                     context_df = await self.data_access.fetch_historical_data(
                         client_id=client_id,
                         item_ids=item_ids,
+                        end_date=training_end_date,
                     )
                     
                     if context_df.empty:

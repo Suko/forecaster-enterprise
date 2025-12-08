@@ -13,8 +13,9 @@ from uuid import uuid4
 # Load environment
 load_dotenv()
 
-# Import models
-sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+# Import models - adjust path since we're now in tests/ folder
+backend_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+sys.path.insert(0, backend_dir)
 from models.database import get_db
 from models.forecast import ForecastRun, ForecastResult
 from models.client import Client

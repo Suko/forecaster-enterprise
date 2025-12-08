@@ -1,4 +1,6 @@
-# Forecaster Enterprise: Auth & User Management
+# Forecaster Enterprise: Forecasting & Inventory Management Platform
+
+**Status:** ✅ Phase 1 (MVP) Complete - Forecasting System Ready
 
 ## Quick Start
 
@@ -40,6 +42,16 @@
    ./test_endpoints.sh
    ```
 
+7. **Run forecasting tests:**
+   ```bash
+   cd backend
+   # Run all tests
+   uv run pytest tests/ -v
+   
+   # Test forecast accuracy on real data
+   uv run python3 tests/test_forecast_accuracy.py
+   ```
+
 ## Environment Configuration
 
 All configuration is managed through `.env` file in the project root. See `.env.example` for all available options.
@@ -50,6 +62,8 @@ All configuration is managed through `.env` file in the project root. See `.env.
 - `SERVICE_API_KEY` - Service API key for automated/system forecasts (optional, for scheduled forecasts)
 - `ENVIRONMENT` - development/production
 - `CORS_ORIGINS` - Comma-separated list of allowed origins
+- `CHRONOS_MODEL_ID` - Chronos-2 model ID (default: "amazon/chronos-2")
+- `CHRONOS_DEVICE` - Device for Chronos-2 (default: "cpu")
 
 **Security Notes:**
 - `JWT_SECRET_KEY`: Required in production, auto-generated in development (with warning)
@@ -61,12 +75,28 @@ All configuration is managed through `.env` file in the project root. See `.env.
 forecaster_enterprise/
 ├── backend/                    # FastAPI backend
 │   ├── api/                    # API routes/endpoints (thin layer)
-│   │   └── auth.py            # Auth routes (delegates to services)
+│   │   ├── auth.py            # Auth routes (delegates to services)
+│   │   └── forecast.py         # Forecasting API endpoints
 │   ├── schemas/                # Pydantic models (request/response)
-│   │   └── auth.py            # Token, UserResponse, UserCreate, UserUpdate
+│   │   ├── auth.py            # Token, UserResponse, UserCreate, UserUpdate
+│   │   └── forecast.py        # Forecast request/response models
 │   ├── services/               # Business logic layer
 │   │   ├── auth_service.py    # Authentication business logic
 │   │   └── user_service.py    # User management business logic
+│   ├── forecasting/            # Forecasting module (Phase 1 MVP)
+│   │   ├── core/               # Core forecasting abstractions
+│   │   │   ├── models/        # Base model interface
+│   │   │   └── tenant_manager.py
+│   │   ├── modes/             # Forecasting models
+│   │   │   ├── ml/            # ML models (Chronos-2)
+│   │   │   ├── statistical/   # Statistical models (MA7)
+│   │   │   └── factory.py     # Model factory
+│   │   ├── services/          # Forecasting services
+│   │   │   ├── forecast_service.py    # Main forecast orchestration
+│   │   │   ├── data_access.py        # Historical data access
+│   │   │   └── quality_calculator.py  # Accuracy metrics
+│   │   └── applications/      # Business applications
+│   │       └── inventory/     # Inventory calculations (DIR, ROP, Safety Stock)
 │   ├── core/                   # Core utilities
 │   │   └── rate_limit.py     # Rate limiting and password validation
 │   ├── auth/                   # Auth module
@@ -74,12 +104,23 @@ forecaster_enterprise/
 │   │   ├── security.py         # Password hashing
 │   │   ├── jwt.py              # JWT token creation/validation
 │   │   ├── dependencies.py      # FastAPI auth dependencies
+│   │   ├── service_auth.py     # Service API key authentication
 │   │   └── security_logger.py  # Security event logging
 │   ├── models/                 # Database models (SQLAlchemy)
 │   │   ├── __init__.py
 │   │   ├── database.py         # Database setup
-│   │   └── user.py             # User, Role models
+│   │   ├── user.py             # User, Role models
+│   │   ├── client.py           # Client (multi-tenant) model
+│   │   └── forecast.py         # Forecast run and result models
 │   ├── migrations/            # Alembic migrations
+│   ├── scripts/               # Utility scripts
+│   │   ├── setup_demo_client.py
+│   │   ├── import_csv_to_ts_demand_daily.py
+│   │   └── test_integration.py
+│   ├── tests/                 # Test suite
+│   │   ├── test_forecasting/  # Forecasting tests
+│   │   ├── test_forecast_accuracy.py  # Real data accuracy test
+│   │   └── ...
 │   ├── main.py                 # FastAPI app entry point
 │   ├── config.py               # Configuration (loads from .env)
 │   └── pyproject.toml          # Python dependencies (uv)
@@ -98,9 +139,17 @@ forecaster_enterprise/
 │   │   └── api/                # Nuxt server API routes
 │   └── public/                 # Static assets (served at root)
 │
+├── data/                       # Data files (large files gitignored)
+│   ├── sintetic_data/         # Synthetic demo data
+│   └── minibambini/           # Real client data (gitignored)
 ├── .env                        # Environment variables (create from .env.example)
 ├── .env.example                # Environment template
 └── docs/                       # Documentation
+    ├── forecasting/            # Forecasting system docs
+    │   ├── CURRENT_STATUS.md  # Phase 1 status
+    │   ├── ARCHITECTURE.md    # System architecture
+    │   └── ...
+    └── ...
 ```
 
 ## Frontend Structure Guidelines
@@ -124,14 +173,33 @@ forecaster_enterprise/
 │                 Backend (FastAPI)                           │
 │  ┌─────────────────────────────────────────────────────┐  │
 │  │  API Layer (api/) - Thin route handlers             │  │
+│  │  - /api/v1/auth (authentication)                     │  │
+│  │  - /api/v1/forecast (forecast generation)             │  │
+│  │  - /api/v1/inventory/calculate (inventory metrics)   │  │
+│  │  - /api/v1/forecasts/actuals (backfill actuals)      │  │
+│  │  - /api/v1/forecasts/quality (accuracy metrics)     │  │
 │  └──────────────────┬──────────────────────────────────┘  │
 │                      │                                      │
 │  ┌──────────────────▼──────────────────────────────────┐  │
-│  │  Services Layer (services/) - Business logic        │  │
+│  │  Services Layer - Business logic                     │  │
+│  │  - Auth & User services                              │  │
+│  │  - ForecastService (orchestrates forecasting)       │  │
+│  │  - QualityCalculator (accuracy metrics)             │  │
+│  │  - InventoryCalculator (DIR, ROP, Safety Stock)     │  │
+│  └──────────────────┬──────────────────────────────────┘  │
+│                      │                                      │
+│  ┌──────────────────▼──────────────────────────────────┐  │
+│  │  Forecasting Models Layer                           │  │
+│  │  - Chronos-2 (AI-based, primary)                    │  │
+│  │  - MA7 (Statistical baseline)                      │  │
+│  │  - ModelFactory (extensible)                        │  │
 │  └──────────────────┬──────────────────────────────────┘  │
 │                      │                                      │
 │  ┌──────────────────▼──────────────────────────────────┐  │
 │  │  Models Layer (models/) - SQLAlchemy ORM             │  │
+│  │  - User, Client (multi-tenant)                      │  │
+│  │  - ForecastRun, ForecastResult                      │  │
+│  │  - ts_demand_daily (historical data)                │  │
 │  └────────────────────────────────────────────────────┘  │
 │  - Auth module (JWT, password hashing, security)           │
 │  - Schemas (Pydantic models for validation)               │
@@ -149,6 +217,10 @@ The backend follows FastAPI best practices with clear separation of concerns:
 - **API Layer** (`api/`): Thin async route handlers that delegate to services
 - **Schemas** (`schemas/`): Pydantic models for request/response validation
 - **Services** (`services/`): Async business logic and data operations
+- **Forecasting Module** (`forecasting/`): Complete forecasting system
+  - **Models** (`modes/`): Forecasting algorithms (Chronos-2, MA7)
+  - **Services** (`services/`): Forecast orchestration, data access, quality metrics
+  - **Applications** (`applications/`): Business logic (inventory calculations)
 - **Models** (`models/`): SQLAlchemy async database models
 - **Core** (`core/`): Shared utilities (rate limiting, validation)
 - **Auth** (`auth/`): Authentication and security utilities
@@ -159,16 +231,54 @@ The backend follows FastAPI best practices with clear separation of concerns:
 - Database operations use async SQLAlchemy with asyncpg
 - This allows FastAPI to handle concurrent requests efficiently
 
+### Forecasting System (Phase 1 MVP)
+
+**Status:** ✅ Complete and tested
+
+**Features:**
+- **Models**: Chronos-2 (AI) + MA7 (statistical baseline)
+- **Accuracy**: 18% MAPE verified on real data
+- **Inventory**: APICS-standard calculations (DIR, ROP, Safety Stock)
+- **Multi-tenant**: Full client isolation
+- **Authentication**: JWT + Service API Key support
+
+**API Endpoints:**
+- `POST /api/v1/forecast` - Generate forecasts
+- `POST /api/v1/inventory/calculate` - Calculate inventory metrics
+- `POST /api/v1/forecasts/actuals` - Backfill actual sales
+- `GET /api/v1/forecasts/quality/{item_id}` - Get accuracy metrics
+
+See [docs/forecasting/CURRENT_STATUS.md](docs/forecasting/CURRENT_STATUS.md) for details.
+
 ## Stack Usage
 
 | Component | Technology | Purpose |
 |-----------|-----------|---------|
-| **Backend** | FastAPI | API server, auth endpoints, user management (async) |
+| **Backend** | FastAPI | API server, auth, forecasting, inventory (async) |
 | **Package Manager** | uv | Python dependency management |
-| **Database** | PostgreSQL | User data, auth tokens (async with asyncpg) |
+| **Database** | PostgreSQL | User data, forecasts, historical data (async with asyncpg) |
 | **Migrations** | Alembic | Database schema management |
+| **Forecasting** | Chronos-2 | AI-based time series forecasting (primary) |
+| **Forecasting** | MA7 | Statistical baseline (7-day moving average) |
 | **Frontend** | Nuxt 4 | SSR framework, routing, auth integration |
 | **Auth Module** | nuxt-auth-utils | JWT token management, session handling |
 | **UI Framework** | Nuxt UI | Official Nuxt component library |
 | **Styling** | Tailwind CSS 4 | Utility-first CSS framework |
 | **Icons** | Lucide Vue Next | Icon library |
+
+## Key Features
+
+### ✅ Phase 1 (MVP) - Complete
+- **Forecasting**: Chronos-2 + MA7 models
+- **Inventory**: APICS-standard calculations
+- **Accuracy Tracking**: MAPE, MAE, RMSE, Bias metrics
+- **Multi-Tenant**: Full client isolation
+- **Authentication**: JWT + Service API Key
+- **Testing**: 41+ test functions, accuracy validation
+
+### 🔜 Phase 2 - Planned
+- **Covariates**: Promotions, holidays, marketing data
+- **Advanced Analytics**: Model comparison, drift detection
+- **Production ETL**: Airbyte, dbt pipelines
+
+See [docs/forecasting/](docs/forecasting/) for detailed documentation.

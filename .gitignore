@@ -67,4 +67,25 @@ logs/
 .DS_Store
 Thumbs.db
 
+# Data files (too large for git - keep scripts/docs, ignore large data files)
+# Exclude large CSV/JSON files but keep small demo data
+data/minibambini/*.csv
+data/minibambini/*.json
+data/*/ts_demand_daily_clean.csv
+data/*/*_clean.csv
+# Keep small demo files
+!data/sintetic_data/*.csv
+!data/**/README.md
+!data/**/*.py
+!data/**/*.md
+
+# Model files (if any are saved locally)
+*.pth
+*.pt
+*.h5
+*.ckpt
+*.pkl
+models/
+checkpoints/
+
 ./old/

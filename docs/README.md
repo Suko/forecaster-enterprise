@@ -1,11 +1,17 @@
 # Forecaster Enterprise Documentation
 
+**Status:** Phase 2B Complete ✅ | Production Readiness: 85%
+
+---
+
 ## Quick Start
 
-**Start here:**
-- 🎯 [**Overview**](forecasting/00_OVERVIEW.md) - Current status and navigation
-- 📊 [**Progress Tracker**](forecasting/PROGRESS_TRACKER.md) - Detailed progress and status
-- 🎯 [**Current Objective**](forecasting/CURRENT_OBJECTIVE.md) - Immediate goals and focus
+| Document | Purpose |
+|----------|---------|
+| [Backend Architecture](backend/ARCHITECTURE.md) | System architecture |
+| [Forecasting Module](backend/forecasting/README.md) | 🎯 **Module status & progress** |
+| [Standards](standards/STANDARDS.md) | Project standards |
+| [System Contracts](system/CONTRACTS.md) | Auth, security, data contracts |
 
 ---
 
@@ -14,31 +20,22 @@
 ```
 docs/
 ├── README.md                    # This file
-├── AUTH_SETUP.md                # Authentication setup
-├── SECURITY_AUDIT_REPORT.md     # Security audit
+├── SECURITY_AUDIT_REPORT.md     # Security audit results
 │
 ├── backend/
-│   ├── STRUCTURE_ANALYSIS.md    # Backend architecture
-│   └── TESTING.md               # Testing guidelines
+│   ├── ARCHITECTURE.md          # Backend architecture
+│   ├── STRUCTURE_ANALYSIS.md    # Code structure
+│   └── forecasting/             # Forecasting module
+│       ├── README.md            # Module status & progress
+│       └── METHODS.md           # Method implementations
 │
-└── forecasting/                 # Forecasting module
-    │
-    ├── Core Documentation:
-    │   ├── 00_OVERVIEW.md          # 🎯 START HERE - Navigation and overview
-    │   ├── PROGRESS_TRACKER.md     # Detailed progress tracking
-    │   ├── CURRENT_OBJECTIVE.md    # Current goals and focus
-    │   ├── PHASE_ROADMAP.md        # Project phases and timeline
-    │   ├── ARCHITECTURE.md         # System architecture
-    │   ├── DATA_MODELS.md          # Database schemas
-    │   ├── METHOD_IMPLEMENTATION.md # Forecasting methods
-    │   ├── QUALITY_METRICS_GUIDE.md # Accuracy metrics
-    │   └── PRODUCTION_READINESS_CHECKLIST.md # Production status
-    │
-    ├── Standards & System:
-    │   ├── standards/               # Project standards
-    │   └── system/                  # System contracts
-    │
-    └── archive/                     # Historical/superseded docs
+├── standards/
+│   └── STANDARDS.md             # Consolidated standards
+│
+├── system/
+│   └── CONTRACTS.md             # System contracts (auth, security)
+│
+└── reports/                     # Validation reports (keep)
 ```
 
 ---
@@ -49,58 +46,67 @@ docs/
 
 | Document | Purpose |
 |----------|---------|
-| [Overview](forecasting/00_OVERVIEW.md) | 🎯 Navigation and current status |
-| [Progress Tracker](forecasting/PROGRESS_TRACKER.md) | Detailed progress and phases |
-| [Current Objective](forecasting/CURRENT_OBJECTIVE.md) | Immediate goals and focus |
-| [Architecture](forecasting/ARCHITECTURE.md) | System design |
-| [Data Models](forecasting/DATA_MODELS.md) | Database schemas |
-| [Method Implementation](forecasting/METHOD_IMPLEMENTATION.md) | Forecasting methods |
-| [Quality Metrics](forecasting/QUALITY_METRICS_GUIDE.md) | Accuracy metrics guide |
+| [Module README](backend/forecasting/README.md) | Status, progress, routing |
+| [Methods](backend/forecasting/METHODS.md) | Method implementations |
 
-### Authentication & Security
+### Backend
 
 | Document | Purpose |
 |----------|---------|
-| [Auth Setup](AUTH_SETUP.md) | JWT authentication |
-| [System Authentication](system/SYSTEM_AUTHENTICATION.md) | Service API key for automation |
-| [Data Security](system/DATA_SECURITY.md) | Data security and privacy |
-| [Security Audit](SECURITY_AUDIT_REPORT.md) | Security review |
+| [Architecture](backend/ARCHITECTURE.md) | System architecture |
+| [Structure](backend/STRUCTURE_ANALYSIS.md) | Code structure analysis |
 
-### Testing & Development
+### Standards & Contracts
 
 | Document | Purpose |
 |----------|---------|
-| [Testing Standards](standards/TESTING_STANDARDS.md) | Testing requirements |
-| [Backend Testing](backend/TESTING.md) | Backend test guide |
-
-### Standards & Policies
-
-| Document | Purpose |
-|----------|---------|
-| [Forecasting Standards](standards/FORECASTING_STANDARDS.md) | Forecasting methodology |
-| [Testing Standards](standards/TESTING_STANDARDS.md) | Testing requirements |
-| [Documentation Standards](standards/DOCUMENTATION_STANDARDS.md) | Documentation requirements |
-| [Versioning Policy](standards/VERSIONING_POLICY.md) | Version control policy |
+| [Standards](standards/STANDARDS.md) | Forecasting, testing, evaluation |
+| [Contracts](system/CONTRACTS.md) | Auth, security, data |
 
 ---
 
-## Development Scripts
+## Development
 
-Located in `backend/scripts/`:
+### Running Backend
 
 ```bash
-# Setup demo client with test data
-python backend/scripts/setup_demo_client.py
-
-# Import CSV to database
-python backend/scripts/import_csv_to_ts_demand_daily.py --csv <path> --client-id <uuid>
-
-# Run integration tests
-python backend/scripts/test_integration.py
+cd backend
+uv run uvicorn main:app --reload --port 8000
 ```
 
-See [scripts/README.md](../backend/scripts/README.md) for details.
+### Running Tests
+
+```bash
+cd backend && uv run pytest tests/
+```
+
+### Key Scripts
+
+```bash
+# Setup demo client
+python backend/scripts/setup_demo_client.py
+
+# Import CSV data
+python backend/scripts/import_csv_to_ts_demand_daily.py --csv <path> --client-id <uuid>
+
+# Validate method routing
+python backend/scripts/validate_method_routing.py
+```
 
 ---
 
-**Status:** Phase 2B Complete ✅ | Production Readiness: 85% | Ready for Phase 3
+## Current Status
+
+| Component | Status |
+|-----------|--------|
+| Chronos-2 | ✅ Active |
+| SBA (Lumpy) | ✅ Active |
+| Croston (Intermittent) | ✅ Ready |
+| Min/Max (C-Z) | ✅ Ready |
+| Method Routing | ✅ 100% correct |
+| Security | ✅ 100% audit passed |
+| Integration Tests | ✅ 100% passing |
+
+---
+
+*Last updated: 2025-12-09*

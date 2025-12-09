@@ -6,8 +6,8 @@ Development script for importing test/demo data.
 Production will use proper ETL pipelines.
 
 Usage:
-    python backend/scripts/import_csv_to_ts_demand_daily.py \
-        --csv data/sintetic_data/synthetic_ecom_chronos2_demo.csv \
+    uv run python backend/scripts/import_csv_to_ts_demand_daily.py \
+        --csv data/synthetic_data/synthetic_ecom_chronos2_demo.csv \
         --client-id <uuid> \
         [--clear-existing]
 """
@@ -23,12 +23,13 @@ from sqlalchemy.exc import IntegrityError
 # Add backend to path
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
-from models.database import AsyncSessionLocal, engine
+from models.database import get_async_session_local, get_engine
 from models.client import Client
 
 
 async def validate_client_id(client_id: str) -> bool:
     """Validate that client_id exists in clients table"""
+    AsyncSessionLocal = get_async_session_local()
     async with AsyncSessionLocal() as session:
         result = await session.execute(
             text("SELECT EXISTS(SELECT 1 FROM clients WHERE client_id = :client_id)"),
@@ -40,6 +41,7 @@ async def validate_client_id(client_id: str) -> bool:
 
 async def check_table_exists() -> bool:
     """Check if ts_demand_daily table exists"""
+    AsyncSessionLocal = get_async_session_local()
     async with AsyncSessionLocal() as session:
         result = await session.execute(
             text("""
@@ -109,6 +111,7 @@ async def import_csv_to_ts_demand_daily(
         })
     
     # Import to database
+    AsyncSessionLocal = get_async_session_local()
     async with AsyncSessionLocal() as session:
         try:
             # Clear existing data if requested

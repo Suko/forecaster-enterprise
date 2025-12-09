@@ -7,11 +7,13 @@ import sys
 import asyncio
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
-from models import AsyncSessionLocal, User, UserRole
+from models import User, UserRole
+from models.database import get_async_session_local
 
 
 async def make_admin(email: str):
     """Make a user an admin by email"""
+    AsyncSessionLocal = get_async_session_local()
     async with AsyncSessionLocal() as db:
         result = await db.execute(select(User).filter(User.email == email))
         user = result.scalar_one_or_none()

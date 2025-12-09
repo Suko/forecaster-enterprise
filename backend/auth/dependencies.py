@@ -4,6 +4,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 
 from models import get_db, User
+from models.client import Client
 from .jwt import decode_token
 
 
@@ -48,7 +49,7 @@ async def get_current_user(
     return user
 
 
-def get_client_id_from_token(request: Request) -> str:
+def get_client_id_from_token(request: Request) -> str | None:
     """
     Extract client_id from JWT token.
     Used for unified multi-tenant architecture (SaaS and on-premise).
@@ -86,6 +87,37 @@ def get_client_id_from_token(request: Request) -> str:
         return str(client_id)
     except JWTError:
         raise credentials_exception
+
+
+async def get_current_client(
+    request: Request,
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+) -> Client:
+    """
+    Dependency to get the current client from JWT token or user.
+    Returns the Client object for the authenticated user.
+    """
+    # Get client_id from user (user is already authenticated)
+    if not current_user.client_id:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="User does not have a client_id assigned"
+        )
+    
+    client_id = current_user.client_id
+    
+    # Fetch client from database
+    result = await db.execute(select(Client).filter(Client.client_id == client_id))
+    client = result.scalar_one_or_none()
+    
+    if client is None or not client.is_active:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Client not found or inactive"
+        )
+    
+    return client
 
 
 async def require_admin(current_user: User = Depends(get_current_user)):

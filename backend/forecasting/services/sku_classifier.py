@@ -321,16 +321,19 @@ class SKUClassifier:
             Tuple of (min_mape, max_mape)
         """
         # Base ranges by ABC-XYZ combination
+        # INDUSTRY STANDARD ranges - do not adjust to match our results!
+        # These represent what is achievable with good forecasting practices.
+        # If we don't meet these, we flag the SKU as "below standard" - not change the standard.
         ranges = {
-            "A-X": (10, 25),
+            "A-X": (10, 25),   # Low variability - excellent forecastability
             "B-X": (15, 30),
             "C-X": (20, 35),
-            "A-Y": (20, 40),
+            "A-Y": (20, 40),   # Medium variability - good forecastability
             "B-Y": (25, 45),
             "C-Y": (30, 50),
-            "A-Z": (30, 60),
+            "A-Z": (30, 60),   # High variability - moderate forecastability
             "B-Z": (40, 70),
-            "C-Z": (50, 100),
+            "C-Z": (50, 100),  # Low value, high variability - acceptable
         }
         
         combined = f"{abc_class}-{xyz_class}"

@@ -17,9 +17,11 @@ from .data_access import DataAccess
 from .data_validator import DataValidator
 from .data_audit import DataAuditLogger
 from .sku_classifier import SKUClassifier, SKUClassification
+from core.monitoring import get_monitor, track_forecast_generation
 from config import settings
 
 logger = logging.getLogger(__name__)
+monitor = get_monitor()
 
 
 class ForecastService:
@@ -80,8 +82,14 @@ class ForecastService:
         if quantile_levels is None:
             quantile_levels = [0.1, 0.5, 0.9]
         
-        # Create forecast run record
-        forecast_run = ForecastRun(
+        # Track performance with monitoring
+        with track_forecast_generation(
+            method=primary_model,
+            item_count=len(item_ids),
+            client_id=client_id
+        ):
+            # Create forecast run record
+            forecast_run = ForecastRun(
             client_id=client_id,
             user_id=user_id,
             primary_model=primary_model,
@@ -338,12 +346,12 @@ class ForecastService:
             forecast_run.error_message = str(e)
             raise
         
-        await self.db.commit()
-        
-        # Attach classifications to forecast_run for API response
-        forecast_run._sku_classifications = sku_classifications  # type: ignore
-        
-        return forecast_run
+            await self.db.commit()
+            
+            # Attach classifications to forecast_run for API response
+            forecast_run._sku_classifications = sku_classifications  # type: ignore
+            
+            return forecast_run
     
     async def _store_results(
         self,

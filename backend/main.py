@@ -5,7 +5,7 @@ from slowapi.errors import RateLimitExceeded
 from config import settings
 
 from models import init_db
-from api import auth, forecast
+from api import auth, forecast, monitoring
 
 # Database will be initialized via Alembic migrations
 # Run: alembic upgrade head
@@ -44,6 +44,7 @@ app.add_middleware(
 # Include routers
 app.include_router(auth.router)
 app.include_router(forecast.router)
+app.include_router(monitoring.router)
 
 
 @app.get("/")

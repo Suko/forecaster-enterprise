@@ -1,7 +1,7 @@
 # Forecasting System - Phase Roadmap
 
-**Last Updated:** 2025-12-08  
-**Current Status:** Phase 1 Complete ✅
+**Last Updated:** 2025-12-09  
+**Current Status:** Phase 2B Complete ✅ | Production Readiness: 85%
 
 ---
 
@@ -9,10 +9,12 @@
 
 | Phase | Focus | Duration | Status |
 |-------|-------|----------|--------|
-| **Phase 1** | Core Forecasting | ✅ Complete | Basic models working |
-| **Phase 2A** | SKU Classification | 4-5 weeks | 🎯 **Next** |
-| **Phase 2B** | Covariates | 2-3 weeks | ⏳ After 2A |
-| **Phase 3** | Hierarchical Forecasting | 4-6 weeks | 🔮 Future |
+| **Phase 1** | Core Forecasting | ✅ Complete | Chronos-2, MA7 models |
+| **Phase 2A** | SKU Classification | ✅ Complete | ABC-XYZ classification |
+| **Phase 2B** | Specialized Methods | ✅ Complete | SBA, Croston, Min/Max |
+| **Production Readiness** | Testing & Validation | 🚧 85% | Integration, security, monitoring |
+| **Phase 3** | Covariates & Enhancements | ⏳ Next | Promotions, holidays, advanced ML |
+| **Phase 4** | Hierarchical Forecasting | 🔮 Future | Multi-location aggregation |
 
 ---
 
@@ -35,29 +37,51 @@
 
 ---
 
-## Phase 2A: SKU Classification 🎯
+## Phase 2A: SKU Classification ✅
 
-**Status:** 🎯 **Next Priority**
+**Status:** ✅ **Complete**
 
-**Problem:** Many SKUs have high MAPE (50%+). What do we do?
+**What we built:**
+- ✅ ABC-XYZ classification system
+- ✅ Method router (different models per SKU type)
+- ✅ Forecastability scoring
+- ✅ Method routing validation (100% accuracy)
 
-**Solution:** ABC-XYZ Classification + Method Routing
+**Results:**
+- ✅ 40 SKUs classified
+- ✅ Method routing validated
+- ✅ Expected MAPE ranges defined
 
-**What we'll build:**
-- SKU classifier (ABC-XYZ analysis)
-- Method router (different models per SKU type)
-- Forecastability scoring
-- User recommendations
-
-**Timeline:** 4-5 weeks
-
-**See:** `PHASE_2_KICKOFF.md`
+**See:** [PROGRESS_TRACKER.md](PROGRESS_TRACKER.md) for details
 
 ---
 
-## Phase 2B: Covariates ⏳
+## Phase 2B: Specialized Methods ✅
 
-**Status:** ⏳ **After Phase 2A**
+**Status:** ✅ **Complete**
+
+**What we built:**
+- ✅ SBA (Syntetos-Boylan Approximation) for lumpy demand
+- ✅ Croston's method for intermittent demand
+- ✅ Min/Max method for C-Z SKUs
+- ✅ Method routing validation (100% correctness)
+
+**Results:**
+- ✅ SBA: 79.1% MAPE (improved from 113.8%)
+- ✅ All specialized methods implemented
+- ✅ Method routing validated
+
+**See:** [PROGRESS_TRACKER.md](PROGRESS_TRACKER.md) and [CURRENT_OBJECTIVE.md](CURRENT_OBJECTIVE.md) for details
+
+---
+
+## Phase 3: Covariates & Enhancements ⏳
+
+**Status:** ⏳ **Next Priority**
+
+**Problem:** A-Y SKUs have 111.9% MAPE (target: 20-40%). Need covariates to explain distribution shifts.
+
+**Solution:** Add promotion flags, holiday indicators, marketing spend
 
 **What we'll build:**
 - Promotion flag support
@@ -67,13 +91,11 @@
 
 **Timeline:** 2-3 weeks
 
-**See:** `COVARIATES_ROADMAP.md`
+**See:** [CURRENT_OBJECTIVE.md](CURRENT_OBJECTIVE.md) for details
 
----
+## Phase 4: Hierarchical Forecasting 🔮
 
-## Phase 3: Hierarchical Forecasting 🔮
-
-**Status:** 🔮 **Future (After Phase 2)**
+**Status:** 🔮 **Future (After Phase 3)**
 
 **Problem:** Multi-location clients - should we forecast separately or aggregate?
 
@@ -88,43 +110,40 @@
 
 **When to prioritize:**
 - Multiple clients with multi-location needs
-- After Phase 2A & 2B are stable
+- After Phase 3 is stable
 - When aggregation would significantly improve accuracy
-
-**See:** `HIERARCHICAL_FORECASTING_STRATEGY.md`
 
 ---
 
 ## Decision Logic: What Phase Next?
 
 ```
-IF many SKUs have MAPE > 50%:
-    → Phase 2A (SKU Classification) ✅ NEXT
+IF production readiness < 100%:
+    → Complete Production Readiness (current: 85%)
 
-ELIF classification working AND need better accuracy:
-    → Phase 2B (Covariates)
+ELIF A-Y SKUs have MAPE > 40%:
+    → Phase 3 (Covariates) ⏳ NEXT
 
 ELIF multiple locations per SKU AND aggregation would help:
-    → Phase 3 (Hierarchical Forecasting)
+    → Phase 4 (Hierarchical Forecasting)
 ```
 
 ---
 
-## Current Priority: Phase 2A
+## Current Priority: Phase 3 - Covariates
 
-**Why Phase 2A first?**
-1. ✅ Solves immediate problem (high MAPE)
-2. ✅ Sets right expectations (user knows which SKUs are hard)
-3. ✅ Routes to right method (not all SKUs need ML)
-4. ✅ Industry standard (used by SAP, Oracle, etc.)
+**Why Phase 3 next?**
+1. A-Y SKUs need improvement (111.9% → target 20-40%)
+2. Covariates will explain distribution shifts
+3. Production readiness is 85% (core functionality ready)
+4. Validated need: All models struggle with A-Y data
 
-**After Phase 2A:**
-- Users understand forecastability
-- System uses appropriate methods
-- High MAPE is expected for certain SKU types
-- Clear recommendations for each SKU
+**After Phase 3:**
+- A-Y accuracy should improve significantly
+- System can handle promotion/holiday effects
+- Better accuracy for regular demand patterns
 
 ---
 
-*Roadmap last updated: 2025-12-08*
+*Roadmap last updated: 2025-12-09*
 

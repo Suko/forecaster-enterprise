@@ -1,8 +1,8 @@
 # Forecasting Module Architecture
 
 **Status:** ✅ Complete  
-**Scope:** Full Architecture (MVP + Future Phases)  
-**Quick Start:** See [MVP_UNIFIED.md](MVP_UNIFIED.md) for quick reference
+**Scope:** Full Architecture (Current Implementation + Future Phases)  
+**Quick Start:** See [00_OVERVIEW.md](00_OVERVIEW.md) for navigation
 
 ---
 
@@ -28,7 +28,7 @@
 - ⏳ `CovariateService` - Covariate service (Phase 2+)
 - ⏳ Additional ML models (TimesFM, Moirai, etc.) (Phase 2+)
 
-**Note:** This document describes the full architecture including future phases. For MVP implementation details, see [MVP_UNIFIED.md](MVP_UNIFIED.md).
+**Note:** This document describes the full architecture including future phases. For current implementation status, see [PROGRESS_TRACKER.md](PROGRESS_TRACKER.md) and [CURRENT_OBJECTIVE.md](CURRENT_OBJECTIVE.md).
 
 ---
 

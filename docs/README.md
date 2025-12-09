@@ -3,11 +3,9 @@
 ## Quick Start
 
 **Start here:**
-- 🎯 [**Current Status**](forecasting/CURRENT_STATUS.md) - Phase 1 status and what works
-- ⭐ [**MVP Guide**](forecasting/MVP_UNIFIED.md) - Implementation details
-
-**For non-technical readers:**
-- 💼 [**Business Guarantees**](forecasting/BUSINESS_GUARANTEES.md) - What the system guarantees
+- 🎯 [**Overview**](forecasting/00_OVERVIEW.md) - Current status and navigation
+- 📊 [**Progress Tracker**](forecasting/PROGRESS_TRACKER.md) - Detailed progress and status
+- 🎯 [**Current Objective**](forecasting/CURRENT_OBJECTIVE.md) - Immediate goals and focus
 
 ---
 
@@ -23,29 +21,24 @@ docs/
 │   ├── STRUCTURE_ANALYSIS.md    # Backend architecture
 │   └── TESTING.md               # Testing guidelines
 │
-└── forecasting/                 # Forecasting module (17 files)
+└── forecasting/                 # Forecasting module
     │
-    ├── Essential (7 files):
-    │   ├── CURRENT_STATUS.md        # 🎯 START HERE
-    │   ├── MVP_UNIFIED.md           # ⭐ Implementation guide
-    │   ├── ARCHITECTURE.md          # System architecture
-    │   ├── DATA_MODELS.md           # Database schemas
-    │   ├── TS_DEMAND_DAILY_SCHEMA.md # Core data model
-    │   ├── INTEGRATION.md           # Backend integration
-    │   └── BUSINESS_GUARANTEES.md   # 💼 Non-technical summary
+    ├── Core Documentation:
+    │   ├── 00_OVERVIEW.md          # 🎯 START HERE - Navigation and overview
+    │   ├── PROGRESS_TRACKER.md     # Detailed progress tracking
+    │   ├── CURRENT_OBJECTIVE.md    # Current goals and focus
+    │   ├── PHASE_ROADMAP.md        # Project phases and timeline
+    │   ├── ARCHITECTURE.md         # System architecture
+    │   ├── DATA_MODELS.md          # Database schemas
+    │   ├── METHOD_IMPLEMENTATION.md # Forecasting methods
+    │   ├── QUALITY_METRICS_GUIDE.md # Accuracy metrics
+    │   └── PRODUCTION_READINESS_CHECKLIST.md # Production status
     │
-    ├── Authentication (2 files):
-    │   ├── MULTI_TENANT_ARCHITECTURE.md  # Multi-tenant design
-    │   └── SYSTEM_AUTHENTICATION.md      # Service API key auth
+    ├── Standards & System:
+    │   ├── standards/               # Project standards
+    │   └── system/                  # System contracts
     │
-    └── Reference (5 files):
-        ├── INDUSTRY_STANDARDS.md    # Formula reference
-        ├── ENVIRONMENT_VARIABLES.md # Environment config
-        ├── TESTING_STRATEGY.md      # Testing approach
-        ├── TEST_DATA_IMPORT_FLOW.md # CSV import docs
-        ├── API_DESIGN.md            # Phase 2+ API design
-        ├── EXPERT_ANALYSIS.md       # Future roadmap
-        └── COVARIATES_ROADMAP.md    # Phase 2 plan
+    └── archive/                     # Historical/superseded docs
 ```
 
 ---
@@ -56,45 +49,38 @@ docs/
 
 | Document | Purpose |
 |----------|---------|
-| [Current Status](forecasting/CURRENT_STATUS.md) | 🎯 What's done, what's next |
-| [MVP Guide](forecasting/MVP_UNIFIED.md) | ⭐ Primary implementation reference |
+| [Overview](forecasting/00_OVERVIEW.md) | 🎯 Navigation and current status |
+| [Progress Tracker](forecasting/PROGRESS_TRACKER.md) | Detailed progress and phases |
+| [Current Objective](forecasting/CURRENT_OBJECTIVE.md) | Immediate goals and focus |
 | [Architecture](forecasting/ARCHITECTURE.md) | System design |
 | [Data Models](forecasting/DATA_MODELS.md) | Database schemas |
-| [ts_demand_daily Schema](forecasting/TS_DEMAND_DAILY_SCHEMA.md) | Core data model |
-| [Integration](forecasting/INTEGRATION.md) | Backend integration |
-| [Industry Standards](forecasting/INDUSTRY_STANDARDS.md) | MAPE, MAE, Safety Stock formulas |
+| [Method Implementation](forecasting/METHOD_IMPLEMENTATION.md) | Forecasting methods |
+| [Quality Metrics](forecasting/QUALITY_METRICS_GUIDE.md) | Accuracy metrics guide |
 
 ### Authentication & Security
 
 | Document | Purpose |
 |----------|---------|
 | [Auth Setup](AUTH_SETUP.md) | JWT authentication |
-| [Multi-Tenant](forecasting/MULTI_TENANT_ARCHITECTURE.md) | SaaS + On-Premise design |
-| [System Auth](forecasting/SYSTEM_AUTHENTICATION.md) | Service API key for automation |
-| [Environment Variables](forecasting/ENVIRONMENT_VARIABLES.md) | Configuration reference |
+| [System Authentication](system/SYSTEM_AUTHENTICATION.md) | Service API key for automation |
+| [Data Security](system/DATA_SECURITY.md) | Data security and privacy |
 | [Security Audit](SECURITY_AUDIT_REPORT.md) | Security review |
 
 ### Testing & Development
 
 | Document | Purpose |
 |----------|---------|
-| [Testing Strategy](forecasting/TESTING_STRATEGY.md) | How to test |
-| [Test Data Import](forecasting/TEST_DATA_IMPORT_FLOW.md) | CSV import for dev |
+| [Testing Standards](standards/TESTING_STANDARDS.md) | Testing requirements |
 | [Backend Testing](backend/TESTING.md) | Backend test guide |
 
-### Future / Phase 2+
+### Standards & Policies
 
 | Document | Purpose |
 |----------|---------|
-| [Covariates Roadmap](forecasting/COVARIATES_ROADMAP.md) | Phase 2 plan |
-| [Expert Analysis](forecasting/EXPERT_ANALYSIS.md) | Long-term roadmap |
-| [API Design](forecasting/API_DESIGN.md) | Future API expansion |
-
-### Non-Technical
-
-| Document | Purpose |
-|----------|---------|
-| [Business Guarantees](forecasting/BUSINESS_GUARANTEES.md) | 💼 What system guarantees |
+| [Forecasting Standards](standards/FORECASTING_STANDARDS.md) | Forecasting methodology |
+| [Testing Standards](standards/TESTING_STANDARDS.md) | Testing requirements |
+| [Documentation Standards](standards/DOCUMENTATION_STANDARDS.md) | Documentation requirements |
+| [Versioning Policy](standards/VERSIONING_POLICY.md) | Version control policy |
 
 ---
 
@@ -117,4 +103,4 @@ See [scripts/README.md](../backend/scripts/README.md) for details.
 
 ---
 
-**Status:** Phase 1 Complete ✅ | Ready for Phase 2
+**Status:** Phase 2B Complete ✅ | Production Readiness: 85% | Ready for Phase 3

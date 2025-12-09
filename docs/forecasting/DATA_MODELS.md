@@ -2,7 +2,7 @@
 
 **Status:** ✅ Complete  
 **Scope:** Full Data Models (MVP + Future Phases)  
-**Quick Start:** See [MVP_UNIFIED.md](MVP_UNIFIED.md) for minimal MVP models
+**Quick Start:** See [00_OVERVIEW.md](00_OVERVIEW.md) for navigation
 
 ---
 

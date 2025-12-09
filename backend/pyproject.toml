@@ -22,6 +22,8 @@ dependencies = [
     "numpy>=1.24.0", # Numerical operations
     "chronos-forecasting>=2.1.0", # Chronos-2 forecasting model
     "psycopg2-binary>=2.9.11",
+    "darts>=0.39.0",
+    "kaggle>=1.8.2",
 ]
 
 [build-system]

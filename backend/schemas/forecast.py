@@ -3,7 +3,7 @@ Forecast API Schemas
 
 Pydantic models for request/response validation.
 """
-from typing import List, Optional, Dict
+from typing import List, Optional, Dict, Tuple
 from datetime import date as date_type
 from pydantic import BaseModel, Field
 from uuid import UUID
@@ -119,12 +119,25 @@ class Prediction(BaseModel):
     quantiles: Optional[PredictionQuantiles] = Field(None, description="Quantile predictions")
 
 
+class SKUClassificationInfo(BaseModel):
+    """SKU classification (ABC-XYZ) information"""
+    
+    abc_class: str = Field(..., description="ABC class: A (high volume), B (medium), C (low)")
+    xyz_class: str = Field(..., description="XYZ class: X (low variability), Y (medium), Z (high)")
+    demand_pattern: str = Field(..., description="Demand pattern: regular, intermittent, lumpy")
+    forecastability_score: float = Field(..., description="Forecastability score (0.0 to 1.0)")
+    recommended_method: str = Field(..., description="Recommended forecasting method")
+    expected_mape_range: Tuple[float, float] = Field(..., description="Expected MAPE range (min, max)")
+    warnings: List[str] = Field(default_factory=list, description="Classification warnings")
+
+
 class ItemForecast(BaseModel):
     """Forecast results for a single item"""
     
     item_id: str = Field(..., description="Item identifier")
     method_used: str = Field(..., description="Method used for predictions")
     predictions: List[Prediction] = Field(..., description="Daily predictions")
+    classification: Optional[SKUClassificationInfo] = Field(None, description="SKU classification (ABC-XYZ)")
 
 
 class ForecastResponse(BaseModel):

@@ -1,0 +1,200 @@
+{
+  "test_config": {
+    "test_days": 30,
+    "max_skus": 5,
+    "include_darts_chronos": false,
+    "timestamp": "20251208_193809"
+  },
+  "summary": {
+    "total_tested": 5,
+    "models_tested": [
+      "Our_MA7",
+      "Darts_NaiveMean",
+      "Darts_ExponentialSmoothing",
+      "Our_Chronos2"
+    ]
+  },
+  "model_metrics": {
+    "Our_MA7": {
+      "count": 5,
+      "mape_mean": 27.55023317699813,
+      "mae_mean": 29.237142857142857,
+      "rmse_mean": 40.22248843950979
+    },
+    "Darts_NaiveMean": {
+      "count": 5,
+      "mape_mean": 31.00990119816994,
+      "mae_mean": 31.165278174037088,
+      "rmse_mean": 41.13870188707625
+    },
+    "Darts_ExponentialSmoothing": {
+      "count": 5,
+      "mape_mean": 19.887240289164232,
+      "mae_mean": 24.77961962432057,
+      "rmse_mean": 37.32073007890587
+    },
+    "Our_Chronos2": {
+      "count": 5,
+      "mape_mean": 18.602941634912266,
+      "mae_mean": 22.748830337524414,
+      "rmse_mean": 34.981054581942246
+    }
+  },
+  "results": [
+    {
+      "item_id": "SKU010",
+      "train_days": 701,
+      "test_days": 30,
+      "models": {
+        "Our_MA7": {
+          "mape": 31.17277665066235,
+          "mae": 42.8952380952381,
+          "rmse": 62.8160038536045,
+          "status": "success"
+        },
+        "Darts_NaiveMean": {
+          "mape": 30.954461556446976,
+          "mae": 42.95378031383737,
+          "rmse": 63.15990253269327,
+          "status": "success"
+        },
+        "Darts_ExponentialSmoothing": {
+          "mape": 23.002851926156964,
+          "mae": 36.11185665188761,
+          "rmse": 61.34676647705539,
+          "status": "success"
+        },
+        "Our_Chronos2": {
+          "mape": 22.667686068021563,
+          "mae": 34.8162722269694,
+          "rmse": 58.9911610111047,
+          "status": "success"
+        }
+      }
+    },
+    {
+      "item_id": "SKU001",
+      "train_days": 701,
+      "test_days": 30,
+      "models": {
+        "Our_MA7": {
+          "mape": null,
+          "mae": 43.699999999999996,
+          "rmse": 62.545205420467155,
+          "status": "success"
+        },
+        "Darts_NaiveMean": {
+          "mape": null,
+          "mae": 50.944698050404185,
+          "rmse": 69.3717303569946,
+          "status": "success"
+        },
+        "Darts_ExponentialSmoothing": {
+          "mape": null,
+          "mae": 43.64299312532537,
+          "rmse": 66.56851602338769,
+          "status": "success"
+        },
+        "Our_Chronos2": {
+          "mape": null,
+          "mae": 41.76874338785807,
+          "rmse": 65.59012573917816,
+          "status": "success"
+        }
+      }
+    },
+    {
+      "item_id": "SKU008",
+      "train_days": 701,
+      "test_days": 30,
+      "models": {
+        "Our_MA7": {
+          "mape": 27.937254336037128,
+          "mae": 31.623809523809527,
+          "rmse": 40.074293251308085,
+          "status": "success"
+        },
+        "Darts_NaiveMean": {
+          "mape": 33.723006064003705,
+          "mae": 32.78083689966714,
+          "rmse": 38.41306146191024,
+          "status": "success"
+        },
+        "Darts_ExponentialSmoothing": {
+          "mape": 21.897413602605017,
+          "mae": 25.087120002647314,
+          "rmse": 32.57641827349232,
+          "status": "success"
+        },
+        "Our_Chronos2": {
+          "mape": 18.18632392820416,
+          "mae": 19.758626556396486,
+          "rmse": 26.99057534247507,
+          "status": "success"
+        }
+      }
+    },
+    {
+      "item_id": "SKU016",
+      "train_days": 701,
+      "test_days": 30,
+      "models": {
+        "Our_MA7": {
+          "mape": 23.812485409374666,
+          "mae": 15.433333333333334,
+          "rmse": 20.105554788001584,
+          "status": "success"
+        },
+        "Darts_NaiveMean": {
+          "mape": 27.130128908756454,
+          "mae": 16.048169281978126,
+          "rmse": 19.42991856055597,
+          "status": "success"
+        },
+        "Darts_ExponentialSmoothing": {
+          "mape": 16.711670538852093,
+          "mae": 10.503839494313802,
+          "rmse": 14.030931371439198,
+          "status": "success"
+        },
+        "Our_Chronos2": {
+          "mape": 15.79994788470243,
+          "mae": 9.495698547363281,
+          "rmse": 12.891935720207226,
+          "status": "success"
+        }
+      }
+    },
+    {
+      "item_id": "SKU019",
+      "train_days": 701,
+      "test_days": 30,
+      "models": {
+        "Our_MA7": {
+          "mape": 27.27841631191838,
+          "mae": 12.533333333333333,
+          "rmse": 15.571384884167635,
+          "status": "success"
+        },
+        "Darts_NaiveMean": {
+          "mape": 32.23200826347262,
+          "mae": 13.09890632429862,
+          "rmse": 15.318896523227188,
+          "status": "success"
+        },
+        "Darts_ExponentialSmoothing": {
+          "mape": 17.93702508904286,
+          "mae": 8.552288847428764,
+          "rmse": 12.081018249154747,
+          "status": "success"
+        },
+        "Our_Chronos2": {
+          "mape": 17.757808658720908,
+          "mae": 7.9048109690348305,
+          "rmse": 10.441475096746078,
+          "status": "success"
+        }
+      }
+    }
+  ]
+}

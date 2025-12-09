@@ -272,6 +272,7 @@ See [docs/forecasting/CURRENT_STATUS.md](docs/forecasting/CURRENT_STATUS.md) for
 - **Forecasting**: Chronos-2 + MA7 models
 - **Inventory**: APICS-standard calculations
 - **Accuracy Tracking**: MAPE, MAE, RMSE, Bias metrics
+- **Data Validation & Audit**: Input/output validation + audit trail (required for testing)
 - **Multi-Tenant**: Full client isolation
 - **Authentication**: JWT + Service API Key
 - **Testing**: 41+ test functions, accuracy validation

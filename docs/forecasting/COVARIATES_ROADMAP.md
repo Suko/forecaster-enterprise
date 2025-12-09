@@ -1,19 +1,23 @@
 # Covariates Implementation Roadmap
 
-**Date:** 2025-12-06  
-**Status:** ⏳ **Planned for Phase 2**  
-**Current Phase:** Phase 1 (MVP) - No covariates yet
+**Date:** 2025-12-08  
+**Status:** ⏳ **Phase 2B** (after SKU Classification)  
+**Prerequisite:** Phase 2A (SKU Classification) ✅
 
 ---
 
 ## Quick Answer
 
-**Covariates will be implemented in Phase 2** (after MVP is complete and in production).
+**Covariates are now Phase 2B** - after SKU Classification (Phase 2A).
 
-**Timeline:**
-- **Phase 1 (Current):** ✅ No covariates - Simple time series forecasting
-- **Phase 2 (Next):** ⏳ Add covariate support - Improve forecast accuracy
-- **Phase 3 (Future):** 🔮 Advanced covariates - External data, ML features
+> **Why?** SKU classification tells us WHICH SKUs benefit from covariates.  
+> High-variability SKUs (A-Z, B-Z) benefit most from promotional covariates.
+
+**Updated Timeline:**
+- **Phase 1:** ✅ Complete - Basic forecasting working
+- **Phase 2A:** 🎯 SKU Classification (ABC-XYZ) - See `PHASE_2_KICKOFF.md`
+- **Phase 2B:** ⏳ Covariate support - This document
+- **Phase 3:** 🔮 Advanced covariates - External data, ML features
 
 ---
 

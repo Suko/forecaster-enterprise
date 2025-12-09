@@ -1,0 +1,415 @@
+{
+  "test_config": {
+    "test_days": 30,
+    "prediction_length": 30,
+    "max_skus": 20,
+    "timestamp": "20251208_174943"
+  },
+  "summary": {
+    "total_tested": 20,
+    "successful": 0,
+    "failed": 20
+  },
+  "results": [
+    {
+      "item_id": "SKU019",
+      "status": "forecast_failed",
+      "error": "No forecast results generated for any method",
+      "data_info": {
+        "total_days": 731,
+        "train_days": 701,
+        "test_days": 30,
+        "test_start": "2024-12-02",
+        "test_end": "2024-12-31",
+        "actual_mean": 47.8,
+        "actual_std": 15.135829456403547,
+        "actual_min": 19.0,
+        "actual_max": 78.0,
+        "actual_cv": 31.664915180760563
+      },
+      "forecast_run_id": "8facbb3a-83e2-427e-85d0-adb03e4b5f13",
+      "metrics": {},
+      "validation": {}
+    },
+    {
+      "item_id": "SKU010",
+      "status": "forecast_failed",
+      "error": "No forecast results generated for any method",
+      "data_info": {
+        "total_days": 731,
+        "train_days": 701,
+        "test_days": 30,
+        "test_start": "2024-12-02",
+        "test_end": "2024-12-31",
+        "actual_mean": 122.8,
+        "actual_std": 57.95538513949041,
+        "actual_min": 54.0,
+        "actual_max": 275.0,
+        "actual_cv": 47.19493903867297
+      },
+      "forecast_run_id": "32b3edc5-dcb9-48c9-bd1f-8e90c4383d8b",
+      "metrics": {},
+      "validation": {}
+    },
+    {
+      "item_id": "SKU001",
+      "status": "forecast_failed",
+      "error": "No forecast results generated for any method",
+      "data_info": {
+        "total_days": 731,
+        "train_days": 701,
+        "test_days": 30,
+        "test_start": "2024-12-02",
+        "test_end": "2024-12-31",
+        "actual_mean": 121.23333333333333,
+        "actual_std": 56.795353878836096,
+        "actual_min": 0.0,
+        "actual_max": 227.0,
+        "actual_cv": 46.84796855554256
+      },
+      "forecast_run_id": "093329e5-4fcd-4672-b6ae-f6bb4461b7d7",
+      "metrics": {},
+      "validation": {}
+    },
+    {
+      "item_id": "SKU008",
+      "status": "forecast_failed",
+      "error": "No forecast results generated for any method",
+      "data_info": {
+        "total_days": 731,
+        "train_days": 701,
+        "test_days": 30,
+        "test_start": "2024-12-02",
+        "test_end": "2024-12-31",
+        "actual_mean": 119.96666666666667,
+        "actual_std": 37.967076380581226,
+        "actual_min": 41.0,
+        "actual_max": 207.0,
+        "actual_cv": 31.648021434216076
+      },
+      "forecast_run_id": "66725950-cbd2-4b81-b939-fcbcf5ae96c0",
+      "metrics": {},
+      "validation": {}
+    },
+    {
+      "item_id": "SKU016",
+      "status": "forecast_failed",
+      "error": "No forecast results generated for any method",
+      "data_info": {
+        "total_days": 731,
+        "train_days": 701,
+        "test_days": 30,
+        "test_start": "2024-12-02",
+        "test_end": "2024-12-31",
+        "actual_mean": 66.23333333333333,
+        "actual_std": 19.412510284750798,
+        "actual_min": 28.0,
+        "actual_max": 111.0,
+        "actual_cv": 29.30927571930166
+      },
+      "forecast_run_id": "3253807f-e986-458c-8133-d470326520db",
+      "metrics": {},
+      "validation": {}
+    },
+    {
+      "item_id": "SKU007",
+      "status": "forecast_failed",
+      "error": "No forecast results generated for any method",
+      "data_info": {
+        "total_days": 731,
+        "train_days": 701,
+        "test_days": 30,
+        "test_start": "2024-12-02",
+        "test_end": "2024-12-31",
+        "actual_mean": 59.4,
+        "actual_std": 17.585221067703415,
+        "actual_min": 38.0,
+        "actual_max": 101.0,
+        "actual_cv": 29.60474927222797
+      },
+      "forecast_run_id": "b14140ab-a778-4212-b024-5ecd741ab9e3",
+      "metrics": {},
+      "validation": {}
+    },
+    {
+      "item_id": "SKU005",
+      "status": "forecast_failed",
+      "error": "No forecast results generated for any method",
+      "data_info": {
+        "total_days": 731,
+        "train_days": 701,
+        "test_days": 30,
+        "test_start": "2024-12-02",
+        "test_end": "2024-12-31",
+        "actual_mean": 32.233333333333334,
+        "actual_std": 8.114527438831885,
+        "actual_min": 16.0,
+        "actual_max": 56.0,
+        "actual_cv": 25.174335384173375
+      },
+      "forecast_run_id": "5aeac9bd-da70-41d6-8d27-8402f063e0d6",
+      "metrics": {},
+      "validation": {}
+    },
+    {
+      "item_id": "SKU020",
+      "status": "forecast_failed",
+      "error": "No forecast results generated for any method",
+      "data_info": {
+        "total_days": 731,
+        "train_days": 701,
+        "test_days": 30,
+        "test_start": "2024-12-02",
+        "test_end": "2024-12-31",
+        "actual_mean": 117.03333333333333,
+        "actual_std": 32.057743041095215,
+        "actual_min": 69.0,
+        "actual_max": 203.0,
+        "actual_cv": 27.391976395125507
+      },
+      "forecast_run_id": "c1622e46-d9a2-4f02-9657-2c4eb259e59f",
+      "metrics": {},
+      "validation": {}
+    },
+    {
+      "item_id": "SKU012",
+      "status": "forecast_failed",
+      "error": "No forecast results generated for any method",
+      "data_info": {
+        "total_days": 731,
+        "train_days": 701,
+        "test_days": 30,
+        "test_start": "2024-12-02",
+        "test_end": "2024-12-31",
+        "actual_mean": 144.8,
+        "actual_std": 42.133438818433355,
+        "actual_min": 79.0,
+        "actual_max": 237.0,
+        "actual_cv": 29.097678742011983
+      },
+      "forecast_run_id": "e7974ea9-63d6-479f-a539-5858c389458d",
+      "metrics": {},
+      "validation": {}
+    },
+    {
+      "item_id": "SKU002",
+      "status": "forecast_failed",
+      "error": "No forecast results generated for any method",
+      "data_info": {
+        "total_days": 731,
+        "train_days": 701,
+        "test_days": 30,
+        "test_start": "2024-12-02",
+        "test_end": "2024-12-31",
+        "actual_mean": 25.733333333333334,
+        "actual_std": 4.986203187017375,
+        "actual_min": 18.0,
+        "actual_max": 37.0,
+        "actual_cv": 19.376437255248867
+      },
+      "forecast_run_id": "943938be-5bce-4dd2-828e-bf6b1d337f59",
+      "metrics": {},
+      "validation": {}
+    },
+    {
+      "item_id": "SKU003",
+      "status": "forecast_failed",
+      "error": "No forecast results generated for any method",
+      "data_info": {
+        "total_days": 731,
+        "train_days": 701,
+        "test_days": 30,
+        "test_start": "2024-12-02",
+        "test_end": "2024-12-31",
+        "actual_mean": 38.9,
+        "actual_std": 11.249740737753323,
+        "actual_min": 23.0,
+        "actual_max": 62.0,
+        "actual_cv": 28.91964199936587
+      },
+      "forecast_run_id": "1171acc1-0d19-4051-a32a-9146f05f9644",
+      "metrics": {},
+      "validation": {}
+    },
+    {
+      "item_id": "SKU015",
+      "status": "forecast_failed",
+      "error": "No forecast results generated for any method",
+      "data_info": {
+        "total_days": 731,
+        "train_days": 701,
+        "test_days": 30,
+        "test_start": "2024-12-02",
+        "test_end": "2024-12-31",
+        "actual_mean": 78.36666666666666,
+        "actual_std": 17.626652798784257,
+        "actual_min": 47.0,
+        "actual_max": 117.0,
+        "actual_cv": 22.49253866284678
+      },
+      "forecast_run_id": "46addcdc-0f86-4e59-bb82-04238b740763",
+      "metrics": {},
+      "validation": {}
+    },
+    {
+      "item_id": "SKU006",
+      "status": "forecast_failed",
+      "error": "No forecast results generated for any method",
+      "data_info": {
+        "total_days": 731,
+        "train_days": 701,
+        "test_days": 30,
+        "test_start": "2024-12-02",
+        "test_end": "2024-12-31",
+        "actual_mean": 107.86666666666666,
+        "actual_std": 35.695689126590935,
+        "actual_min": 59.0,
+        "actual_max": 187.0,
+        "actual_cv": 33.09241884418196
+      },
+      "forecast_run_id": "6643c5cd-b01b-49ae-96a2-83c4570b8c67",
+      "metrics": {},
+      "validation": {}
+    },
+    {
+      "item_id": "SKU018",
+      "status": "forecast_failed",
+      "error": "No forecast results generated for any method",
+      "data_info": {
+        "total_days": 731,
+        "train_days": 701,
+        "test_days": 30,
+        "test_start": "2024-12-02",
+        "test_end": "2024-12-31",
+        "actual_mean": 81.23333333333333,
+        "actual_std": 19.904242987084157,
+        "actual_min": 51.0,
+        "actual_max": 130.0,
+        "actual_cv": 24.50255599558985
+      },
+      "forecast_run_id": "f68b24b8-9a6a-4aa7-8d83-2995341c271d",
+      "metrics": {},
+      "validation": {}
+    },
+    {
+      "item_id": "SKU009",
+      "status": "forecast_failed",
+      "error": "No forecast results generated for any method",
+      "data_info": {
+        "total_days": 731,
+        "train_days": 701,
+        "test_days": 30,
+        "test_start": "2024-12-02",
+        "test_end": "2024-12-31",
+        "actual_mean": 42.733333333333334,
+        "actual_std": 13.45345886958278,
+        "actual_min": 25.0,
+        "actual_max": 72.0,
+        "actual_cv": 31.48235304894566
+      },
+      "forecast_run_id": "ea4f0008-be27-47d2-9409-84e33765ec82",
+      "metrics": {},
+      "validation": {}
+    },
+    {
+      "item_id": "SKU017",
+      "status": "forecast_failed",
+      "error": "No forecast results generated for any method",
+      "data_info": {
+        "total_days": 731,
+        "train_days": 701,
+        "test_days": 30,
+        "test_start": "2024-12-02",
+        "test_end": "2024-12-31",
+        "actual_mean": 140.13333333333333,
+        "actual_std": 39.396897791013394,
+        "actual_min": 82.0,
+        "actual_max": 254.0,
+        "actual_cv": 28.113866168658465
+      },
+      "forecast_run_id": "c92f0346-bf18-451e-9742-3577cc5d13db",
+      "metrics": {},
+      "validation": {}
+    },
+    {
+      "item_id": "SKU004",
+      "status": "forecast_failed",
+      "error": "No forecast results generated for any method",
+      "data_info": {
+        "total_days": 731,
+        "train_days": 701,
+        "test_days": 30,
+        "test_start": "2024-12-02",
+        "test_end": "2024-12-31",
+        "actual_mean": 66.53333333333333,
+        "actual_std": 15.47844379200384,
+        "actual_min": 47.0,
+        "actual_max": 108.0,
+        "actual_cv": 23.26419407615808
+      },
+      "forecast_run_id": "edc84104-be0e-4a5b-a9f1-69f9bff014bd",
+      "metrics": {},
+      "validation": {}
+    },
+    {
+      "item_id": "SKU014",
+      "status": "forecast_failed",
+      "error": "No forecast results generated for any method",
+      "data_info": {
+        "total_days": 731,
+        "train_days": 701,
+        "test_days": 30,
+        "test_start": "2024-12-02",
+        "test_end": "2024-12-31",
+        "actual_mean": 112.36666666666666,
+        "actual_std": 36.88132619934134,
+        "actual_min": 52.0,
+        "actual_max": 186.0,
+        "actual_cv": 32.822301571647586
+      },
+      "forecast_run_id": "8f1b9828-27b7-49ef-b242-64494b60b788",
+      "metrics": {},
+      "validation": {}
+    },
+    {
+      "item_id": "SKU013",
+      "status": "forecast_failed",
+      "error": "No forecast results generated for any method",
+      "data_info": {
+        "total_days": 731,
+        "train_days": 701,
+        "test_days": 30,
+        "test_start": "2024-12-02",
+        "test_end": "2024-12-31",
+        "actual_mean": 142.53333333333333,
+        "actual_std": 44.76213677751419,
+        "actual_min": 80.0,
+        "actual_max": 223.0,
+        "actual_cv": 31.404679684878996
+      },
+      "forecast_run_id": "04cc8c56-c824-44d2-a8fa-d7ca1dff088f",
+      "metrics": {},
+      "validation": {}
+    },
+    {
+      "item_id": "SKU011",
+      "status": "forecast_failed",
+      "error": "No forecast results generated for any method",
+      "data_info": {
+        "total_days": 731,
+        "train_days": 701,
+        "test_days": 30,
+        "test_start": "2024-12-02",
+        "test_end": "2024-12-31",
+        "actual_mean": 28.633333333333333,
+        "actual_std": 7.431838414700781,
+        "actual_min": 19.0,
+        "actual_max": 45.0,
+        "actual_cv": 25.955198188710526
+      },
+      "forecast_run_id": "c24a478b-60aa-4c79-a025-7e87f5a98cae",
+      "metrics": {},
+      "validation": {}
+    }
+  ]
+}

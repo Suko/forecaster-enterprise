@@ -88,6 +88,11 @@ class Settings(BaseSettings):
     rate_limit_per_minute: int = int(os.getenv("RATE_LIMIT_PER_MINUTE", "5"))
     rate_limit_per_hour: int = int(os.getenv("RATE_LIMIT_PER_HOUR", "20"))
 
+    # Data Validation & Audit Logging
+    # Enable detailed data validation and audit trail (recommended for testing/development)
+    # In production, set to false to reduce overhead (validation still runs, but audit trail is minimal)
+    enable_audit_logging: bool = os.getenv("ENABLE_AUDIT_LOGGING", "").lower() in ["true", "1", "yes"] or os.getenv("ENVIRONMENT", "development").lower() in ["development", "dev", "test", "testing"]
+
     def model_post_init(self, __context) -> None:
         """Validate configuration after initialization"""
         is_dev = self.environment.lower() in ["development", "dev", "local"]

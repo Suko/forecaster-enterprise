@@ -118,6 +118,9 @@ class ForecastRun(Base):
     status = Column(String(20), nullable=False, default=ForecastStatus.PENDING.value)
     error_message = Column(Text)
     
+    # Audit trail (data flow documentation)
+    audit_metadata = Column(JSONBType(), nullable=True)  # Stores IN->OUT->COMPARISON audit trail
+    
     # Timestamps
     created_at = Column(DateTime(timezone=True), server_default=func.now())
 
@@ -149,4 +152,36 @@ class ForecastResult(Base):
     
     # Timestamps
     created_at = Column(DateTime(timezone=True), server_default=func.now())
+
+
+class SKUClassification(Base):
+    """Stores ABC-XYZ classification for SKUs"""
+    __tablename__ = "sku_classifications"
+    
+    id = Column(GUID(), primary_key=True, default=uuid.uuid4)
+    client_id = Column(GUID(), nullable=False, index=True)
+    item_id = Column(String(255), nullable=False, index=True)
+    
+    # ABC-XYZ Classification
+    abc_class = Column(String(1), nullable=False)  # A, B, or C
+    xyz_class = Column(String(1), nullable=False)  # X, Y, or Z
+    
+    # Demand Pattern
+    demand_pattern = Column(String(50), nullable=False)  # regular, intermittent, lumpy, seasonal
+    
+    # Metrics
+    coefficient_of_variation = Column(Numeric(10, 4), nullable=False)
+    average_demand_interval = Column(Numeric(10, 4), nullable=False)
+    revenue_contribution = Column(Numeric(10, 4))  # Percentage of total revenue
+    
+    # Forecasting
+    forecastability_score = Column(Numeric(5, 4), nullable=False)  # 0.0 to 1.0
+    recommended_method = Column(String(50), nullable=False)
+    expected_mape_min = Column(Numeric(5, 2))
+    expected_mape_max = Column(Numeric(5, 2))
+    
+    # Metadata
+    classification_date = Column(DateTime(timezone=True), server_default=func.now())
+    history_days_used = Column(Integer)
+    classification_metadata = Column(JSONBType(), nullable=True)  # Additional metadata (warnings, etc.)
 

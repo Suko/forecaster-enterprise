@@ -106,15 +106,34 @@ class Chronos2Model(BaseForecastModel):
             )
             
             # Ensure consistent column names
-            result_df = pd.DataFrame()
             # Get item_id from context (preserve original id)
-            item_id = context_df["id"].iloc[0] if not context_df.empty else (context_df.get("item_id", ["item_1"]).iloc[0] if "item_id" in context_df.columns else "item_1")
-            result_df["id"] = item_id
-            result_df["timestamp"] = predictions_df.get("timestamp", pd.date_range(
-                start=context_df["timestamp"].max() + timedelta(days=1),
-                periods=prediction_length,
-                freq="D"
-            ))
+            if not context_df.empty:
+                if "id" in context_df.columns:
+                    item_id = str(context_df["id"].iloc[0])
+                elif "item_id" in context_df.columns:
+                    item_id = str(context_df["item_id"].iloc[0])
+                else:
+                    item_id = "item_1"
+            else:
+                item_id = "item_1"
+            
+            # Generate timestamps if not in predictions_df
+            if "timestamp" in predictions_df.columns:
+                timestamps = predictions_df["timestamp"].values
+            else:
+                # Generate future timestamps starting from day after last context date
+                last_date = pd.to_datetime(context_df["timestamp"]).max()
+                timestamps = pd.date_range(
+                    start=last_date + timedelta(days=1),
+                    periods=prediction_length,
+                    freq="D"
+                )
+            
+            # Create result DataFrame with proper id column
+            result_df = pd.DataFrame({
+                "id": [item_id] * prediction_length,
+                "timestamp": timestamps,
+            })
             
             # Extract point forecast (median/p50)
             if "0.5" in predictions_df.columns or "median" in predictions_df.columns:

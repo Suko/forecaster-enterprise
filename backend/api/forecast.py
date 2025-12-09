@@ -19,6 +19,7 @@ from schemas.forecast import (
     BackfillActualsRequest,
     BackfillActualsResponse,
     QualityResponse,
+    SKUClassificationInfo,
 )
 from forecasting.services.forecast_service import ForecastService
 from forecasting.services.quality_calculator import QualityCalculator
@@ -80,7 +81,10 @@ async def create_forecast(
         )
         
         # Format response
-        from schemas.forecast import ItemForecast, Prediction, PredictionQuantiles
+        from schemas.forecast import ItemForecast, Prediction, PredictionQuantiles, SKUClassificationInfo
+        
+        # Get classifications if available
+        sku_classifications = getattr(forecast_run, '_sku_classifications', {})
         
         item_forecasts = []
         for item_id in request.item_ids:
@@ -101,11 +105,26 @@ async def create_forecast(
                     )
                 )
             
+            # Get classification for this item
+            classification_info = None
+            if item_id in sku_classifications:
+                classification = sku_classifications[item_id]
+                classification_info = SKUClassificationInfo(
+                    abc_class=classification.abc_class,
+                    xyz_class=classification.xyz_class,
+                    demand_pattern=classification.demand_pattern,
+                    forecastability_score=classification.forecastability_score,
+                    recommended_method=classification.recommended_method,
+                    expected_mape_range=classification.expected_mape_range,
+                    warnings=classification.warnings,
+                )
+            
             item_forecasts.append(
                 ItemForecast(
                     item_id=item_id,
                     method_used=forecast_run.recommended_method or forecast_run.primary_model,
                     predictions=predictions,
+                    classification=classification_info,
                 )
             )
         
@@ -384,5 +403,65 @@ async def get_quality_metrics(
         item_id=item_id,
         period={"start": start_date, "end": end_date},
         methods=method_qualities,
+    )
+
+
+@router.get("/skus/{item_id}/classification", response_model=SKUClassificationInfo)
+async def get_sku_classification(
+    item_id: str,
+    request_obj: Request,
+    db: AsyncSession = Depends(get_db),
+):
+    """
+    Get SKU classification (ABC-XYZ) for a specific item.
+    
+    Authentication (choose one):
+    - JWT token (user calls): client_id from user's JWT token
+    - Service API key (system calls): X-API-Key header
+    
+    Returns the latest classification for the item.
+    """
+    from sqlalchemy import select
+    
+    # Get client_id from JWT token OR service API key
+    client_id = await get_client_id_from_request_or_token(
+        request_obj,
+        client_id=None,
+        db=db,
+    )
+    
+    # Get classification from database
+    from models.forecast import SKUClassification as SKUClassificationModel
+    
+    result = await db.execute(
+        select(SKUClassificationModel).where(
+            SKUClassificationModel.client_id == client_id,
+            SKUClassificationModel.item_id == item_id
+        ).order_by(SKUClassificationModel.classification_date.desc())
+    )
+    classification = result.scalar_one_or_none()
+    
+    if not classification:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Classification not found for item {item_id}. Generate a forecast first to classify the SKU.",
+        )
+    
+    # Extract warnings from metadata
+    warnings = []
+    if classification.classification_metadata and isinstance(classification.classification_metadata, dict):
+        warnings = classification.classification_metadata.get("warnings", [])
+    
+    return SKUClassificationInfo(
+        abc_class=classification.abc_class,
+        xyz_class=classification.xyz_class,
+        demand_pattern=classification.demand_pattern,
+        forecastability_score=float(classification.forecastability_score),
+        recommended_method=classification.recommended_method,
+        expected_mape_range=(
+            float(classification.expected_mape_min) if classification.expected_mape_min else 0.0,
+            float(classification.expected_mape_max) if classification.expected_mape_max else 100.0
+        ),
+        warnings=warnings,
     )
 

@@ -93,4 +93,7 @@ data/*/*_clean.csv
 models/
 checkpoints/
 
+# Test reports (generated files)
+backend/reports/*.json
+
 ./old/

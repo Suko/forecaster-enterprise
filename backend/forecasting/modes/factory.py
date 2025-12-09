@@ -7,6 +7,9 @@ from typing import Dict
 from ..core.models.base import BaseForecastModel
 from .ml.chronos2 import Chronos2Model
 from .statistical.moving_average import MovingAverageModel
+from .statistical.sba import SBAModel
+from .statistical.croston import CrostonModel
+from .statistical.min_max import MinMaxModel
 
 
 class ModelFactory:
@@ -15,6 +18,9 @@ class ModelFactory:
     _models: Dict[str, type] = {
         "chronos-2": Chronos2Model,
         "statistical_ma7": MovingAverageModel,
+        "sba": SBAModel,
+        "croston": CrostonModel,
+        "min_max": MinMaxModel,
     }
     
     @classmethod

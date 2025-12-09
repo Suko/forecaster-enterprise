@@ -112,6 +112,7 @@ backend/forecasting/
 
 - [METHODS.md](./METHODS.md) - Method implementation details
 - [../ARCHITECTURE.md](../ARCHITECTURE.md) - Backend architecture
+- [../ROADMAP.md](../ROADMAP.md) - Development roadmap & todos
 - [../../standards/STANDARDS.md](../../standards/STANDARDS.md) - Project standards
 
 ---

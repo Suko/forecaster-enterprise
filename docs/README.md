@@ -25,6 +25,7 @@ docs/
 ├── backend/
 │   ├── ARCHITECTURE.md          # Backend architecture
 │   ├── STRUCTURE_ANALYSIS.md    # Code structure
+│   ├── ROADMAP.md               # Development roadmap & todos
 │   └── forecasting/             # Forecasting module
 │       ├── README.md            # Module status & progress
 │       └── METHODS.md           # Method implementations
@@ -55,6 +56,8 @@ docs/
 |----------|---------|
 | [Architecture](backend/ARCHITECTURE.md) | System architecture |
 | [Structure](backend/STRUCTURE_ANALYSIS.md) | Code structure analysis |
+| [Roadmap](backend/ROADMAP.md) | Development roadmap & todos |
+| [Roadmap](backend/ROADMAP.md) | Development roadmap & todos |
 
 ### Standards & Contracts
 

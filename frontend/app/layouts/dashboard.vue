@@ -16,6 +16,12 @@ const mainMenuItems: NavigationMenuItem[] = [
     icon: 'i-lucide-package',
     to: '/inventory',
     active: route.path.startsWith('/inventory')
+  },
+  {
+    label: 'Recommendations',
+    icon: 'i-lucide-lightbulb',
+    to: '/recommendations',
+    active: route.path.startsWith('/recommendations')
   }
 ]
 

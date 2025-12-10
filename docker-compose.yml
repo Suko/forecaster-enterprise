@@ -14,5 +14,20 @@ services:
       - license_data:/data
     labels:
       com.forecasting.license: "true"
-volumes:
-  license_data:
+    volumes:
+      license_data:
+
+  frontend:
+    build: ./frontend
+    container_name: nuxt-frontend
+    ports:
+      - "3000:3000"
+    environment:
+      - API_BASE_URL=http://backend:8000
+    depends_on:
+      backend:
+        condition: service_healthy
+      license-watcher:
+        condition: service_started
+    labels:
+      com.forecasting.license: "true"

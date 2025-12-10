@@ -25,23 +25,19 @@ services:
     restart: unless-stopped
     ports:
       - "8000:8000"
+    env_file:
+      - .env
     environment:
-      # Database
+      # Database connection (credentials from .env file)
       - DB_HOST=db
-      - DB_USER=${DB_USER:-postgres}
-      - DB_PASSWORD=${DB_PASSWORD:-postgres}
-      - DB_NAME=${DB_NAME:-forecaster_enterprise}
-      - DATABASE_URL=postgresql://${DB_USER:-postgres}:${DB_PASSWORD:-postgres}@db:5432/${DB_NAME:-forecaster_enterprise}
+      # sslmode=disable is safe here - traffic stays within Docker's isolated network
+      - DATABASE_URL=postgresql://${DB_USER}:${DB_PASSWORD}@db:5432/${DB_NAME}?sslmode=disable
 
       # Application
       - ENVIRONMENT=${ENVIRONMENT:-production}
       - DEBUG=${DEBUG:-false}
-      - JWT_SECRET_KEY=${JWT_SECRET_KEY}
 
       # First-time setup (optional)
-      - ADMIN_EMAIL=${ADMIN_EMAIL}
-      - ADMIN_PASSWORD=${ADMIN_PASSWORD}
-      - ADMIN_NAME=${ADMIN_NAME:-Admin User}
       - SETUP_TEST_DATA=${SETUP_TEST_DATA:-false}
       - CLIENT_NAME=${CLIENT_NAME:-Demo Client}
     depends_on:

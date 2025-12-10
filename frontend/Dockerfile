@@ -1,4 +1,5 @@
 # Multi-stage Dockerfile for Nuxt 3 Frontend
+# syntax=docker/dockerfile:1
 
 # Stage 1: Dependencies
 FROM node:20-alpine AS deps
@@ -7,8 +8,9 @@ WORKDIR /app
 # Copy package files
 COPY package.json package-lock.json ./
 
-# Install dependencies
-RUN npm ci --only=production=false
+# Install dependencies with cache
+RUN --mount=type=cache,target=/root/.npm \
+    npm ci
 
 # Stage 2: Builder
 FROM node:20-alpine AS builder

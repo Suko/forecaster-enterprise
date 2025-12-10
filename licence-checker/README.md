@@ -83,7 +83,7 @@ The Edge Function expects and returns the following JSON payloads:
 }
 ```
 
-## Database Schema
+## Supabase Database Schema
 
 ### Tables
 

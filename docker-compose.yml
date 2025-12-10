@@ -1,29 +1,70 @@
-version: "3.9"
 services:
-  license-watcher:
-    build: ./licence-checker
-    container_name: licence-watcher
-    restart: on-failure:5 # Stops trying after 5 failed starts
+  db:
+    image: postgres:16-alpine
+    container_name: forecast-db
+    restart: unless-stopped
     environment:
-      LICENSE_URL: ${LICENSE_URL} # from .env file
-      LICENSE_KEY: ${LICENSE_KEY} # from .env file
-      CHECK_INTERVAL: "3600" # 1 hour (3600)
-      GRACE_PERIOD: "172800" # 2 days (172800)
+      POSTGRES_USER: ${DB_USER:-postgres}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-postgres}
+      POSTGRES_DB: ${DB_NAME:-forecaster_enterprise}
     volumes:
-      - /var/run/docker.sock:/var/run/docker.sock:ro
-      - license_data:/data
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
     labels:
       com.forecasting.license: "true"
-    volumes:
-      license_data:
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER:-postgres}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  backend:
+    build: ./backend
+    container_name: forecaster-backend
+    restart: unless-stopped
+    ports:
+      - "8000:8000"
+    environment:
+      # Database
+      - DB_HOST=db
+      - DB_USER=${DB_USER:-postgres}
+      - DB_PASSWORD=${DB_PASSWORD:-postgres}
+      - DB_NAME=${DB_NAME:-forecaster_enterprise}
+      - DATABASE_URL=postgresql://${DB_USER:-postgres}:${DB_PASSWORD:-postgres}@db:5432/${DB_NAME:-forecaster_enterprise}
+
+      # Application
+      - ENVIRONMENT=${ENVIRONMENT:-production}
+      - DEBUG=${DEBUG:-false}
+      - JWT_SECRET_KEY=${JWT_SECRET_KEY}
+
+      # First-time setup (optional)
+      - ADMIN_EMAIL=${ADMIN_EMAIL}
+      - ADMIN_PASSWORD=${ADMIN_PASSWORD}
+      - ADMIN_NAME=${ADMIN_NAME:-Admin User}
+      - SETUP_TEST_DATA=${SETUP_TEST_DATA:-false}
+      - CLIENT_NAME=${CLIENT_NAME:-Demo Client}
+    depends_on:
+      db:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+    labels:
+      com.forecasting.license: "true"
 
   frontend:
     build: ./frontend
     container_name: nuxt-frontend
+    restart: unless-stopped
     ports:
       - "3000:3000"
     environment:
       - API_BASE_URL=http://backend:8000
+      - NUXT_SESSION_PASSWORD=${NUXT_SESSION_PASSWORD}
     depends_on:
       backend:
         condition: service_healthy
@@ -31,3 +72,22 @@ services:
         condition: service_started
     labels:
       com.forecasting.license: "true"
+
+  license-watcher:
+    build: ./licence-checker
+    container_name: licence-watcher
+    restart: on-failure:5
+    environment:
+      LICENSE_URL: ${LICENSE_URL}
+      LICENSE_KEY: ${LICENSE_KEY}
+      CHECK_INTERVAL: ${CHECK_INTERVAL:-3600}
+      GRACE_PERIOD: ${GRACE_PERIOD:-172800}
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - license_data:/data
+    labels:
+      com.forecasting.license: "true"
+
+volumes:
+  postgres_data:
+  license_data:

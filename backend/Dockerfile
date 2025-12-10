@@ -1,0 +1,74 @@
+# Multi-stage Dockerfile for FastAPI Backend
+
+# Stage 1: Base with Python and uv
+FROM python:3.12-slim AS base
+
+# Install system dependencies
+RUN apt-get update && apt-get install -y \
+    gcc \
+    g++ \
+    libpq-dev \
+    curl \
+    && rm -rf /var/lib/apt/lists/*
+
+# Install uv
+COPY --from=ghcr.io/astral-sh/uv:latest /uv /usr/local/bin/uv
+
+# Set working directory
+WORKDIR /app
+
+# Stage 2: Dependencies
+FROM base AS deps
+
+# Copy dependency files
+COPY pyproject.toml uv.lock ./
+
+# Install dependencies
+RUN uv sync --frozen --no-dev
+
+# Stage 3: Builder
+FROM base AS builder
+
+# Copy dependencies from deps stage
+COPY --from=deps /app/.venv /app/.venv
+
+# Copy application code
+COPY . .
+
+# Stage 4: Production
+FROM python:3.12-slim AS runner
+
+# Install runtime dependencies only
+RUN apt-get update && apt-get install -y \
+    libpq5 \
+    postgresql-client \
+    curl \
+    && rm -rf /var/lib/apt/lists/*
+
+# Create non-root user
+RUN groupadd -r appuser && useradd -r -g appuser appuser
+
+# Set working directory
+WORKDIR /app
+
+# Copy virtual environment and application from builder
+COPY --from=builder --chown=appuser:appuser /app/.venv /app/.venv
+COPY --from=builder --chown=appuser:appuser /app /app
+
+# Copy and set permissions for entrypoint script
+COPY --chown=appuser:appuser docker-entrypoint.sh /app/
+RUN chmod +x /app/docker-entrypoint.sh
+
+# Set environment variables
+ENV PATH="/app/.venv/bin:$PATH" \
+    PYTHONUNBUFFERED=1 \
+    PYTHONDONTWRITEBYTECODE=1
+
+# Switch to non-root user
+USER appuser
+
+# Expose port
+EXPOSE 8000
+
+# Start the application using entrypoint script
+ENTRYPOINT ["/app/docker-entrypoint.sh"]

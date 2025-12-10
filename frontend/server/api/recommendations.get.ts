@@ -15,12 +15,12 @@ export default defineEventHandler(async (event) => {
         .map(([k, v]) => [k, String(v)])
     ).toString()
 
-    const recommendations = await authenticatedFetch<Recommendation[]>(
+    const recommendations = await authenticatedFetch<{ recommendations: Recommendation[], total: number }>(
       event,
-      `/api/v1/order-planning/recommendations${queryString ? `?${queryString}` : ''}`
+      `/api/v1/recommendations${queryString ? `?${queryString}` : ''}`
     )
 
-    return recommendations
+    return recommendations.recommendations
   } catch (error: any) {
     if (error.statusCode === 401) {
       throw createError({

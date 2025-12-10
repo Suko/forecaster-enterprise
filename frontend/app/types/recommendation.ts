@@ -28,3 +28,4 @@ export interface RecommendationFilters {
   role?: 'CEO' | 'PROCUREMENT' | 'MARKETING'
   priority?: RecommendationPriority
 }
+

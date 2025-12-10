@@ -138,6 +138,30 @@ Data access layer abstracts database operations.
 | `forecast_results` | Forecast output storage |
 | `sku_classifications` | SKU pattern data |
 | `ts_demand_daily` | Historical demand data |
+| `stock_levels` | Current inventory per location |
+| `products` | Product master data |
+| `locations` | Warehouse/store locations |
+| `suppliers` | Supplier master data |
+| `product_supplier_conditions` | SKU-supplier relationships (MOQ, lead time) |
+
+### Stock Data: Two Perspectives
+
+**Important:** Stock is tracked in two different ways:
+
+| Table | Stock Field | Granularity | Purpose |
+|-------|-------------|-------------|---------|
+| `stock_levels` | `current_stock` | **Per Location** | Current inventory snapshot (where stock is) |
+| `ts_demand_daily` | `stock_on_date` | **Per SKU (Aggregated)** | Historical stock trends (total available) |
+
+**Key Difference:**
+- `stock_levels.current_stock`: One value per SKU per **location** (e.g., 200 units at WH-001, 100 at WH-002)
+- `ts_demand_daily.stock_on_date`: One value per SKU per **date** (summed across all locations, e.g., 300 total on 2025-01-27)
+
+**Formula:** `stock_on_date = SUM(current_stock) across all locations`
+
+This design matches the aggregated nature of sales data (`units_sold` is also aggregated at SKU level, not per location).
+
+For detailed explanation, see [../STOCK_AGGREGATION.md](../STOCK_AGGREGATION.md)
 
 ### Migrations
 

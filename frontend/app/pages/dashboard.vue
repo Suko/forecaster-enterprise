@@ -29,7 +29,7 @@
     <!-- Dashboard Content -->
     <div v-else-if="dashboardData" class="space-y-6">
       <!-- KPI Cards -->
-      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         <DashboardKpiCard
           label="Total Inventory Value"
           :value="`€${formatCurrency(parseFloat(dashboardData.total_value || '0'))}`"
@@ -71,7 +71,7 @@
       <!-- Charts Section -->
       <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <!-- Top Understocked Products -->
-        <UCard>
+      <UCard>
           <template #header>
             <h3 class="text-lg font-semibold">Top 5 Understocked Products</h3>
           </template>
@@ -89,7 +89,7 @@
                 <div class="flex-1">
                   <p class="font-medium">{{ item.product_name }}</p>
                   <p class="text-sm text-gray-500">{{ item.item_id }}</p>
-                </div>
+          </div>
                 <div class="text-right">
                   <UBadge
                     :color="item.stockout_risk > 70 ? 'red' : item.stockout_risk > 40 ? 'orange' : 'yellow'"
@@ -98,14 +98,14 @@
                     {{ item.stockout_risk.toFixed(1) }}% risk
                   </UBadge>
                   <p class="text-xs text-gray-400 mt-1">{{ item.dir.toFixed(1) }} days</p>
-                </div>
-              </div>
-            </div>
           </div>
-        </UCard>
-
+        </div>
+          </div>
+        </div>
+      </UCard>
+      
         <!-- Top Overstocked Products -->
-        <UCard>
+      <UCard>
           <template #header>
             <h3 class="text-lg font-semibold">Top 5 Overstocked Products</h3>
           </template>
@@ -123,16 +123,16 @@
                 <div class="flex-1">
                   <p class="font-medium">{{ item.product_name }}</p>
                   <p class="text-sm text-gray-500">{{ item.item_id }}</p>
-                </div>
+          </div>
                 <div class="text-right">
                   <p class="text-sm font-medium">{{ item.dir.toFixed(1) }} days</p>
                   <p class="text-xs text-gray-400">Overstocked</p>
-                </div>
-              </div>
-            </div>
+          </div>
+        </div>
+          </div>
           </div>
         </UCard>
-      </div>
+        </div>
 
       <!-- Trend Charts (Placeholder for future implementation) -->
       <!-- <div class="grid grid-cols-1 gap-6">
@@ -163,6 +163,8 @@ const formatCurrency = (value: number): string => {
   return Math.round(value).toLocaleString('de-DE', { maximumFractionDigits: 0 })
 }
 
+const { handleAuthError } = useAuthError()
+
 const loadDashboard = async () => {
   loading.value = true
   error.value = null
@@ -171,6 +173,12 @@ const loadDashboard = async () => {
     const data = await $fetch<DashboardResponse>('/api/dashboard')
     dashboardData.value = data
   } catch (err: any) {
+    // Handle 401 errors - redirect to login
+    const wasAuthError = await handleAuthError(err)
+    if (wasAuthError) {
+      // Redirect is handled, just return
+      return
+    }
     error.value = err.message || 'Failed to load dashboard data'
     console.error('Dashboard error:', err)
   } finally {

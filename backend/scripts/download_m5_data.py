@@ -2,7 +2,7 @@
 """
 Download and Import M5 Dataset
 
-Downloads M5 Forecasting Competition dataset from Kaggle and imports
+Downloads M5 Forecasting Competition dataset from Zenodo and imports
 diverse SKUs to test classification accuracy.
 
 M5 Dataset:
@@ -13,9 +13,9 @@ M5 Dataset:
 - Multiple demand patterns
 
 Usage:
-1. Install kaggle: pip install kaggle
-2. Set up Kaggle API credentials: ~/.kaggle/kaggle.json
-3. Run: python download_m5_data.py
+1. Install requests: pip install requests
+2. Run: python download_m5_data.py
+   (No API credentials needed - downloads directly from Zenodo)
 """
 
 import os
@@ -29,21 +29,7 @@ import asyncio
 from sqlalchemy import text
 from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession, async_sessionmaker
 
-# Set up Kaggle API token from environment BEFORE importing kaggle
-# Kaggle library authenticates on import, so we need env vars set first
-if os.getenv("KAGGLE_API_TOKEN") and not os.getenv("KAGGLE_KEY"):
-    os.environ["KAGGLE_KEY"] = os.getenv("KAGGLE_API_TOKEN")
-    # Try to get username from kaggle.json if it exists
-    kaggle_json_path = Path.home() / ".kaggle" / "kaggle.json"
-    if kaggle_json_path.exists():
-        import json
-        try:
-            with open(kaggle_json_path) as f:
-                kaggle_config = json.load(f)
-                if "username" in kaggle_config and kaggle_config["username"] != "kaggle":
-                    os.environ["KAGGLE_USERNAME"] = kaggle_config["username"]
-        except:
-            pass
+# No API credentials needed - downloads directly from Zenodo
 
 # Add backend to path
 backend_dir = Path(__file__).parent.parent
@@ -54,7 +40,7 @@ from config import settings
 
 def download_m5_dataset() -> Path:
     """
-    Download M5 dataset from Kaggle (or use existing files).
+    Download M5 dataset from Zenodo (or use existing files).
     
     Returns:
         Path to downloaded data directory
@@ -81,56 +67,62 @@ def download_m5_dataset() -> Path:
         print("   Skipping download...")
         return data_dir
     
-    # Only import kaggle if we need to download
-    print("📥 M5 dataset not found. Attempting to download from Kaggle...")
-    print("   (If download fails, download manually from: https://zenodo.org/records/12636070)")
+    # Download from Zenodo
+    print("📥 M5 dataset not found. Downloading from Zenodo...")
+    print("   Source: https://zenodo.org/records/12636070")
+    print("   This may take a few minutes (dataset is ~500MB)...")
+    
     try:
-        import kaggle
+        import requests
     except ImportError:
-        print("❌ Kaggle package not installed")
-        print("   Install with: pip install kaggle")
+        print("❌ requests package not installed")
+        print("   Install with: pip install requests")
         print("   Or download manually from: https://zenodo.org/records/12636070")
         print(f"   Extract to: {data_dir}")
         sys.exit(1)
     
-    print("📥 Downloading M5 dataset from Kaggle...")
-    print("   This may take a few minutes (dataset is ~500MB)...")
-    
     try:
-        # Authentication should already be set up via environment variables
-        # (set before importing kaggle module)
-        # Just verify authentication
-        kaggle.api.authenticate()
+        # Zenodo download URL
+        zenodo_url = "https://zenodo.org/record/12636070/files/m5-forecasting-accuracy.zip"
+        zip_path = data_dir / "m5-forecasting-accuracy.zip"
         
-        # Download competition data
-        print("   Downloading files...")
-        kaggle.api.competition_download_files(
-            'm5-forecasting-accuracy',
-            path=str(data_dir)
-        )
+        print(f"   Downloading from: {zenodo_url}")
         
-        # Unzip downloaded files
+        # Download with progress
+        response = requests.get(zenodo_url, stream=True)
+        response.raise_for_status()
+        
+        total_size = int(response.headers.get('content-length', 0))
+        downloaded = 0
+        
+        with open(zip_path, 'wb') as f:
+            for chunk in response.iter_content(chunk_size=8192):
+                if chunk:
+                    f.write(chunk)
+                    downloaded += len(chunk)
+                    if total_size > 0:
+                        percent = (downloaded / total_size) * 100
+                        print(f"\r   Progress: {percent:.1f}% ({downloaded // 1024 // 1024}MB / {total_size // 1024 // 1024}MB)", end='', flush=True)
+        
+        print()  # New line after progress
+        
+        # Extract ZIP file
         import zipfile
-        import glob
-        zip_files = glob.glob(str(data_dir / "*.zip"))
-        for zip_file in zip_files:
-            print(f"   Extracting {Path(zip_file).name}...")
-            with zipfile.ZipFile(zip_file, 'r') as zip_ref:
-                zip_ref.extractall(data_dir)
-            # Remove zip file after extraction
-            os.remove(zip_file)
+        print(f"   Extracting {zip_path.name}...")
+        with zipfile.ZipFile(zip_path, 'r') as zip_ref:
+            zip_ref.extractall(data_dir)
         
-        print(f"✅ Dataset downloaded to: {data_dir}")
+        # Remove zip file after extraction
+        os.remove(zip_path)
+        
+        print(f"✅ Dataset downloaded and extracted to: {data_dir}")
         return data_dir
     
     except Exception as e:
-        print(f"❌ Download failed: {e}")
-        print("\n💡 Alternatives:")
-        print("   1. Download from Kaggle manually:")
-        print("      https://www.kaggle.com/c/m5-forecasting-accuracy/data")
-        print("   2. Download from Zenodo (no account needed):")
-        print("      https://zenodo.org/records/12636070")
-        print("\n   Extract to: backend/data/m5/")
+        print(f"\n❌ Download failed: {e}")
+        print("\n💡 Alternative:")
+        print("   Download manually from: https://zenodo.org/records/12636070")
+        print(f"   Extract to: {data_dir}")
         print("   Required files:")
         print("   - sales_train_evaluation.csv (or sales_train_validation.csv)")
         print("   - calendar.csv")
@@ -397,6 +389,28 @@ async def import_m5_skus_to_database(
 
 async def main():
     """Main function"""
+    import argparse
+    
+    parser = argparse.ArgumentParser(description="Download and import M5 dataset")
+    parser.add_argument(
+        "--client-id",
+        type=str,
+        help="Client ID (UUID). If not provided, uses --client-name or first client"
+    )
+    parser.add_argument(
+        "--client-name",
+        type=str,
+        help="Client name. Creates client if doesn't exist"
+    )
+    parser.add_argument(
+        "--n-skus",
+        type=int,
+        default=20,
+        help="Number of diverse SKUs to import (default: 20)"
+    )
+    
+    args = parser.parse_args()
+    
     print("=" * 80)
     print("M5 Dataset Download and Import")
     print("=" * 80)
@@ -418,9 +432,9 @@ async def main():
         return
     
     # Step 3: Select diverse SKUs
-    selected_skus = select_diverse_skus(analysis_df, n_skus=20)
+    selected_skus = select_diverse_skus(analysis_df, n_skus=args.n_skus)
     
-    # Step 4: Get client_id
+    # Step 4: Get or create client
     database_url = os.getenv("DATABASE_URL", settings.database_url)
     if database_url.startswith("postgres://"):
         database_url = database_url.replace("postgres://", "postgresql+asyncpg://", 1)
@@ -431,17 +445,58 @@ async def main():
     async_session = async_sessionmaker(engine, class_=AsyncSession, expire_on_commit=False)
     
     async with async_session() as db:
-        # Get first client_id
-        result = await db.execute(text("SELECT client_id FROM clients LIMIT 1"))
-        row = result.fetchone()
+        client_id = None
         
-        if not row:
-            print("❌ No clients found in database")
-            print("   Please create a client first")
-            return
+        # Use provided client_id
+        if args.client_id:
+            result = await db.execute(
+                text("SELECT client_id FROM clients WHERE client_id = :client_id"),
+                {"client_id": args.client_id}
+            )
+            row = result.fetchone()
+            if row:
+                client_id = str(row[0])
+                print(f"\n📦 Using provided client_id: {client_id}")
+            else:
+                print(f"❌ Client ID {args.client_id} not found")
+                return
         
-        client_id = str(row[0])
-        print(f"\n📦 Using client_id: {client_id}")
+        # Use client_name to find or create
+        elif args.client_name:
+            from models.client import Client
+            result = await db.execute(
+                text("SELECT client_id FROM clients WHERE name = :name"),
+                {"name": args.client_name}
+            )
+            row = result.fetchone()
+            if row:
+                client_id = str(row[0])
+                print(f"\n📦 Using existing client: {args.client_name} ({client_id})")
+            else:
+                # Create new client
+                new_client = Client(
+                    name=args.client_name,
+                    timezone="UTC",
+                    currency="EUR",
+                    is_active=True
+                )
+                db.add(new_client)
+                await db.commit()
+                await db.refresh(new_client)
+                client_id = str(new_client.client_id)
+                print(f"\n📦 Created new client: {args.client_name} ({client_id})")
+        
+        # Fallback: Get first client
+        else:
+            result = await db.execute(text("SELECT client_id FROM clients LIMIT 1"))
+            row = result.fetchone()
+            if row:
+                client_id = str(row[0])
+                print(f"\n📦 Using first client_id: {client_id}")
+            else:
+                print("❌ No clients found in database")
+                print("   Please create a client first or use --client-name")
+                return
     
     # Step 5: Import to database
     await import_m5_skus_to_database(data_dir, selected_skus, client_id)
@@ -449,9 +504,11 @@ async def main():
     print("\n" + "=" * 80)
     print("✅ M5 Dataset Import Complete!")
     print("=" * 80)
+    print(f"Client ID: {client_id}")
+    print(f"SKUs imported: {len(selected_skus)}")
     print("\n💡 Next steps:")
-    print("   1. Run classification test: python scripts/test_sku_classifier.py")
-    print("   2. Verify diverse patterns are classified correctly")
+    print("   1. Run setup_test_data.py to create products, locations, stock, etc.")
+    print("   2. Run classification test: python scripts/test_sku_classifier.py")
     print("   3. Test forecast accuracy with different SKU types")
 
 

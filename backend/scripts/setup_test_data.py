@@ -394,7 +394,9 @@ async def create_client_settings(client_id: str, clear_existing: bool = False) -
 async def setup_test_data(
     client_id: Optional[str] = None,
     client_name: str = "Demo Client",
-    clear_existing: bool = False
+    clear_existing: bool = False,
+    days_back: int = 30,
+    skip_recent_sales: bool = False
 ) -> dict:
     """Complete test data setup"""
     print("="*60)
@@ -449,6 +451,61 @@ async def setup_test_data(
     print(f"\n8. Creating client settings...")
     await create_client_settings(client_id, clear_existing)
     
+    # Step 9: Ensure recent sales data (shifts dates to make data recent)
+    # This makes all sales data "recent" relative to today so DIR calculations work
+    sales_result = {"records_updated": 0}
+    if not skip_recent_sales:
+        print(f"\n9. Ensuring recent sales data (shifting dates to today)...")
+        print(f"   This preserves all sales data (M5, synthetic) but makes dates recent")
+        try:
+            from scripts.shift_dates_to_recent import shift_dates_to_recent
+            
+            sales_result = await shift_dates_to_recent(
+                client_id=client_id,
+                target_max_date=None,  # Use today
+                days_back_from_target=0  # Max date = today
+            )
+            
+            if "error" not in sales_result:
+                if "message" in sales_result:
+                    print(f"   ℹ️  {sales_result['message']}")
+                    print(f"   Sales data is already recent - no shift needed")
+                else:
+                    print(f"   ✅ Shifted {sales_result['records_updated']} sales records")
+                    print(f"   Date offset: {sales_result['date_offset_days']} days")
+                    print(f"   New date range: {sales_result['new_date_range']['min']} to {sales_result['new_date_range']['max']}")
+                    print(f"   All sales data is now recent (max date = today)")
+            else:
+                print(f"   ⚠️  Warning: {sales_result.get('error', 'Unknown error')}")
+                print(f"   This may affect DIR calculations (needs last 30 days of data)")
+        except Exception as e:
+            print(f"   ⚠️  Warning: Could not shift dates: {e}")
+            import traceback
+            traceback.print_exc()
+    
+    # Step 10: Populate historical stock data (stock_on_date)
+    print(f"\n10. Populating historical stock data...")
+    try:
+        from scripts.populate_historical_stock import populate_historical_stock
+        
+        stock_result = await populate_historical_stock(
+            client_id=client_id,
+            item_ids=item_ids,
+            days_back=365,  # Populate last year
+            reference_date=None  # Use today
+        )
+        
+        if "error" not in stock_result:
+            print(f"   Populated {stock_result['records_updated']} historical stock records")
+            print(f"   Date range: {stock_result['start_date']} to {stock_result['end_date']}")
+        else:
+            print(f"   ⚠️  Warning: {stock_result.get('error', 'Unknown error')}")
+    except Exception as e:
+        print(f"   ⚠️  Warning: Could not populate historical stock: {e}")
+        import traceback
+        traceback.print_exc()
+        stock_result = {"records_updated": 0}
+    
     print("\n" + "="*60)
     print("Test Data Setup Complete!")
     print("="*60)
@@ -458,6 +515,8 @@ async def setup_test_data(
     print(f"Suppliers: {len(supplier_ids)}")
     print(f"Product-Supplier Conditions: {conditions_created}")
     print(f"Stock Levels: {stock_created}")
+    print(f"Sales Records Updated: {sales_result.get('records_updated', 0)}")
+    print(f"Historical Stock Records: {stock_result.get('records_updated', 0)}")
     
     return {
         "client_id": client_id,
@@ -465,7 +524,9 @@ async def setup_test_data(
         "locations": locations_created,
         "suppliers": len(supplier_ids),
         "conditions": conditions_created,
-        "stock_levels": stock_created
+        "stock_levels": stock_created,
+        "sales_records_updated": sales_result.get("records_updated", 0),
+        "historical_stock_records": stock_result.get("records_updated", 0)
     }
 
 
@@ -474,6 +535,8 @@ async def main():
     parser.add_argument("--client-id", type=str, help="Existing client ID (UUID)")
     parser.add_argument("--client-name", type=str, default="Demo Client", help="Client name (if creating new)")
     parser.add_argument("--clear-existing", action="store_true", help="Clear existing test data first")
+    parser.add_argument("--days-back", type=int, default=30, help="Days of recent sales data to generate (default: 30)")
+    parser.add_argument("--skip-recent-sales", action="store_true", help="Skip generating recent sales data")
     
     args = parser.parse_args()
     
@@ -481,7 +544,9 @@ async def main():
         result = await setup_test_data(
             client_id=args.client_id,
             client_name=args.client_name,
-            clear_existing=args.clear_existing
+            clear_existing=args.clear_existing,
+            days_back=args.days_back,
+            skip_recent_sales=args.skip_recent_sales
         )
         
         if "error" in result:

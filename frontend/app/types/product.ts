@@ -64,3 +64,4 @@ export interface ProductFilters {
   page?: number
   page_size?: number
 }
+

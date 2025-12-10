@@ -68,7 +68,9 @@ export const useAgGridProducts = () => {
         rowData: response.items,
         totalRows: response.total,
       }
-    } catch (error) {
+    } catch (error: any) {
+      // Re-throw 401 errors so they can be handled by the page
+      // Other errors are also re-thrown
       console.error('Error fetching products:', error)
       throw error
     }
@@ -78,3 +80,4 @@ export const useAgGridProducts = () => {
     fetchProducts,
   }
 }
+

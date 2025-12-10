@@ -33,12 +33,22 @@ definePageMeta({
 })
 
 const { loggedIn, fetch: refreshSession } = useUserSession()
+const route = useRoute()
 const isSubmitting = ref(false)
 const error = ref<string | null>(null)
 
+// Get returnTo from query params
+const returnTo = computed(() => {
+  const returnToParam = route.query.returnTo
+  if (typeof returnToParam === 'string' && returnToParam.startsWith('/')) {
+    return returnToParam
+  }
+  return '/dashboard'
+})
+
 // Redirect if already logged in
 if (loggedIn.value) {
-  await navigateTo('/dashboard')
+  await navigateTo(returnTo.value)
 }
 
 const fields: AuthFormField[] = [
@@ -82,9 +92,9 @@ async function handleLogin(payload: FormSubmitEvent<Schema>) {
       },
     })
 
-    // Refresh the session on client-side and redirect to dashboard
+    // Refresh the session on client-side and redirect to returnTo or dashboard
     await refreshSession()
-    await navigateTo('/dashboard')
+    await navigateTo(returnTo.value)
   } catch (err: any) {
     // Extract error message from various possible error structures
     const errorMessage = 

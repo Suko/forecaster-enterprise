@@ -89,8 +89,37 @@ class InventoryService:
         # Calculate total pages
         total_pages = (total + page_size - 1) // page_size if total > 0 else 0
         
+        # Compute metrics for each product
+        items_with_metrics = []
+        for product in products:
+            # Get metrics for this product
+            metrics = await self.metrics_service.compute_product_metrics(
+                client_id=client_id,
+                item_id=product.item_id
+            )
+            
+            # Create product response with metrics embedded
+            product_response = ProductResponse(
+                id=product.id,
+                client_id=product.client_id,
+                item_id=product.item_id,
+                sku=product.sku,
+                product_name=product.product_name,
+                category=product.category,
+                unit_cost=product.unit_cost,
+                created_at=product.created_at,
+                updated_at=product.updated_at,
+                # Add metrics
+                current_stock=metrics.get("current_stock", 0),
+                dir=metrics.get("dir"),
+                stockout_risk=metrics.get("stockout_risk"),
+                inventory_value=metrics.get("inventory_value", Decimal("0.00")),
+                status=metrics.get("status", "unknown")
+            )
+            items_with_metrics.append(product_response)
+        
         return {
-            "items": [ProductResponse.model_validate(p) for p in products],
+            "items": items_with_metrics,
             "total": total,
             "page": page,
             "page_size": page_size,

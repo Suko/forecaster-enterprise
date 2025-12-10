@@ -77,6 +77,7 @@ const loading = ref(false)
 const error = ref<string | null>(null)
 const searchQuery = ref('')
 const gridApi = ref<any>(null)
+const gridInitialized = ref(false)
 
 // Column Definitions
 const columnDefs = ref<ColDef[]>([
@@ -190,11 +191,25 @@ const defaultColDef: ColDef = {
 }
 
 const onGridReady = (params: GridReadyEvent) => {
-  gridApi.value = params.api
-  loadProducts()
+  // Only set API reference, don't load data here
+  // Data loading happens in onMounted to prevent loops
+  if (!gridInitialized.value) {
+    gridApi.value = params.api
+    gridInitialized.value = true
+  } else {
+    // Grid was recreated, just update the API reference
+    gridApi.value = params.api
+  }
 }
 
+const { handleAuthError } = useAuthError()
+
 const loadProducts = async () => {
+  // Prevent concurrent calls
+  if (loading.value) {
+    return
+  }
+  
   loading.value = true
   error.value = null
 
@@ -206,12 +221,23 @@ const loadProducts = async () => {
     })
     rowData.value = result.rowData
   } catch (err: any) {
+    // Handle 401 errors - redirect to login
+    const wasAuthError = await handleAuthError(err)
+    if (wasAuthError) {
+      // Redirect is handled, just return
+      return
+    }
     error.value = err.message || 'Failed to load products'
     console.error('Products error:', err)
   } finally {
     loading.value = false
   }
 }
+
+// Load data on mount, not on grid ready
+onMounted(() => {
+  loadProducts()
+})
 
 const onSearch = () => {
   // Debounce search - reload after user stops typing
@@ -227,5 +253,7 @@ onUnmounted(() => {
   if (searchTimeout.value) {
     clearTimeout(searchTimeout.value)
   }
+  // Reset grid initialized flag when component unmounts
+  gridInitialized.value = false
 })
 </script>

@@ -1,3 +1,32 @@
+# Data Model
+
+## Stock Data: Two Perspectives
+
+### Quick Reference
+
+| Table | Stock Field | Granularity | Purpose |
+|-------|-------------|-------------|---------|
+| `stock_levels` | `current_stock` | **Per Location** | Current inventory snapshot |
+| `ts_demand_daily` | `stock_on_date` | **Per SKU (Aggregated)** | Historical stock trends |
+
+### Key Difference
+
+**`stock_levels.current_stock`:**
+- ✅ One value per SKU per location
+- ✅ Shows where stock is physically located
+- ✅ Example: SKU has 200 units at WH-001, 100 at WH-002
+
+**`ts_demand_daily.stock_on_date`:**
+- ✅ One value per SKU per date (summed across all locations)
+- ✅ Shows total stock available historically
+- ✅ Example: Same SKU shows 300 units total on 2025-01-27
+
+**Formula:** `stock_on_date = SUM(current_stock) across all locations`
+
+For detailed explanation, see [STOCK_AGGREGATION.md](./STOCK_AGGREGATION.md)
+
+---
+
 # Data Model & Sync Strategy
 
 This document defines the minimum data required for sync from external sources, what can be managed in the app, and the database table relationships.

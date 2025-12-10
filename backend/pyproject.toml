@@ -24,6 +24,7 @@ dependencies = [
     "psycopg2-binary>=2.9.11",
     "darts>=0.39.0",
     "kaggle>=1.8.2",
+    "requests>=2.31.0", # For downloading M5 dataset from Zenodo
 ]
 
 [build-system]

@@ -79,6 +79,7 @@
           theme="legacy"
           class="ag-theme-alpine w-full h-full"
           @grid-ready="onGridReady"
+          @cell-clicked="onCellClicked"
         />
       </ClientOnly>
     </div>
@@ -102,6 +103,7 @@ definePageMeta({
 })
 
 const { fetchRecommendations, addToCart } = useRecommendations()
+const { handleAuthError } = useAuthError()
 
 const rowData = ref<Recommendation[]>([])
 const loading = ref(false)
@@ -110,6 +112,7 @@ const aiQuery = ref('')
 const aiLoading = ref(false)
 const selectedType = ref<RecommendationType | null>(null)
 const gridApi = ref<any>(null)
+const gridInitialized = ref(false)
 
 const recommendationTypes: Array<{ label: string; value: RecommendationType | null }> = [
   { label: 'All Types', value: null },
@@ -205,6 +208,7 @@ const columnDefs = ref<ColDef[]>([
   },
   {
     headerName: 'Actions',
+    field: 'actions',
     width: 120,
     cellRenderer: (params: any) => {
       const buttonId = `add-cart-${params.node.id}`
@@ -217,32 +221,6 @@ const columnDefs = ref<ColDef[]>([
         </button>
       `
     },
-    onCellClicked: async (params: any) => {
-      if (params.column.colId === 'actions') {
-        try {
-          await addToCart(
-            params.data.item_id,
-            params.data.supplier_id,
-            params.data.suggested_quantity
-          )
-          // Show success notification
-          const toast = useToast()
-          toast.add({
-            title: 'Added to cart',
-            description: `${params.data.product_name} added to order planning cart`,
-            color: 'green',
-          })
-        } catch (err) {
-          console.error('Failed to add to cart:', err)
-          const toast = useToast()
-          toast.add({
-            title: 'Error',
-            description: 'Failed to add item to cart',
-            color: 'red',
-          })
-        }
-      }
-    },
   },
 ])
 
@@ -253,11 +231,56 @@ const defaultColDef: ColDef = {
 }
 
 const onGridReady = (params: GridReadyEvent) => {
-  gridApi.value = params.api
-  loadRecommendations()
+  // Only set API reference, don't load data here
+  // Data loading happens in onMounted to prevent loops
+  if (!gridInitialized.value) {
+    gridApi.value = params.api
+    gridInitialized.value = true
+  } else {
+    // Grid was recreated, just update the API reference
+    gridApi.value = params.api
+  }
+}
+
+const onCellClicked = async (params: any) => {
+  if (params.column.colId === 'actions') {
+    try {
+      await addToCart(
+        params.data.item_id,
+        params.data.supplier_id,
+        params.data.suggested_quantity
+      )
+      // Show success notification
+      const toast = useToast()
+      toast.add({
+        title: 'Added to cart',
+        description: `${params.data.product_name} added to order planning cart`,
+        color: 'green',
+      })
+    } catch (err: any) {
+      // Handle 401 errors - redirect to login
+      const wasAuthError = await handleAuthError(err)
+      if (wasAuthError) {
+        // Redirect is handled, just return
+        return
+      }
+      console.error('Failed to add to cart:', err)
+      const toast = useToast()
+      toast.add({
+        title: 'Error',
+        description: 'Failed to add item to cart',
+        color: 'red',
+      })
+    }
+  }
 }
 
 const loadRecommendations = async () => {
+  // Prevent concurrent calls
+  if (loading.value) {
+    return
+  }
+  
   loading.value = true
   error.value = null
 
@@ -267,12 +290,28 @@ const loadRecommendations = async () => {
     })
     rowData.value = recommendations
   } catch (err: any) {
+    // Handle 401 errors - redirect to login
+    const wasAuthError = await handleAuthError(err)
+    if (wasAuthError) {
+      // Redirect is handled, just return
+      return
+    }
     error.value = err.message || 'Failed to load recommendations'
     console.error('Recommendations error:', err)
   } finally {
     loading.value = false
   }
 }
+
+// Load data on mount, not on grid ready
+onMounted(() => {
+  loadRecommendations()
+})
+
+onUnmounted(() => {
+  // Reset grid initialized flag when component unmounts
+  gridInitialized.value = false
+})
 
 const handleAIQuery = async () => {
   if (!aiQuery.value.trim()) return

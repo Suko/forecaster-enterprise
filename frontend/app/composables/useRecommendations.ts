@@ -16,7 +16,7 @@ export const useRecommendations = () => {
       const queryParams = new URLSearchParams()
       
       if (filters?.recommendation_type) {
-        queryParams.append('recommendation_type', filters.recommendation_type)
+        queryParams.append('type', filters.recommendation_type)
       }
       if (filters?.role) {
         queryParams.append('role', filters.role)
@@ -28,7 +28,9 @@ export const useRecommendations = () => {
       )
 
       return response
-    } catch (error) {
+    } catch (error: any) {
+      // Re-throw 401 errors so they can be handled by the page
+      // Other errors are also re-thrown
       console.error('Error fetching recommendations:', error)
       throw error
     }
@@ -47,7 +49,9 @@ export const useRecommendations = () => {
           quantity: quantity,
         },
       })
-    } catch (error) {
+    } catch (error: any) {
+      // Re-throw 401 errors so they can be handled by the page
+      // Other errors are also re-thrown
       console.error('Error adding to cart:', error)
       throw error
     }

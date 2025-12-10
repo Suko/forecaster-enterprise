@@ -1130,6 +1130,42 @@ class Product(Base):
 
 ---
 
+---
+
+## Known Issues & Future Improvements
+
+### First-Time Setup & Empty State Handling
+
+**Issue:** When the application is first started, the setup script creates an admin user but other data (products, inventory, recommendations) is not yet populated. The system should handle this gracefully.
+
+**Current State:**
+- ✅ Admin user can be created via `setup.sh`
+- ✅ Test data can be populated via `setup.sh` (requires CSV import first)
+- ⚠️ APIs return empty arrays/zero values when no data exists
+- ⚠️ No specific empty state messaging or onboarding flow
+
+**TODO - Backend Improvements:**
+- [ ] Add endpoint to check if system is initialized (has products, locations, suppliers)
+- [ ] Return helpful messages in API responses when data is empty (e.g., "No products found. Run setup.sh to import test data.")
+- [ ] Add initialization status endpoint: `GET /api/v1/system/status` returning:
+  ```json
+  {
+    "initialized": false,
+    "has_products": false,
+    "has_locations": false,
+    "has_suppliers": false,
+    "has_sales_data": false,
+    "setup_instructions": "Run backend/setup.sh to populate test data"
+  }
+  ```
+- [ ] Enhance error messages in dashboard/products/recommendations APIs when no data exists
+- [ ] Consider adding a "quick start" endpoint that creates minimal test data for demo purposes
+
+**Related Frontend Work:**
+- See Frontend Roadmap for empty state UI components and onboarding flow
+
+---
+
 ## Related Documentation
 
 - [DATA_MODEL.md](../../DATA_MODEL.md) - Complete data model

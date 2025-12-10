@@ -37,11 +37,17 @@ class ProductUpdate(BaseModel):
 
 
 class ProductResponse(ProductBase):
-    """Schema for product response"""
+    """Schema for product response with optional metrics"""
     id: UUID
     client_id: UUID
     created_at: datetime
     updated_at: datetime
+    # Metrics fields (optional, computed on-the-fly)
+    current_stock: Optional[int] = None
+    dir: Optional[Decimal] = None
+    stockout_risk: Optional[Decimal] = None
+    inventory_value: Optional[Decimal] = None
+    status: Optional[str] = None
     
     class Config:
         from_attributes = True

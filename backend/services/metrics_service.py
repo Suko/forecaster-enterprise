@@ -90,6 +90,7 @@ class MetricsService:
         # Use raw SQL for ts_demand_daily table
         from sqlalchemy import text
         
+        # First try: Get average from last 30 days
         sql_query = text("""
             SELECT AVG(daily_total) as avg_demand
             FROM (
@@ -110,6 +111,35 @@ class MetricsService:
                 "item_id": item_id,
                 "start_date": start_date,
                 "end_date": end_date
+            }
+        )
+        row = result.fetchone()
+        
+        if row and row[0]:
+            return Decimal(str(row[0]))
+        
+        # Fallback: If no data in last 30 days, use most recent available data
+        # This handles cases where sales data dates haven't been shifted to recent
+        fallback_query = text("""
+            SELECT AVG(daily_total) as avg_demand
+            FROM (
+                SELECT date_local, SUM(units_sold) as daily_total
+                FROM ts_demand_daily
+                WHERE client_id = :client_id
+                  AND item_id = :item_id
+                  AND units_sold > 0
+                GROUP BY date_local
+                ORDER BY date_local DESC
+                LIMIT :days
+            ) daily_totals
+        """)
+        
+        result = await self.db.execute(
+            fallback_query,
+            {
+                "client_id": str(client_id),
+                "item_id": item_id,
+                "days": days
             }
         )
         row = result.fetchone()

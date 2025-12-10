@@ -187,7 +187,7 @@ class RecommendationsService:
                     "lead_time_days": condition.lead_time_days,
                     "unit_cost": float(condition.supplier_cost or product.unit_cost),
                     "reason": reason,
-                    "priority": "urgent"
+                    "priority": "high"  # URGENT maps to high priority
                 }
         
         elif rec_type == "REDUCE_ORDER":

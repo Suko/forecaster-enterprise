@@ -1,6 +1,21 @@
 #!/bin/bash
 # First-time setup script for backend
 # This script sets up the database, creates an admin user, and prepares test data
+# 
+# Usage: ./setup.sh
+# 
+# This script will:
+# - Check prerequisites (uv, Python, PostgreSQL)
+# - Create .env file if missing
+# - Install dependencies
+# - Run database migrations
+# - Create admin and test users
+# - Import sales data (CSV or M5)
+# - Set up test data (products, locations, stock)
+# - Shift dates to recent
+# - Populate historical stock
+#
+# Just run it and it does everything!
 
 # Don't use set -e here - we want to handle errors gracefully
 # set -e  # Exit on error
@@ -12,6 +27,9 @@ export PYTHONPATH="${PYTHONPATH:+$PYTHONPATH:}$SCRIPT_DIR"
 echo "═══════════════════════════════════════════════════════════════"
 echo "  Backend First-Time Setup"
 echo "═══════════════════════════════════════════════════════════════"
+echo ""
+echo "This script will set up everything automatically."
+echo "Just sit back and let it do the work! 🚀"
 echo ""
 
 # Colors for output
@@ -33,6 +51,7 @@ SKIP_ADMIN="${SKIP_ADMIN:-false}"
 SKIP_TEST_USER="${SKIP_TEST_USER:-false}"
 SKIP_TEST_DATA="${SKIP_TEST_DATA:-false}"
 SKIP_CSV_IMPORT="${SKIP_CSV_IMPORT:-false}"
+USE_M5_DATA="${USE_M5_DATA:-false}"
 
 # Parse arguments
 while [[ $# -gt 0 ]]; do
@@ -69,6 +88,10 @@ while [[ $# -gt 0 ]]; do
             SKIP_CSV_IMPORT="true"
             shift
             ;;
+        --use-m5-data)
+            USE_M5_DATA="true"
+            shift
+            ;;
         --csv-path)
             CSV_PATH="$2"
             shift 2
@@ -96,6 +119,7 @@ while [[ $# -gt 0 ]]; do
             echo "  --skip-test-user          Skip test user creation"
             echo "  --skip-csv-import         Skip CSV data import"
             echo "  --skip-test-data          Skip test data setup"
+            echo "  --use-m5-data             Download and import M5 dataset (instead of CSV)"
             echo "  --help                    Show this help message"
             echo ""
             echo "Environment variables:"
@@ -110,8 +134,124 @@ while [[ $# -gt 0 ]]; do
     esac
 done
 
+# ============================================================================
+# PREREQUISITE CHECKS
+# ============================================================================
+echo -e "${GREEN}[0/7]${NC} Checking prerequisites..."
+echo ""
+
+# Check for uv
+if ! command -v uv &> /dev/null; then
+    echo -e "${RED}✗${NC} uv is not installed"
+    echo "   Install from: https://github.com/astral-sh/uv"
+    echo "   Or run: curl -LsSf https://astral.sh/uv/install.sh | sh"
+    exit 1
+fi
+echo -e "${GREEN}✓${NC} uv found"
+
+# Check for Python 3.12+
+PYTHON_VERSION=$(python3 --version 2>&1 | awk '{print $2}' | cut -d. -f1,2)
+if [ -z "$PYTHON_VERSION" ]; then
+    echo -e "${YELLOW}⚠${NC} Python3 not found (uv will handle this)"
+else
+    echo -e "${GREEN}✓${NC} Python found: $(python3 --version)"
+fi
+
+# Check PostgreSQL connection (optional - will fail later if not available)
+echo -e "${GREEN}✓${NC} Prerequisites check complete"
+echo ""
+
+# ============================================================================
+# ENVIRONMENT SETUP
+# ============================================================================
+echo -e "${GREEN}[0.5/7]${NC} Setting up environment..."
+
+# Create .env from .env.example if it doesn't exist
+ENV_FILE="$SCRIPT_DIR/.env"
+ENV_EXAMPLE="$SCRIPT_DIR/.env.example"
+
+if [ ! -f "$ENV_FILE" ]; then
+    if [ -f "$ENV_EXAMPLE" ]; then
+        echo "  Creating .env file from .env.example..."
+        cp "$ENV_EXAMPLE" "$ENV_FILE"
+        
+        # Generate a secure JWT secret key
+        if command -v openssl &> /dev/null; then
+            JWT_SECRET=$(openssl rand -hex 32)
+            # Replace JWT_SECRET_KEY in .env (works on both macOS and Linux)
+            if [[ "$OSTYPE" == "darwin"* ]]; then
+                sed -i '' "s/JWT_SECRET_KEY=.*/JWT_SECRET_KEY=$JWT_SECRET/" "$ENV_FILE"
+            else
+                sed -i "s/JWT_SECRET_KEY=.*/JWT_SECRET_KEY=$JWT_SECRET/" "$ENV_FILE"
+            fi
+            echo -e "${GREEN}✓${NC} Generated secure JWT secret key"
+        else
+            echo -e "${YELLOW}⚠${NC} openssl not found - using default JWT secret (change in production!)"
+        fi
+        
+        echo -e "${GREEN}✓${NC} Created .env file"
+        echo -e "${YELLOW}⚠${NC} Please check DATABASE_URL in .env matches your PostgreSQL setup"
+    else
+        echo -e "${YELLOW}⚠${NC} .env.example not found - using environment variables"
+    fi
+else
+    echo -e "${GREEN}✓${NC} .env file already exists"
+fi
+echo ""
+
+# ============================================================================
+# DEPENDENCY INSTALLATION
+# ============================================================================
+echo -e "${GREEN}[0.7/7]${NC} Installing dependencies..."
+echo "  This may take a few minutes on first run..."
+if uv sync --quiet 2>&1 | grep -v "Resolved\|Downloaded\|Installed"; then
+    echo -e "${GREEN}✓${NC} Dependencies installed"
+else
+    echo -e "${GREEN}✓${NC} Dependencies ready"
+fi
+echo ""
+
+# ============================================================================
+# DATABASE CONNECTION CHECK
+# ============================================================================
+echo -e "${GREEN}[0.9/7]${NC} Checking database connection..."
+# Try to connect to database (non-blocking - will fail gracefully in migrations if needed)
+if uv run python -c "
+import sys
+from pathlib import Path
+sys.path.insert(0, str(Path('.').absolute()))
+try:
+    from models.database import get_async_session_local
+    import asyncio
+    async def check():
+        async with get_async_session_local()() as session:
+            await session.execute('SELECT 1')
+    asyncio.run(check())
+    print('✓ Database connection successful')
+    sys.exit(0)
+except Exception as e:
+    print(f'⚠ Database connection failed: {e}')
+    print('   Make sure PostgreSQL is running and DATABASE_URL is correct')
+    sys.exit(1)
+" 2>/dev/null; then
+    echo -e "${GREEN}✓${NC} Database is ready"
+else
+    echo -e "${YELLOW}⚠${NC} Could not connect to database"
+    echo "   Make sure PostgreSQL is running:"
+    echo "   - macOS: brew services start postgresql"
+    echo "   - Linux: sudo systemctl start postgresql"
+    echo "   - Or check DATABASE_URL in .env file"
+    echo ""
+    echo "   Continuing anyway - migrations will fail if database is not available..."
+fi
+echo ""
+
+# ============================================================================
+# MAIN SETUP STEPS
+# ============================================================================
+
 # Step 1: Run migrations
-echo -e "${GREEN}[1/6]${NC} Running database migrations..."
+echo -e "${GREEN}[1/7]${NC} Running database migrations..."
 uv run alembic upgrade head
 if [ $? -eq 0 ]; then
     echo -e "${GREEN}✓${NC} Migrations completed"
@@ -123,7 +263,7 @@ echo ""
 
 # Step 2: Create admin user
 if [ "$SKIP_ADMIN" != "true" ]; then
-    echo -e "${GREEN}[2/6]${NC} Creating admin user..."
+    echo -e "${GREEN}[2/7]${NC} Creating admin user..."
     echo "  Email: $ADMIN_EMAIL"
     echo "  Name: $ADMIN_NAME"
     
@@ -137,13 +277,13 @@ if [ "$SKIP_ADMIN" != "true" ]; then
         echo -e "${YELLOW}⚠${NC} Admin user creation failed (may already exist)"
     fi
 else
-    echo -e "${YELLOW}[2/6]${NC} Skipping admin user creation (--skip-admin)"
+    echo -e "${YELLOW}[2/7]${NC} Skipping admin user creation (--skip-admin)"
 fi
 echo ""
 
 # Step 3: Create test user
 if [ "$SKIP_TEST_USER" != "true" ]; then
-    echo -e "${GREEN}[3/6]${NC} Creating test user..."
+    echo -e "${GREEN}[3/7]${NC} Creating test user..."
     echo "  Email: $TEST_EMAIL"
     echo "  Name: $TEST_NAME"
     
@@ -156,42 +296,93 @@ if [ "$SKIP_TEST_USER" != "true" ]; then
         echo -e "${YELLOW}⚠${NC} Test user creation failed (may already exist)"
     fi
 else
-    echo -e "${YELLOW}[3/6]${NC} Skipping test user creation (--skip-test-user)"
+    echo -e "${YELLOW}[3/7]${NC} Skipping test user creation (--skip-test-user)"
 fi
 echo ""
 
-# Step 4: Import CSV data (required for test data setup)
+# Step 4: Import sales data (required for test data setup)
+# This imports sales data into ts_demand_daily table
+# The sales data will be shifted to recent dates in Step 5
 if [ "$SKIP_CSV_IMPORT" != "true" ]; then
-    echo -e "${GREEN}[4/6]${NC} Importing CSV data..."
-    
-    # Resolve CSV path (relative to backend directory or absolute)
-    if [ ! -f "$CSV_PATH" ]; then
-        # Try relative to backend directory
-        BACKEND_DIR="$(cd "$(dirname "$0")" && pwd)"
-        CSV_ABS_PATH="$BACKEND_DIR/$CSV_PATH"
-        if [ -f "$CSV_ABS_PATH" ]; then
-            CSV_PATH="$CSV_ABS_PATH"
+    if [ "$USE_M5_DATA" == "true" ]; then
+        echo -e "${GREEN}[4/7]${NC} Downloading and importing M5 dataset..."
+        echo "  This will download M5 dataset from Zenodo (if not already downloaded)"
+        echo "  Then import selected SKUs to ts_demand_daily"
+        echo "  Note: No API credentials needed - downloads directly from Zenodo"
+        
+        # Download and import M5 data
+        CLIENT_OUTPUT=$(uv run python scripts/download_m5_data.py --client-name "$CLIENT_NAME" --n-skus 40 2>&1)
+        echo "$CLIENT_OUTPUT"
+        
+        # Extract client ID from output
+        CLIENT_ID=$(echo "$CLIENT_OUTPUT" | grep -i "Client ID:" | grep -oE '[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}' | head -1)
+        
+        if [ -z "$CLIENT_ID" ]; then
+            CLIENT_ID=$(echo "$CLIENT_OUTPUT" | grep -E "(client_id|Using.*client)" | grep -oE '[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}' | head -1)
+        fi
+        
+        if [ -n "$CLIENT_ID" ]; then
+            echo -e "${GREEN}✓${NC} M5 data imported"
+            echo "  Client ID: $CLIENT_ID"
+            export CLIENT_ID="$CLIENT_ID"
         else
-            # Try relative to project root
-            PROJECT_ROOT="$(cd "$BACKEND_DIR/.." && pwd)"
-            CSV_ABS_PATH="$PROJECT_ROOT/$CSV_PATH"
+            echo -e "${YELLOW}⚠${NC} M5 import completed (could not extract client ID)"
+            # Try to get client ID from database
+            CLIENT_ID=$(uv run python -c "
+import asyncio
+import sys
+from pathlib import Path
+sys.path.insert(0, str(Path('.').absolute()))
+from models.database import get_async_session_local
+from models.client import Client
+from sqlalchemy import select
+
+async def get_client():
+    AsyncSessionLocal = get_async_session_local()
+    async with AsyncSessionLocal() as session:
+        result = await session.execute(select(Client).where(Client.name == '$CLIENT_NAME'))
+        client = result.scalar_one_or_none()
+        if client:
+            print(str(client.client_id))
+asyncio.run(get_client())
+" 2>/dev/null)
+            if [ -n "$CLIENT_ID" ]; then
+                echo "  Found Client ID: $CLIENT_ID"
+                export CLIENT_ID="$CLIENT_ID"
+            fi
+        fi
+    else
+        echo -e "${GREEN}[4/7]${NC} Importing CSV sales data..."
+        
+        # Resolve CSV path (relative to backend directory or absolute)
+        if [ ! -f "$CSV_PATH" ]; then
+            # Try relative to backend directory
+            BACKEND_DIR="$(cd "$(dirname "$0")" && pwd)"
+            CSV_ABS_PATH="$BACKEND_DIR/$CSV_PATH"
             if [ -f "$CSV_ABS_PATH" ]; then
                 CSV_PATH="$CSV_ABS_PATH"
             else
-                echo -e "${RED}✗${NC} CSV file not found: $CSV_PATH"
-                echo "   Tried: $CSV_PATH"
-                echo "   Tried: $BACKEND_DIR/$CSV_PATH"
-                echo "   Tried: $PROJECT_ROOT/$CSV_PATH"
-                exit 1
+                # Try relative to project root
+                PROJECT_ROOT="$(cd "$BACKEND_DIR/.." && pwd)"
+                CSV_ABS_PATH="$PROJECT_ROOT/$CSV_PATH"
+                if [ -f "$CSV_ABS_PATH" ]; then
+                    CSV_PATH="$CSV_ABS_PATH"
+                else
+                    echo -e "${RED}✗${NC} CSV file not found: $CSV_PATH"
+                    echo "   Tried: $CSV_PATH"
+                    echo "   Tried: $BACKEND_DIR/$CSV_PATH"
+                    echo "   Tried: $PROJECT_ROOT/$CSV_PATH"
+                    exit 1
+                fi
             fi
         fi
+        
+        echo "  CSV path: $CSV_PATH"
+        
+        # First, create or get the client and import CSV
+        CLIENT_OUTPUT=$(uv run python scripts/setup_demo_client.py --name "$CLIENT_NAME" --csv "$CSV_PATH" 2>&1)
+        echo "$CLIENT_OUTPUT"
     fi
-    
-    echo "  CSV path: $CSV_PATH"
-    
-    # First, create or get the client and import CSV
-    CLIENT_OUTPUT=$(uv run python scripts/setup_demo_client.py --name "$CLIENT_NAME" --csv "$CSV_PATH" 2>&1)
-    echo "$CLIENT_OUTPUT"
     
     # Extract client ID from output
     CLIENT_ID=$(echo "$CLIENT_OUTPUT" | grep -i "Client ID:" | grep -oE '[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}' | head -1)
@@ -232,7 +423,7 @@ asyncio.run(get_client())
         fi
     fi
 else
-    echo -e "${YELLOW}[4/6]${NC} Skipping CSV import (--skip-csv-import)"
+    echo -e "${YELLOW}[4/7]${NC} Skipping CSV import (--skip-csv-import)"
     # Try to get existing client ID
     CLIENT_ID=$(uv run python -c "
 import asyncio
@@ -260,9 +451,13 @@ fi
 echo ""
 
 # Step 5: Set up test data (products, locations, suppliers, stock levels)
+# This also shifts sales data dates to recent and populates historical stock
 if [ "$SKIP_TEST_DATA" != "true" ]; then
-    echo -e "${GREEN}[5/6]${NC} Setting up test data (products, locations, suppliers, stock)..."
+    echo -e "${GREEN}[5/7]${NC} Setting up test data (products, locations, suppliers, stock)..."
     echo "  Client name: $CLIENT_NAME"
+    echo "  This will also:"
+    echo "    - Shift sales data dates to recent (makes all data relative to today)"
+    echo "    - Populate historical stock data (stock_on_date)"
     
     if [ -n "$CLIENT_ID" ]; then
         CLIENT_ARG="--client-id $CLIENT_ID"
@@ -271,6 +466,10 @@ if [ "$SKIP_TEST_DATA" != "true" ]; then
     fi
     
     # Run setup_test_data.py and capture output
+    # This automatically:
+    # - Creates products, locations, suppliers, stock levels
+    # - Shifts sales data dates to recent (Step 9)
+    # - Populates historical stock (Step 10)
     TEST_DATA_OUTPUT=$(uv run python scripts/setup_test_data.py $CLIENT_ARG 2>&1)
     echo "$TEST_DATA_OUTPUT"
     
@@ -278,36 +477,79 @@ if [ "$SKIP_TEST_DATA" != "true" ]; then
         echo -e "${YELLOW}⚠${NC} Test data setup had issues - check output above"
     else
         echo -e "${GREEN}✓${NC} Test data setup completed"
+        echo -e "${GREEN}✓${NC} Sales data dates shifted to recent"
+        echo -e "${GREEN}✓${NC} Historical stock data populated"
     fi
 else
-    echo -e "${YELLOW}[5/6]${NC} Skipping test data setup (--skip-test-data)"
+    echo -e "${YELLOW}[5/7]${NC} Skipping test data setup (--skip-test-data)"
 fi
 echo ""
 
-# Step 6: Summary
-echo -e "${GREEN}[6/6]${NC} Setup complete!"
-echo ""
-echo "═══════════════════════════════════════════════════════════════"
-echo "  Next Steps"
-echo "═══════════════════════════════════════════════════════════════"
-echo ""
-echo "1. Start the server:"
-echo "   ${GREEN}uv run uvicorn main:app --reload${NC}"
-echo ""
-echo "2. Login credentials:"
-echo "   Admin:"
-echo "     Email: ${YELLOW}$ADMIN_EMAIL${NC}"
-echo "     Password: ${YELLOW}$ADMIN_PASSWORD${NC}"
-echo "   Test User:"
-echo "     Email: ${YELLOW}$TEST_EMAIL${NC}"
-echo "     Password: ${YELLOW}$TEST_PASSWORD${NC}"
-if [ -n "$CLIENT_ID" ]; then
-    echo ""
-    echo "3. Client ID: ${YELLOW}$CLIENT_ID${NC}"
+# Step 6: Verify setup
+echo -e "${GREEN}[6/7]${NC} Verifying setup..."
+# Quick verification that data exists
+if [ -n "$CLIENT_ID" ] && [ "$SKIP_TEST_DATA" != "true" ]; then
+    VERIFY_OUTPUT=$(uv run python -c "
+import asyncio
+import sys
+from pathlib import Path
+sys.path.insert(0, str(Path('.').absolute()))
+from models.database import get_async_session_local
+from models.product import Product
+from sqlalchemy import select, func
+
+async def verify():
+    AsyncSessionLocal = get_async_session_local()
+    async with AsyncSessionLocal() as session:
+        result = await session.execute(select(func.count(Product.product_id)))
+        count = result.scalar()
+        print(f'Products: {count}')
+asyncio.run(verify())
+" 2>/dev/null)
+    if echo "$VERIFY_OUTPUT" | grep -q "Products: [1-9]"; then
+        echo -e "${GREEN}✓${NC} Test data verified"
+    else
+        echo -e "${YELLOW}⚠${NC} Verification incomplete - check logs above"
+    fi
 fi
 echo ""
-echo "4. Run tests:"
+
+# Step 7: Summary
+echo -e "${GREEN}[7/7]${NC} Setup complete! 🎉"
+echo ""
+echo "═══════════════════════════════════════════════════════════════"
+echo "  🎉 Setup Complete! You're ready to go!"
+echo "═══════════════════════════════════════════════════════════════"
+echo ""
+echo "📋 Quick Start:"
+echo ""
+echo "1. Start the server:"
+echo "   ${GREEN}cd $SCRIPT_DIR${NC}"
+echo "   ${GREEN}uv run uvicorn main:app --reload${NC}"
+echo ""
+echo "2. Access the API:"
+echo "   ${GREEN}http://localhost:8000${NC}"
+echo "   ${GREEN}http://localhost:8000/docs${NC} (API documentation)"
+echo ""
+echo "3. Login credentials:"
+echo "   ${YELLOW}Admin User:${NC}"
+echo "     Email: ${GREEN}$ADMIN_EMAIL${NC}"
+echo "     Password: ${GREEN}$ADMIN_PASSWORD${NC}"
+echo ""
+echo "   ${YELLOW}Test User:${NC}"
+echo "     Email: ${GREEN}$TEST_EMAIL${NC}"
+echo "     Password: ${GREEN}$TEST_PASSWORD${NC}"
+echo ""
+if [ -n "$CLIENT_ID" ]; then
+    echo "4. Client ID: ${GREEN}$CLIENT_ID${NC}"
+    echo ""
+fi
+echo "5. Run tests:"
 echo "   ${GREEN}uv run pytest tests/test_api/test_inventory_api.py -v${NC}"
 echo ""
 echo "═══════════════════════════════════════════════════════════════"
+echo ""
+echo "💡 Tip: If you need to reset test data, run:"
+echo "   ${GREEN}uv run python scripts/reset_test_data.py --client-id $CLIENT_ID${NC}"
+echo ""
 

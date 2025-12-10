@@ -12,7 +12,7 @@ done
 
 echo "Database is ready!"
 
-# Run migrations
+# Always run migrations first
 echo "Running database migrations..."
 alembic upgrade head
 
@@ -20,23 +20,22 @@ alembic upgrade head
 FIRST_TIME_SETUP=$(PGPASSWORD=$DB_PASSWORD psql -h "$DB_HOST" -U "$DB_USER" -d "$DB_NAME" -tAc "SELECT CASE WHEN EXISTS (SELECT 1 FROM users) THEN 'false' ELSE 'true' END;" 2>/dev/null || echo "true")
 
 if [ "$FIRST_TIME_SETUP" = "true" ]; then
-  echo "First-time setup detected..."
+  echo "First-time setup detected, running setup.sh..."
   
-  # Create admin user
-  if [ -n "$ADMIN_EMAIL" ] && [ -n "$ADMIN_PASSWORD" ]; then
-    echo "Creating admin user..."
-    python create_user.py "$ADMIN_EMAIL" "$ADMIN_PASSWORD" \
-      --name "${ADMIN_NAME:-Admin User}" \
-      --admin || echo "Admin user may already exist"
-  fi
+  # Build arguments for setup.sh
+  SETUP_ARGS=""
+  [ -n "$ADMIN_EMAIL" ] && SETUP_ARGS="$SETUP_ARGS --admin-email $ADMIN_EMAIL"
+  [ -n "$ADMIN_PASSWORD" ] && SETUP_ARGS="$SETUP_ARGS --admin-password $ADMIN_PASSWORD"
+  [ -n "$ADMIN_NAME" ] && SETUP_ARGS="$SETUP_ARGS --admin-name \"$ADMIN_NAME\""
+  [ -n "$CLIENT_NAME" ] && SETUP_ARGS="$SETUP_ARGS --client-name \"$CLIENT_NAME\""
+  [ -n "$TEST_EMAIL" ] && SETUP_ARGS="$SETUP_ARGS --test-email $TEST_EMAIL"
+  [ -n "$TEST_PASSWORD" ] && SETUP_ARGS="$SETUP_ARGS --test-password $TEST_PASSWORD"
+  [ -n "$CSV_PATH" ] && SETUP_ARGS="$SETUP_ARGS --csv-path $CSV_PATH"
+  [ "$SKIP_TEST_DATA" = "true" ] && SETUP_ARGS="$SETUP_ARGS --skip-test-data"
+  [ "$SKIP_CSV_IMPORT" = "true" ] && SETUP_ARGS="$SETUP_ARGS --skip-csv-import"
   
-  # Setup test data if requested
-  if [ "$SETUP_TEST_DATA" = "true" ]; then
-    echo "Setting up test data..."
-    python scripts/setup_test_data.py --client-name "${CLIENT_NAME:-Demo Client}" || echo "Test data setup skipped"
-  fi
-  
-  echo "First-time setup completed!"
+  # Run setup script (migrations already done, but alembic is idempotent)
+  bash /app/setup.sh $SETUP_ARGS || echo "Setup completed with warnings"
 else
   echo "Existing database detected, skipping first-time setup"
 fi

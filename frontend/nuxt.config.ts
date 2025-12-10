@@ -1,22 +1,21 @@
 // https://nuxt.com/docs/api/configuration/nuxt-config
 export default defineNuxtConfig({
-  compatibilityDate: '2025-07-15',
+  compatibilityDate: "2025-07-15",
   devtools: { enabled: true },
-  modules: [
-    '@nuxt/ui',
-    'nuxt-auth-utils'
-  ],
-  css: ['~/assets/css/main.css'],
+  modules: ["@nuxt/ui", "nuxt-auth-utils"],
+  css: ["~/assets/css/main.css"],
   runtimeConfig: {
     // Private keys (only available on server-side)
-    apiBaseUrl: process.env.API_BASE_URL || 'http://localhost:8000',
+    // Override at runtime with NUXT_API_BASE_URL env var
+    apiBaseUrl: "http://localhost:8000",
     // Public keys (exposed to client-side)
+    // Override at runtime with NUXT_PUBLIC_API_BASE_URL env var
     public: {
-      apiBaseUrl: process.env.API_BASE_URL || 'http://localhost:8000'
-    }
+      apiBaseUrl: "http://localhost:8000",
+    },
   },
   // Note: nuxt-auth-utils automatically uses HttpOnly cookies
   // Session cookies are encrypted and secure by default
   // Configure via NUXT_SESSION_PASSWORD environment variable
   // For production, ensure NUXT_SESSION_PASSWORD is set to a strong 32+ character secret
-})
+});

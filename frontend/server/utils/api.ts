@@ -18,7 +18,8 @@ export async function authenticatedFetch(
   options: RequestInit = {}
 ): Promise<any> {
   const config = useRuntimeConfig()
-  const apiBaseUrl = config.public.apiBaseUrl
+  // Use private apiBaseUrl for server-side calls (reaches backend via Docker network)
+  const apiBaseUrl = config.apiBaseUrl
   
   const token = await getAccessToken(event)
   

@@ -2,6 +2,7 @@ from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession, async_sess
 from sqlalchemy.ext.declarative import declarative_base
 from config import settings
 from typing import AsyncGenerator, Optional
+from urllib.parse import urlparse, parse_qs, urlencode, urlunparse
 
 # Base class for models (needed for migrations)
 Base = declarative_base()
@@ -12,12 +13,26 @@ _AsyncSessionLocal: Optional[async_sessionmaker] = None
 
 
 def _get_database_url() -> str:
-    """Get database URL, converting to async format if needed"""
+    """Get database URL, converting to async format if needed.
+    Also strips 'sslmode' parameter as asyncpg doesn't support it.
+    """
     database_url = settings.database_url
+    
+    # Convert to asyncpg driver
     if database_url.startswith("postgres://"):
         database_url = database_url.replace("postgres://", "postgresql+asyncpg://", 1)
     elif database_url.startswith("postgresql://") and "+asyncpg" not in database_url:
         database_url = database_url.replace("postgresql://", "postgresql+asyncpg://", 1)
+    
+    # Remove sslmode parameter (asyncpg uses 'ssl' instead)
+    parsed = urlparse(database_url)
+    query_params = parse_qs(parsed.query)
+    if 'sslmode' in query_params:
+        del query_params['sslmode']
+        new_query = urlencode(query_params, doseq=True)
+        parsed = parsed._replace(query=new_query)
+        database_url = urlunparse(parsed)
+    
     return database_url
 
 

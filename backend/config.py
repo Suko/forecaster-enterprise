@@ -33,18 +33,23 @@ def _generate_dev_secret_key() -> str:
 def _enforce_database_tls(database_url: str) -> str:
     """
     Enforce TLS for remote database connections.
-    Localhost connections are allowed without TLS for development.
+    Localhost and Docker internal network connections are allowed without TLS.
     """
     parsed = urlparse(database_url)
-    is_localhost = parsed.hostname in ["localhost", "127.0.0.1", "::1"]
+    # Allow non-SSL for localhost and Docker internal hostnames
+    is_internal = parsed.hostname in ["localhost", "127.0.0.1", "::1", "db", "postgres", "database"]
     
-    if is_localhost:
+    if is_internal:
         return database_url
     
-    # For remote databases, enforce TLS
+    # Check if sslmode is explicitly set to disable (user override)
     query_params = parse_qs(parsed.query)
     sslmode = query_params.get("sslmode", [None])[0]
     
+    if sslmode == "disable":
+        return database_url
+    
+    # For remote databases, enforce TLS
     if sslmode not in ["require", "prefer", "verify-ca", "verify-full"]:
         query_params["sslmode"] = ["require"]
         new_query = urlencode(query_params, doseq=True)

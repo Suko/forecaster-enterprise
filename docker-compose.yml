@@ -11,13 +11,13 @@ services:
       - postgres_data:/var/lib/postgresql/data
     ports:
       - "5432:5432"
-    labels:
-      com.forecasting.license: "true"
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U ${DB_USER:-postgres}"]
       interval: 10s
       timeout: 5s
       retries: 5
+    labels:
+      com.forecasting.license: "true"
 
   backend:
     build: ./backend
@@ -25,25 +25,25 @@ services:
     restart: unless-stopped
     ports:
       - "8000:8000"
+    env_file:
+      - .env
     environment:
-      # Database
+      # Database connection (credentials from .env file)
       - DB_HOST=db
-      - DB_USER=${DB_USER:-postgres}
-      - DB_PASSWORD=${DB_PASSWORD:-postgres}
-      - DB_NAME=${DB_NAME:-forecaster_enterprise}
-      - DATABASE_URL=postgresql://${DB_USER:-postgres}:${DB_PASSWORD:-postgres}@db:5432/${DB_NAME:-forecaster_enterprise}
+      # sslmode=disable is safe here - traffic stays within Docker's isolated network
+      - DATABASE_URL=postgresql://${DB_USER}:${DB_PASSWORD}@db:5432/${DB_NAME}?sslmode=disable
 
       # Application
       - ENVIRONMENT=${ENVIRONMENT:-production}
       - DEBUG=${DEBUG:-false}
-      - JWT_SECRET_KEY=${JWT_SECRET_KEY}
 
-      # First-time setup (optional)
-      - ADMIN_EMAIL=${ADMIN_EMAIL}
-      - ADMIN_PASSWORD=${ADMIN_PASSWORD}
-      - ADMIN_NAME=${ADMIN_NAME:-Admin User}
+      # First-time setup (override in .env if needed)
       - SETUP_TEST_DATA=${SETUP_TEST_DATA:-false}
       - CLIENT_NAME=${CLIENT_NAME:-Demo Client}
+      - CSV_PATH=${CSV_PATH:-}
+      - TEST_EMAIL=${TEST_EMAIL:-}
+      - TEST_PASSWORD=${TEST_PASSWORD:-}
+      - TEST_NAME=${TEST_NAME:-Test User}
     depends_on:
       db:
         condition: service_healthy
@@ -63,13 +63,27 @@ services:
     ports:
       - "3000:3000"
     environment:
-      - API_BASE_URL=http://backend:8000
+      # Nuxt uses NUXT_ prefix for runtime config override
+      - NUXT_API_BASE_URL=http://backend:8000
+      - NUXT_PUBLIC_API_BASE_URL=${NUXT_PUBLIC_API_BASE_URL:-http://localhost:8000}
       - NUXT_SESSION_PASSWORD=${NUXT_SESSION_PASSWORD}
     depends_on:
       backend:
         condition: service_healthy
       license-watcher:
         condition: service_started
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "node",
+          "-e",
+          "require('http').get('http://localhost:3000/api/health', (r) => process.exit(r.statusCode === 200 ? 0 : 1)).on('error', () => process.exit(1))",
+        ]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
     labels:
       com.forecasting.license: "true"
 

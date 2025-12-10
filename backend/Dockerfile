@@ -1,15 +1,17 @@
 # Multi-stage Dockerfile for FastAPI Backend
+# syntax=docker/dockerfile:1
 
 # Stage 1: Base with Python and uv
 FROM python:3.12-slim AS base
 
 # Install system dependencies
-RUN apt-get update && apt-get install -y \
+RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
+    --mount=type=cache,target=/var/lib/apt,sharing=locked \
+    apt-get update && apt-get install -y \
     gcc \
     g++ \
     libpq-dev \
-    curl \
-    && rm -rf /var/lib/apt/lists/*
+    curl
 
 # Install uv
 COPY --from=ghcr.io/astral-sh/uv:latest /uv /usr/local/bin/uv
@@ -23,8 +25,9 @@ FROM base AS deps
 # Copy dependency files
 COPY pyproject.toml uv.lock ./
 
-# Install dependencies
-RUN uv sync --frozen --no-dev
+# Install dependencies with cache mount
+RUN --mount=type=cache,target=/root/.cache/uv \
+    uv sync --frozen --no-dev
 
 # Stage 3: Builder
 FROM base AS builder
@@ -43,6 +46,7 @@ RUN apt-get update && apt-get install -y \
     libpq5 \
     postgresql-client \
     curl \
+    dos2unix \
     && rm -rf /var/lib/apt/lists/*
 
 # Create non-root user
@@ -55,9 +59,11 @@ WORKDIR /app
 COPY --from=builder --chown=appuser:appuser /app/.venv /app/.venv
 COPY --from=builder --chown=appuser:appuser /app /app
 
-# Copy and set permissions for entrypoint script
+# Copy and set permissions for entrypoint and setup scripts
 COPY --chown=appuser:appuser docker-entrypoint.sh /app/
-RUN chmod +x /app/docker-entrypoint.sh
+COPY --chown=appuser:appuser setup.sh /app/
+RUN dos2unix /app/docker-entrypoint.sh /app/setup.sh && \
+    chmod +x /app/docker-entrypoint.sh /app/setup.sh
 
 # Set environment variables
 ENV PATH="/app/.venv/bin:$PATH" \

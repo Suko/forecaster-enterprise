@@ -12,6 +12,10 @@ done
 
 echo "Database is ready!"
 
+# Always run migrations first
+echo "Running database migrations..."
+alembic upgrade head
+
 # First-time setup flag (check if users table has any records)
 FIRST_TIME_SETUP=$(PGPASSWORD=$DB_PASSWORD psql -h "$DB_HOST" -U "$DB_USER" -d "$DB_NAME" -tAc "SELECT CASE WHEN EXISTS (SELECT 1 FROM users) THEN 'false' ELSE 'true' END;" 2>/dev/null || echo "true")
 
@@ -30,11 +34,10 @@ if [ "$FIRST_TIME_SETUP" = "true" ]; then
   [ "$SKIP_TEST_DATA" = "true" ] && SETUP_ARGS="$SETUP_ARGS --skip-test-data"
   [ "$SKIP_CSV_IMPORT" = "true" ] && SETUP_ARGS="$SETUP_ARGS --skip-csv-import"
   
-  # Run setup script
+  # Run setup script (migrations already done, but alembic is idempotent)
   bash /app/setup.sh $SETUP_ARGS || echo "Setup completed with warnings"
 else
-  echo "Existing database detected, running migrations only..."
-  alembic upgrade head
+  echo "Existing database detected, skipping first-time setup"
 fi
 
 # Start the application

@@ -58,9 +58,10 @@ WORKDIR /app
 COPY --from=builder --chown=appuser:appuser /app/.venv /app/.venv
 COPY --from=builder --chown=appuser:appuser /app /app
 
-# Copy and set permissions for entrypoint script
+# Copy and set permissions for entrypoint and setup scripts
 COPY --chown=appuser:appuser docker-entrypoint.sh /app/
-RUN chmod +x /app/docker-entrypoint.sh
+COPY --chown=appuser:appuser setup.sh /app/
+RUN chmod +x /app/docker-entrypoint.sh /app/setup.sh
 
 # Set environment variables
 ENV PATH="/app/.venv/bin:$PATH" \

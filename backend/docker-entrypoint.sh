@@ -12,31 +12,29 @@ done
 
 echo "Database is ready!"
 
-# Run migrations
-echo "Running database migrations..."
-alembic upgrade head
-
 # First-time setup flag (check if users table has any records)
 FIRST_TIME_SETUP=$(PGPASSWORD=$DB_PASSWORD psql -h "$DB_HOST" -U "$DB_USER" -d "$DB_NAME" -tAc "SELECT CASE WHEN EXISTS (SELECT 1 FROM users) THEN 'false' ELSE 'true' END;" 2>/dev/null || echo "true")
 
 if [ "$FIRST_TIME_SETUP" = "true" ]; then
-  echo "First-time setup detected..."
+  echo "First-time setup detected, running setup.sh..."
   
-  # First create client and test data (this creates the client needed for admin user)
-  echo "Setting up client and data..."
-  python scripts/setup_test_data.py --client-name "${CLIENT_NAME:-Demo Client}" || echo "Client setup may have failed"
+  # Build arguments for setup.sh
+  SETUP_ARGS=""
+  [ -n "$ADMIN_EMAIL" ] && SETUP_ARGS="$SETUP_ARGS --admin-email $ADMIN_EMAIL"
+  [ -n "$ADMIN_PASSWORD" ] && SETUP_ARGS="$SETUP_ARGS --admin-password $ADMIN_PASSWORD"
+  [ -n "$ADMIN_NAME" ] && SETUP_ARGS="$SETUP_ARGS --admin-name \"$ADMIN_NAME\""
+  [ -n "$CLIENT_NAME" ] && SETUP_ARGS="$SETUP_ARGS --client-name \"$CLIENT_NAME\""
+  [ -n "$TEST_EMAIL" ] && SETUP_ARGS="$SETUP_ARGS --test-email $TEST_EMAIL"
+  [ -n "$TEST_PASSWORD" ] && SETUP_ARGS="$SETUP_ARGS --test-password $TEST_PASSWORD"
+  [ -n "$CSV_PATH" ] && SETUP_ARGS="$SETUP_ARGS --csv-path $CSV_PATH"
+  [ "$SKIP_TEST_DATA" = "true" ] && SETUP_ARGS="$SETUP_ARGS --skip-test-data"
+  [ "$SKIP_CSV_IMPORT" = "true" ] && SETUP_ARGS="$SETUP_ARGS --skip-csv-import"
   
-  # Then create admin user (now client exists)
-  if [ -n "$ADMIN_EMAIL" ] && [ -n "$ADMIN_PASSWORD" ]; then
-    echo "Creating admin user..."
-    python create_user.py "$ADMIN_EMAIL" "$ADMIN_PASSWORD" \
-      --name "${ADMIN_NAME:-Admin User}" \
-      --admin || echo "Admin user may already exist"
-  fi
-  
-  echo "First-time setup completed!"
+  # Run setup script
+  bash /app/setup.sh $SETUP_ARGS || echo "Setup completed with warnings"
 else
-  echo "Existing database detected, skipping first-time setup"
+  echo "Existing database detected, running migrations only..."
+  alembic upgrade head
 fi
 
 # Start the application

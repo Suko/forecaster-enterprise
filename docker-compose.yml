@@ -37,9 +37,16 @@ services:
       - ENVIRONMENT=${ENVIRONMENT:-production}
       - DEBUG=${DEBUG:-false}
 
-      # First-time setup (optional)
+      # First-time setup (override in .env if needed)
       - SETUP_TEST_DATA=${SETUP_TEST_DATA:-false}
       - CLIENT_NAME=${CLIENT_NAME:-Demo Client}
+      - CSV_PATH=${CSV_PATH:-}
+      - TEST_EMAIL=${TEST_EMAIL:-}
+      - TEST_PASSWORD=${TEST_PASSWORD:-}
+      - TEST_NAME=${TEST_NAME:-Test User}
+    volumes:
+      # Mount data directory for CSV imports (optional)
+      - ./data:/app/data:ro
     depends_on:
       db:
         condition: service_healthy

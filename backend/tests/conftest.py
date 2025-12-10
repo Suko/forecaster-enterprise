@@ -102,7 +102,7 @@ def sample_item_ids(test_data_loader):
 
 
 @pytest.fixture
-async def test_client(db_session):
+async def test_client_obj(db_session):
     """Create a test client for multi-tenant tests"""
     from models.client import Client
     import uuid
@@ -121,7 +121,28 @@ async def test_client(db_session):
 
 
 @pytest.fixture
-async def test_user(db_session, test_client):
+async def test_client(db_session):
+    """Create an AsyncClient for API testing with database override"""
+    from httpx import AsyncClient, ASGITransport
+    from main import app
+    from models.database import get_db
+    
+    # Override database dependency to use test session
+    async def override_get_db():
+        yield db_session
+    
+    app.dependency_overrides[get_db] = override_get_db
+    
+    transport = ASGITransport(app=app)
+    async with AsyncClient(transport=transport, base_url="http://test") as client:
+        yield client
+    
+    # Cleanup
+    app.dependency_overrides.clear()
+
+
+@pytest.fixture
+async def test_user(db_session, test_client_obj):
     """Create a test user with client_id for multi-tenant tests"""
     from models.user import User
     import uuid
@@ -131,7 +152,7 @@ async def test_user(db_session, test_client):
         email="test@example.com",
         name="Test User",
         hashed_password="hashed_password_here",  # Not used in tests
-        client_id=test_client.client_id,
+        client_id=test_client_obj.client_id,
         is_active=True,
         role="user",
     )
@@ -162,7 +183,7 @@ def service_api_key():
 
 
 @pytest.fixture
-async def populate_test_data(db_session, test_client, test_data_loader):
+async def populate_test_data(db_session, test_client_obj, test_data_loader):
     """
     Populate ts_demand_daily table with test data for test client.
     
@@ -201,33 +222,65 @@ async def populate_test_data(db_session, test_client, test_data_loader):
         await db_session.execute(create_table)
         await db_session.commit()
     
-    # Load test data from CSV
-    loader = test_data_loader
-    df = loader.load_csv()
-    
     # Get test client ID
-    client_id = test_client.client_id
+    client_id = test_client_obj.client_id
     
-    # Insert test data into database
-    # Transform CSV format to ts_demand_daily format
-    for _, row in df.iterrows():
-        insert_query = text("""
-            INSERT INTO ts_demand_daily 
-            (item_id, date_local, units_sold, client_id, promotion_flag, holiday_flag, is_weekend, marketing_spend)
-            VALUES (:item_id, :date_local, :units_sold, :client_id, :promo_flag, :holiday_flag, :is_weekend, :marketing_spend)
-            ON CONFLICT (item_id, date_local, client_id) DO NOTHING
-        """)
+    # Try to load test data from CSV, fallback to synthetic data
+    try:
+        loader = test_data_loader
+        df = loader.load_csv()
         
-        await db_session.execute(insert_query, {
-            "item_id": str(row.get("sku", "")),
-            "date_local": row.get("date").date() if hasattr(row.get("date"), "date") else row.get("date"),
-            "units_sold": float(row.get("sales_qty", 0)),
-            "client_id": str(client_id),
-            "promo_flag": bool(row.get("promo_flag", False)),
-            "holiday_flag": bool(row.get("holiday_flag", False)),
-            "is_weekend": bool(row.get("is_weekend", False)),
-            "marketing_spend": float(row.get("marketing_spend", 0)),
-        })
+        # Insert test data into database
+        # Transform CSV format to ts_demand_daily format
+        for _, row in df.iterrows():
+            insert_query = text("""
+                INSERT INTO ts_demand_daily 
+                (item_id, date_local, units_sold, client_id, promotion_flag, holiday_flag, is_weekend, marketing_spend)
+                VALUES (:item_id, :date_local, :units_sold, :client_id, :promo_flag, :holiday_flag, :is_weekend, :marketing_spend)
+                ON CONFLICT (item_id, date_local, client_id) DO NOTHING
+            """)
+            
+            await db_session.execute(insert_query, {
+                "item_id": str(row.get("sku", "")),
+                "date_local": row.get("date").date() if hasattr(row.get("date"), "date") else row.get("date"),
+                "units_sold": float(row.get("sales_qty", 0)),
+                "client_id": str(client_id),
+                "promo_flag": bool(row.get("promo_flag", False)),
+                "holiday_flag": bool(row.get("holiday_flag", False)),
+                "is_weekend": bool(row.get("is_weekend", False)),
+                "marketing_spend": float(row.get("marketing_spend", 0)),
+            })
+    except (FileNotFoundError, AttributeError, KeyError):
+        # If CSV not available, create synthetic data
+        # Create 30 days of data for a few test items
+        from datetime import timedelta
+        import random
+        
+        test_items = ["TEST-001", "TEST-002", "TEST-003"]
+        end_date = date.today()
+        start_date = end_date - timedelta(days=30)
+        
+        current_date = start_date
+        while current_date <= end_date:
+            for item_id in test_items:
+                insert_query = text("""
+                    INSERT INTO ts_demand_daily 
+                    (item_id, date_local, units_sold, client_id, promotion_flag, holiday_flag, is_weekend, marketing_spend)
+                    VALUES (:item_id, :date_local, :units_sold, :client_id, :promo_flag, :holiday_flag, :is_weekend, :marketing_spend)
+                    ON CONFLICT (item_id, date_local, client_id) DO NOTHING
+                """)
+                
+                await db_session.execute(insert_query, {
+                    "item_id": item_id,
+                    "date_local": current_date,
+                    "units_sold": float(random.randint(10, 100)),
+                    "client_id": str(client_id),
+                    "promo_flag": False,
+                    "holiday_flag": False,
+                    "is_weekend": current_date.weekday() >= 5,
+                    "marketing_spend": 0.0,
+                })
+            current_date += timedelta(days=1)
     
     await db_session.commit()
     return True

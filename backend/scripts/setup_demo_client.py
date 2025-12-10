@@ -6,9 +6,9 @@ One-command script to create a demo client and import test data.
 Perfect for development and demo environments.
 
 Usage:
-    python backend/scripts/setup_demo_client.py \
+    uv run python backend/scripts/setup_demo_client.py \
         [--name "Demo Client"] \
-        [--csv data/sintetic_data/synthetic_ecom_chronos2_demo.csv]
+        [--csv data/synthetic_data/synthetic_ecom_chronos2_demo.csv]
 """
 import asyncio
 import argparse
@@ -20,7 +20,7 @@ import uuid
 # Add backend to path
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
-from models.database import AsyncSessionLocal
+from models.database import get_async_session_local
 from models.client import Client
 from sqlalchemy import select
 import importlib.util
@@ -42,6 +42,7 @@ async def create_demo_client(name: str = "Demo Client") -> str:
     Returns:
         client_id (UUID string)
     """
+    AsyncSessionLocal = get_async_session_local()
     async with AsyncSessionLocal() as session:
         # Check if client with this name already exists
         result = await session.execute(
@@ -82,7 +83,7 @@ async def setup_demo(
     # Default CSV path
     if csv_path is None:
         base_path = Path(__file__).parent.parent.parent
-        csv_path = base_path / "data" / "sintetic_data" / "synthetic_ecom_chronos2_demo.csv"
+        csv_path = base_path / "data" / "synthetic_data" / "synthetic_ecom_chronos2_demo.csv"
     
     if not csv_path.exists():
         raise FileNotFoundError(f"CSV file not found: {csv_path}")

@@ -20,21 +20,35 @@ The absolute minimum data needed to run forecasting is **time series sales data*
 └─────────────────────────────────────────────────────────────────┘
 
     ┌──────────────────────────────────────────────────────────────┐
-    │  TIME SERIES DATA (sales_history)                             │
-    │  ════════════════════════════════                             │
+    │  TIME SERIES DATA (ts_demand_daily)                            │
+    │  ════════════════════════════════                              │
     │                                                               │
     │  REQUIRED FIELDS:                                             │
-    │  • date         DATE        - Sale date                       │
-    │  • sku          VARCHAR     - Product identifier (unique)     │
-    │  • quantity     INTEGER     - Units sold                      │
+    │  • date_local    DATE        - Sale date                       │
+    │  • item_id       VARCHAR     - Product identifier (matches     │
+    │                                forecasting engine)            │
+    │  • units_sold    DECIMAL     - Units sold                      │
     │                                                               │
     │  REQUIRED (multi-location):                                   │
-    │  • location_id  VARCHAR     - Warehouse/store identifier      │
+    │  • location_id   VARCHAR     - Warehouse/store identifier      │
+    │                                (if multi-location)            │
     │                                                               │
     │  OPTIONAL:                                                    │
-    │  • revenue      DECIMAL     - If available                    │
+    │  • revenue       DECIMAL     - If available                    │
+    │  • stock_on_date  INTEGER     - Stock level for this date       │
+    │                                (synced or manually updated)     │
+    │                                (for stockout detection)         │
+    │  • promotion_flag BOOLEAN    - Promotion indicator            │
+    │  • holiday_flag  BOOLEAN     - Holiday indicator              │
+    │  • is_weekend    BOOLEAN     - Weekend indicator              │
+    │  • marketing_spend DECIMAL  - Marketing spend                │
     │                                                               │
     │  HISTORY: 2 years recommended, minimum 3 weeks                │
+    │                                                               │
+    │  NOTE: stock_on_date allows detecting stockouts:              │
+    │  - stock_on_date = 0 AND units_sold = 0 = likely stockout     │
+    │  - stock_on_date > 0 AND units_sold = 0 = no demand          │
+    │  - Can be synced from external systems or manually updated    │
     └──────────────────────────────────────────────────────────────┘
 
     ┌──────────────────────────────────────────────────────────────┐
@@ -85,14 +99,15 @@ The absolute minimum data needed to run forecasting is **time series sales data*
 ```sql
 -- 1. TIME SERIES (daily sales per location)
 SELECT 
-    date,
-    sku,
+    date as date_local,
+    sku as item_id,  -- Note: stored as item_id in ts_demand_daily
     location_id,
-    SUM(quantity) as quantity,
-    SUM(revenue) as revenue  -- optional
+    SUM(quantity) as units_sold,
+    SUM(revenue) as revenue,  -- optional
+    stock_on_date  -- optional: stock level for this date (synced or manually updated, for stockout detection)
 FROM sales_transactions
 WHERE date >= DATE_SUB(CURRENT_DATE(), INTERVAL 2 YEAR)  -- 2 years, min 3 weeks
-GROUP BY date, sku, location_id
+GROUP BY date, sku, location_id, stock_on_date
 
 -- 2. PRODUCT MASTER (with required category and cost)
 SELECT 

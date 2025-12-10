@@ -46,6 +46,7 @@ RUN apt-get update && apt-get install -y \
     libpq5 \
     postgresql-client \
     curl \
+    dos2unix \
     && rm -rf /var/lib/apt/lists/*
 
 # Create non-root user
@@ -61,7 +62,8 @@ COPY --from=builder --chown=appuser:appuser /app /app
 # Copy and set permissions for entrypoint and setup scripts
 COPY --chown=appuser:appuser docker-entrypoint.sh /app/
 COPY --chown=appuser:appuser setup.sh /app/
-RUN chmod +x /app/docker-entrypoint.sh /app/setup.sh
+RUN dos2unix /app/docker-entrypoint.sh /app/setup.sh && \
+    chmod +x /app/docker-entrypoint.sh /app/setup.sh
 
 # Set environment variables
 ENV PATH="/app/.venv/bin:$PATH" \

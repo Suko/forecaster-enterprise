@@ -69,7 +69,6 @@ class RecommendationsService:
         # Get all active products
         products_result = await self.db.execute(
             select(Product).where(
-                Product.client_id == client_id,
                 Product.client_id == client_id
             )
         )
@@ -104,6 +103,7 @@ class RecommendationsService:
             # Generate recommendations based on type
             for rec_type in enabled_types:
                 rec = await self._generate_recommendation(
+                    client_id=client_id,
                     product=product,
                     metrics=metrics,
                     condition=condition,
@@ -123,6 +123,7 @@ class RecommendationsService:
     
     async def _generate_recommendation(
         self,
+        client_id: UUID,
         product: Product,
         metrics: Dict,
         condition: ProductSupplierCondition,
@@ -221,7 +222,7 @@ class RecommendationsService:
                       AND item_id = :item_id
                       AND units_sold > 0
                 """),
-                {"client_id": str(client_id), "item_id": product.item_id}
+                {"client_id": client_id, "item_id": product.item_id}
             )
             last_sale_row = last_sale_result.fetchone()
             

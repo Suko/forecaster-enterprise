@@ -89,7 +89,6 @@ async def get_existing_item_ids(client_id: str) -> List[str]:
                 FROM ts_demand_daily 
                 WHERE client_id = :client_id
                 ORDER BY item_id
-                LIMIT 50
             """),
             {"client_id": client_id}
         )

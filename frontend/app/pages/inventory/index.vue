@@ -29,7 +29,7 @@
     <!-- Error State -->
     <UAlert
       v-else-if="error"
-      color="red"
+      color="error"
       variant="soft"
       title="Error loading products"
       :description="error"
@@ -49,6 +49,11 @@
           class="ag-theme-alpine w-full h-full"
           @grid-ready="onGridReady"
         />
+        <template #fallback>
+          <div class="flex items-center justify-center h-full">
+            <UIcon name="i-lucide-loader-2" class="w-8 h-8 animate-spin text-primary" />
+          </div>
+        </template>
       </ClientOnly>
     </div>
   </div>
@@ -100,7 +105,7 @@ const columnDefs = ref<ColDef[]>([
   {
     field: 'category',
     headerName: 'Category',
-    filter: 'agSetColumnFilter',
+    filter: 'agTextColumnFilter',
     sortable: true,
     resizable: true,
     width: 150,
@@ -142,7 +147,10 @@ const columnDefs = ref<ColDef[]>([
     resizable: true,
     width: 120,
     type: 'numericColumn',
-    valueFormatter: (params) => params.value?.toFixed(1) || '0',
+    valueFormatter: (params) => {
+      const value = Number(params.value)
+      return isNaN(value) ? '0' : value.toFixed(1)
+    },
     cellStyle: (params) => {
       if (params.value < 14) return { backgroundColor: '#fee2e2' } // Red for low
       if (params.value > 90) return { backgroundColor: '#dcfce7' } // Green for high
@@ -157,7 +165,10 @@ const columnDefs = ref<ColDef[]>([
     resizable: true,
     width: 120,
     type: 'numericColumn',
-    valueFormatter: (params) => `${(params.value * 100).toFixed(1)}%`,
+    valueFormatter: (params) => {
+      const value = Number(params.value)
+      return isNaN(value) ? '0%' : `${(value * 100).toFixed(1)}%`
+    },
     cellStyle: (params) => {
       const risk = params.value * 100
       if (risk > 70) return { backgroundColor: '#fee2e2' } // Red
@@ -168,19 +179,21 @@ const columnDefs = ref<ColDef[]>([
   {
     field: 'status',
     headerName: 'Status',
-    filter: 'agSetColumnFilter',
+    filter: 'agTextColumnFilter',
     sortable: true,
     resizable: true,
-    width: 130,
+    width: 150,
     cellRenderer: (params: any) => {
-      const status = params.value
+      const status = params.value || 'normal'
       const colors: Record<string, string> = {
         understocked: 'red',
         overstocked: 'green',
         normal: 'gray',
       }
-      return `<span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-${colors[status]}-100 text-${colors[status]}-800">${status}</span>`
+      const color = colors[status] || 'gray'
+      return `<span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-${color}-100 text-${color}-800 whitespace-nowrap">${status}</span>`
     },
+    cellStyle: { overflow: 'visible' },
   },
 ])
 
@@ -241,7 +254,9 @@ onMounted(() => {
 
 const onSearch = () => {
   // Debounce search - reload after user stops typing
-  clearTimeout(searchTimeout.value)
+  if (searchTimeout.value) {
+    clearTimeout(searchTimeout.value)
+  }
   searchTimeout.value = setTimeout(() => {
     loadProducts()
   }, 500)
@@ -252,6 +267,15 @@ const searchTimeout = ref<NodeJS.Timeout | null>(null)
 onUnmounted(() => {
   if (searchTimeout.value) {
     clearTimeout(searchTimeout.value)
+  }
+  // Clean up grid API
+  if (gridApi.value) {
+    try {
+      gridApi.value.destroy()
+    } catch (e) {
+      // Grid may already be destroyed
+    }
+    gridApi.value = null
   }
   // Reset grid initialized flag when component unmounts
   gridInitialized.value = false

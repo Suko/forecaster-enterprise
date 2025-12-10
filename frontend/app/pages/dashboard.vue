@@ -20,7 +20,7 @@
     <!-- Error State -->
     <UAlert
       v-else-if="error"
-      color="red"
+      color="error"
       variant="soft"
       title="Error loading dashboard"
       :description="error"
@@ -32,7 +32,7 @@
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         <DashboardKpiCard
           label="Total Inventory Value"
-          :value="`€${formatCurrency(parseFloat(dashboardData.total_value || '0'))}`"
+          :value="`€${formatCurrency(parseFloat(dashboardData.metrics.total_inventory_value || '0'))}`"
           icon="i-lucide-euro"
           bg-color="bg-blue-100 dark:bg-blue-900"
           icon-color="text-blue-500"
@@ -41,7 +41,7 @@
         
         <DashboardKpiCard
           label="Total SKUs"
-          :value="dashboardData.total_products || 0"
+          :value="dashboardData.metrics.total_skus || 0"
           icon="i-lucide-package"
           bg-color="bg-primary-100 dark:bg-primary-900"
           icon-color="text-primary-500"
@@ -50,17 +50,16 @@
         
         <DashboardKpiCard
           label="Understocked"
-          :value="dashboardData.understocked_count || 0"
+          :value="dashboardData.metrics.understocked_count || 0"
           icon="i-lucide-alert-triangle"
           bg-color="bg-red-100 dark:bg-red-900"
           icon-color="text-red-500"
           value-color="text-red-600 dark:text-red-400"
-          :subtitle="dashboardData.high_risk_count ? `${dashboardData.high_risk_count} high risk` : undefined"
         />
         
         <DashboardKpiCard
           label="Overstocked"
-          :value="dashboardData.overstocked_count || 0"
+          :value="dashboardData.metrics.overstocked_count || 0"
           icon="i-lucide-trending-up"
           bg-color="bg-green-100 dark:bg-green-900"
           icon-color="text-green-500"
@@ -92,12 +91,12 @@
           </div>
                 <div class="text-right">
                   <UBadge
-                    :color="item.stockout_risk > 70 ? 'red' : item.stockout_risk > 40 ? 'orange' : 'yellow'"
+                    :color="(Number(item.stockout_risk) || 0) > 70 ? 'red' : (Number(item.stockout_risk) || 0) > 40 ? 'orange' : 'yellow'"
                     variant="soft"
                   >
-                    {{ item.stockout_risk.toFixed(1) }}% risk
+                    {{ (Number(item.stockout_risk) || 0).toFixed(1) }}% risk
                   </UBadge>
-                  <p class="text-xs text-gray-400 mt-1">{{ item.dir.toFixed(1) }} days</p>
+                  <p class="text-xs text-gray-400 mt-1">{{ (Number(item.dir) || 0).toFixed(1) }} days</p>
           </div>
         </div>
           </div>
@@ -125,7 +124,7 @@
                   <p class="text-sm text-gray-500">{{ item.item_id }}</p>
           </div>
                 <div class="text-right">
-                  <p class="text-sm font-medium">{{ item.dir.toFixed(1) }} days</p>
+                  <p class="text-sm font-medium">{{ (Number(item.dir) || 0).toFixed(1) }} days</p>
                   <p class="text-xs text-gray-400">Overstocked</p>
           </div>
         </div>

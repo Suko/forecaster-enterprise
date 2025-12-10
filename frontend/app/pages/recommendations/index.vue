@@ -128,7 +128,7 @@ const columnDefs = ref<ColDef[]>([
   {
     field: 'type',
     headerName: 'Type',
-    filter: 'agSetColumnFilter',
+    filter: 'agTextColumnFilter',
     sortable: true,
     resizable: true,
     width: 140,
@@ -148,7 +148,7 @@ const columnDefs = ref<ColDef[]>([
   {
     field: 'priority',
     headerName: 'Priority',
-    filter: 'agSetColumnFilter',
+    filter: 'agTextColumnFilter',
     sortable: true,
     resizable: true,
     width: 120,

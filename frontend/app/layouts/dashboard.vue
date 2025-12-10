@@ -4,7 +4,7 @@ import type { NavigationMenuItem } from '@nuxt/ui'
 const { user } = useUserSession()
 const route = useRoute()
 
-const mainMenuItems: NavigationMenuItem[] = [
+const mainMenuItems = computed<NavigationMenuItem[]>(() => [
   {
     label: 'Dashboard',
     icon: 'i-lucide-layout-dashboard',
@@ -23,7 +23,7 @@ const mainMenuItems: NavigationMenuItem[] = [
     to: '/recommendations',
     active: route.path.startsWith('/recommendations')
   }
-]
+])
 
 const settingsItem = ref<NavigationMenuItem>({
   label: 'Settings',
@@ -70,7 +70,6 @@ const handleLogout = async () => {
 
       <template #default="{ collapsed }">
         <UNavigationMenu
-          :key="`nav-${route.path}`"
           :collapsed="collapsed"
           :items="[mainMenuItems, otherMenuItems]"
           orientation="vertical"

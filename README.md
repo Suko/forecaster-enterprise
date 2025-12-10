@@ -4,53 +4,76 @@
 
 ## Quick Start
 
+### Option 1: Full Setup with Test Data (Recommended for Demo/Development)
+
+```bash
+cd backend
+./setup.sh
+```
+
+This single command:
+- ✅ Installs dependencies
+- ✅ Runs database migrations
+- ✅ Creates admin user (`admin@example.com` / `admin123`)
+- ✅ Creates test user (`test@example.com` / `testpassword123`)
+- ✅ **Imports both CSV and M5 datasets** (synthetic + real patterns)
+- ✅ Creates products, locations, suppliers, stock levels
+- ✅ Shifts dates to recent (so metrics work)
+- ✅ Populates historical stock data
+
+**Options:**
+```bash
+# Import only CSV (skip M5)
+./setup.sh --csv-only
+
+# Import only M5 (skip CSV)
+./setup.sh --m5-only
+# or (deprecated): ./setup.sh --use-m5-data
+
+# Custom client name
+./setup.sh --client-name "My Company"
+
+# Skip test data (users and migrations only)
+./setup.sh --skip-test-data
+```
+
+### Option 2: Manual Setup (Production/Custom)
+
 1. **Set up environment variables:**
    ```bash
    cp .env.example .env
    # Edit .env with your PostgreSQL credentials and JWT secret
    ```
 
-2. **Install backend dependencies:**
+2. **Install dependencies and run migrations:**
    ```bash
    cd backend
-   uv sync  # Uses uv package manager (see pyproject.toml)
+   uv sync
+   uv run alembic upgrade head
    ```
 
-3. **Create database:**
+3. **Create users (optional):**
    ```bash
-   # Make sure PostgreSQL is running
-   createdb forecaster_enterprise  # or use your preferred method
+   uv run python create_user.py --email admin@example.com --password yourpassword --admin
    ```
 
-4. **Run database migrations:**
+4. **Start backend:**
    ```bash
-   cd backend
-   alembic upgrade head
-   ```
-
-5. **Start backend:**
-   ```bash
-   cd backend
    uv run uvicorn main:app --reload --host 0.0.0.0 --port 8000
    ```
-   
-   **Note:** Always use `uv run` to ensure you're using the correct virtual environment with all dependencies.
 
-6. **Test endpoints:**
-   ```bash
-   cd backend
-   ./test_endpoints.sh
-   ```
+### Start Frontend
 
-7. **Run forecasting tests:**
-   ```bash
-   cd backend
-   # Run all tests
-   uv run pytest tests/ -v
-   
-   # Test forecast accuracy on real data
-   uv run python3 tests/test_forecast_accuracy.py
-   ```
+```bash
+cd frontend
+npm install
+npm run dev
+```
+
+**Access:**
+- Frontend: http://localhost:3000
+- Backend API: http://localhost:8000
+- API Docs: http://localhost:8000/docs
 
 ## Environment Configuration
 

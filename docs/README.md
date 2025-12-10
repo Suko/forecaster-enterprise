@@ -1,17 +1,15 @@
 # Forecaster Enterprise Documentation
 
-**Status:** Phase 2B Complete ✅ | Production Readiness: 85%
-
 ---
 
-## Quick Start
+## Quick Links
 
 | Document | Purpose |
 |----------|---------|
-| [Backend Architecture](backend/ARCHITECTURE.md) | System architecture |
-| [Forecasting Module](backend/forecasting/README.md) | 🎯 **Module status & progress** |
-| [Standards](standards/STANDARDS.md) | Project standards |
-| [System Contracts](system/CONTRACTS.md) | Auth, security, data contracts |
+| [Quick Start](QUICK_START.md) | One-command setup guide |
+| [Setup Script Guide](SETUP_SCRIPT_GUIDE.md) | Detailed setup options (test data, M5, reset) |
+| [Data Model](DATA_MODEL.md) | Database schema and sync strategy |
+| [System Contracts](system/CONTRACTS.md) | Auth, security, naming conventions |
 
 ---
 
@@ -19,52 +17,73 @@
 
 ```
 docs/
-├── README.md                    # This file
-├── SECURITY_AUDIT_REPORT.md     # Security audit results
+├── README.md                 # This file
+├── QUICK_START.md            # One-command setup
+├── SETUP_SCRIPT_GUIDE.md     # Detailed setup options
+├── DATA_MODEL.md             # Database schema
 │
 ├── backend/
-│   ├── ARCHITECTURE.md          # Backend architecture
-│   ├── STRUCTURE_ANALYSIS.md    # Code structure
-│   ├── ROADMAP.md               # Development roadmap & todos
-│   └── forecasting/             # Forecasting module
-│       ├── README.md            # Module status & progress
-│       └── METHODS.md           # Method implementations
+│   ├── ARCHITECTURE.md       # Backend architecture
+│   ├── API_REFERENCE.md      # API endpoints
+│   ├── ROADMAP.md            # Development roadmap
+│   └── forecasting/
+│       ├── README.md         # Forecasting module status
+│       └── METHODS.md        # Method implementations
+│
+├── frontend/
+│   ├── AUTH_BEST_PRACTICES.md
+│   └── FRONTEND_ROADMAP.md
 │
 ├── standards/
-│   └── STANDARDS.md             # Consolidated standards
+│   └── STANDARDS.md          # Project standards
 │
 ├── system/
-│   └── CONTRACTS.md             # System contracts (auth, security)
+│   └── CONTRACTS.md          # System contracts
 │
-└── reports/                     # Validation reports (keep)
+├── USER_STORIES.md           # Feature requirements
+└── WORKFLOWS.md              # System workflows
 ```
 
 ---
 
-## By Topic
+## Setup
+
+### Quick Setup (Test/Demo)
+
+```bash
+cd backend
+./setup.sh
+```
+
+Creates users, imports demo data, sets up everything.
+
+### With M5 Dataset
+
+```bash
+./setup.sh --use-m5-data
+```
+
+Uses real M5 forecasting competition data.
+
+### Production Setup
+
+See [QUICK_START.md](QUICK_START.md) for manual setup steps.
+
+---
+
+## Key Topics
 
 ### Forecasting
-
-| Document | Purpose |
-|----------|---------|
-| [Module README](backend/forecasting/README.md) | Status, progress, routing |
-| [Methods](backend/forecasting/METHODS.md) | Method implementations |
+- [Module README](backend/forecasting/README.md) - Status and progress
+- [Methods](backend/forecasting/METHODS.md) - Implementation details
 
 ### Backend
+- [Architecture](backend/ARCHITECTURE.md) - System design
+- [API Reference](backend/API_REFERENCE.md) - Endpoints
 
-| Document | Purpose |
-|----------|---------|
-| [Architecture](backend/ARCHITECTURE.md) | System architecture |
-| [Structure](backend/STRUCTURE_ANALYSIS.md) | Code structure analysis |
-| [Roadmap](backend/ROADMAP.md) | Development roadmap & todos |
-| [Roadmap](backend/ROADMAP.md) | Development roadmap & todos |
-
-### Standards & Contracts
-
-| Document | Purpose |
-|----------|---------|
-| [Standards](standards/STANDARDS.md) | Forecasting, testing, evaluation |
-| [Contracts](system/CONTRACTS.md) | Auth, security, data |
+### Data
+- [Data Model](DATA_MODEL.md) - Schema and relationships
+- [System Contracts](system/CONTRACTS.md) - Naming conventions (`item_id`, not `sku`)
 
 ---
 
@@ -77,39 +96,20 @@ cd backend
 uv run uvicorn main:app --reload --port 8000
 ```
 
+### Running Frontend
+
+```bash
+cd frontend
+npm run dev
+```
+
 ### Running Tests
 
 ```bash
-cd backend && uv run pytest tests/
-```
-
-### Key Scripts
-
-```bash
-# Setup demo client
-python backend/scripts/setup_demo_client.py
-
-# Import CSV data
-python backend/scripts/import_csv_to_ts_demand_daily.py --csv <path> --client-id <uuid>
-
-# Validate method routing
-python backend/scripts/validate_method_routing.py
+cd backend
+uv run pytest tests/ -v
 ```
 
 ---
 
-## Current Status
-
-| Component | Status |
-|-----------|--------|
-| Chronos-2 | ✅ Active |
-| SBA (Lumpy) | ✅ Active |
-| Croston (Intermittent) | ✅ Ready |
-| Min/Max (C-Z) | ✅ Ready |
-| Method Routing | ✅ 100% correct |
-| Security | ✅ 100% audit passed |
-| Integration Tests | ✅ 100% passing |
-
----
-
-*Last updated: 2025-12-09*
+*Last updated: 2025-12-10*

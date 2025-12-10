@@ -90,6 +90,15 @@ while [[ $# -gt 0 ]]; do
             ;;
         --use-m5-data)
             USE_M5_DATA="true"
+            M5_ONLY="true"
+            shift
+            ;;
+        --csv-only)
+            CSV_ONLY="true"
+            shift
+            ;;
+        --m5-only)
+            M5_ONLY="true"
             shift
             ;;
         --csv-path)
@@ -119,8 +128,12 @@ while [[ $# -gt 0 ]]; do
             echo "  --skip-test-user          Skip test user creation"
             echo "  --skip-csv-import         Skip CSV data import"
             echo "  --skip-test-data          Skip test data setup"
-            echo "  --use-m5-data             Download and import M5 dataset (instead of CSV)"
+            echo "  --use-m5-data             Import M5 dataset (deprecated: use --m5-only)"
+            echo "  --csv-only                Import only CSV data (skip M5)"
+            echo "  --m5-only                 Import only M5 data (skip CSV)"
             echo "  --help                    Show this help message"
+            echo ""
+            echo "Default behavior: Imports both CSV and M5 datasets"
             echo ""
             echo "Environment variables:"
             echo "  ADMIN_EMAIL, ADMIN_PASSWORD, ADMIN_NAME, CLIENT_NAME"
@@ -303,55 +316,26 @@ echo ""
 # Step 4: Import sales data (required for test data setup)
 # This imports sales data into ts_demand_daily table
 # The sales data will be shifted to recent dates in Step 5
+# Default: Import both CSV and M5 datasets
 if [ "$SKIP_CSV_IMPORT" != "true" ]; then
-    if [ "$USE_M5_DATA" == "true" ]; then
-        echo -e "${GREEN}[4/7]${NC} Downloading and importing M5 dataset..."
-        echo "  This will download M5 dataset from Zenodo (if not already downloaded)"
-        echo "  Then import selected SKUs to ts_demand_daily"
-        echo "  Note: No API credentials needed - downloads directly from Zenodo"
-        
-        # Download and import M5 data
-        CLIENT_OUTPUT=$(uv run python scripts/download_m5_data.py --client-name "$CLIENT_NAME" --n-skus 40 2>&1)
-        echo "$CLIENT_OUTPUT"
-        
-        # Extract client ID from output
-        CLIENT_ID=$(echo "$CLIENT_OUTPUT" | grep -i "Client ID:" | grep -oE '[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}' | head -1)
-        
-        if [ -z "$CLIENT_ID" ]; then
-            CLIENT_ID=$(echo "$CLIENT_OUTPUT" | grep -E "(client_id|Using.*client)" | grep -oE '[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}' | head -1)
-        fi
-        
-        if [ -n "$CLIENT_ID" ]; then
-            echo -e "${GREEN}✓${NC} M5 data imported"
-            echo "  Client ID: $CLIENT_ID"
-            export CLIENT_ID="$CLIENT_ID"
-        else
-            echo -e "${YELLOW}⚠${NC} M5 import completed (could not extract client ID)"
-            # Try to get client ID from database
-            CLIENT_ID=$(uv run python -c "
-import asyncio
-import sys
-from pathlib import Path
-sys.path.insert(0, str(Path('.').absolute()))
-from models.database import get_async_session_local
-from models.client import Client
-from sqlalchemy import select
-
-async def get_client():
-    AsyncSessionLocal = get_async_session_local()
-    async with AsyncSessionLocal() as session:
-        result = await session.execute(select(Client).where(Client.name == '$CLIENT_NAME'))
-        client = result.scalar_one_or_none()
-        if client:
-            print(str(client.client_id))
-asyncio.run(get_client())
-" 2>/dev/null)
-            if [ -n "$CLIENT_ID" ]; then
-                echo "  Found Client ID: $CLIENT_ID"
-                export CLIENT_ID="$CLIENT_ID"
-            fi
-        fi
+    # Determine what to import
+    IMPORT_CSV="false"
+    IMPORT_M5="false"
+    
+    if [ "$M5_ONLY" == "true" ]; then
+        # Only M5
+        IMPORT_M5="true"
+    elif [ "$CSV_ONLY" == "true" ]; then
+        # Only CSV
+        IMPORT_CSV="true"
     else
+        # Default: Both CSV and M5
+        IMPORT_CSV="true"
+        IMPORT_M5="true"
+    fi
+    
+    # Import CSV if needed
+    if [ "$IMPORT_CSV" == "true" ]; then
         echo -e "${GREEN}[4/7]${NC} Importing CSV sales data..."
         
         # Resolve CSV path (relative to backend directory or absolute)
@@ -379,26 +363,61 @@ asyncio.run(get_client())
         
         echo "  CSV path: $CSV_PATH"
         
-        # First, create or get the client and import CSV
+        # Create or get the client and import CSV
         CLIENT_OUTPUT=$(uv run python scripts/setup_demo_client.py --name "$CLIENT_NAME" --csv "$CSV_PATH" 2>&1)
         echo "$CLIENT_OUTPUT"
+        
+        # Extract client ID from CSV import output
+        CLIENT_ID=$(echo "$CLIENT_OUTPUT" | grep -i "Client ID:" | grep -oE '[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}' | head -1)
+        
+        if [ -z "$CLIENT_ID" ]; then
+            CLIENT_ID=$(echo "$CLIENT_OUTPUT" | grep -E "(Client.*ID|client_id)" | grep -oE '[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}' | head -1)
+        fi
+        
+        if [ -n "$CLIENT_ID" ]; then
+            echo -e "${GREEN}✓${NC} CSV data imported"
+            echo "  Client ID: $CLIENT_ID"
+            export CLIENT_ID="$CLIENT_ID"
+        fi
     fi
     
-    # Extract client ID from output
-    CLIENT_ID=$(echo "$CLIENT_OUTPUT" | grep -i "Client ID:" | grep -oE '[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}' | head -1)
+    # Import M5 if needed
+    if [ "$IMPORT_M5" == "true" ]; then
+        echo -e "${GREEN}[4/7]${NC} Downloading and importing M5 dataset..."
+        echo "  This will download M5 dataset from Zenodo (if not already downloaded)"
+        echo "  Then import selected SKUs to ts_demand_daily"
+        echo "  Note: No API credentials needed - downloads directly from Zenodo"
+        
+        # Download and import M5 data (use existing client if CSV was imported)
+        if [ -n "$CLIENT_ID" ]; then
+            M5_OUTPUT=$(uv run python scripts/download_m5_data.py --client-id "$CLIENT_ID" --n-skus 40 2>&1)
+        else
+            M5_OUTPUT=$(uv run python scripts/download_m5_data.py --client-name "$CLIENT_NAME" --n-skus 40 2>&1)
+        fi
+        echo "$M5_OUTPUT"
+        
+        # Extract client ID from M5 import output (if not already set)
+        if [ -z "$CLIENT_ID" ]; then
+            CLIENT_ID=$(echo "$M5_OUTPUT" | grep -i "Client ID:" | grep -oE '[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}' | head -1)
+            
+            if [ -z "$CLIENT_ID" ]; then
+                CLIENT_ID=$(echo "$M5_OUTPUT" | grep -E "(Client.*ID|client_id)" | grep -oE '[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}' | head -1)
+            fi
+            
+            if [ -n "$CLIENT_ID" ]; then
+                echo -e "${GREEN}✓${NC} M5 data imported"
+                echo "  Client ID: $CLIENT_ID"
+                export CLIENT_ID="$CLIENT_ID"
+            fi
+        else
+            echo -e "${GREEN}✓${NC} M5 data imported (using existing client)"
+        fi
+    fi
     
+    # Final fallback: Try to get client ID from database if still not set
     if [ -z "$CLIENT_ID" ]; then
-        CLIENT_ID=$(echo "$CLIENT_OUTPUT" | grep -E "(Client.*ID|client_id)" | grep -oE '[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}' | head -1)
-    fi
-    
-    if [ -n "$CLIENT_ID" ]; then
-        echo -e "${GREEN}✓${NC} CSV data imported"
-        echo "  Client ID: $CLIENT_ID"
-        export CLIENT_ID="$CLIENT_ID"
-    else
-        echo -e "${YELLOW}⚠${NC} CSV import completed (could not extract client ID)"
-        echo "  Check the output above for the client ID"
-        # Try to get client ID from database
+        echo -e "${YELLOW}⚠${NC} Could not extract client ID from import output"
+        echo "  Attempting to get client ID from database..."
         CLIENT_ID=$(uv run python -c "
 import asyncio
 import sys
@@ -420,6 +439,9 @@ asyncio.run(get_client())
         if [ -n "$CLIENT_ID" ]; then
             echo "  Found Client ID: $CLIENT_ID"
             export CLIENT_ID="$CLIENT_ID"
+        else
+            echo -e "${RED}✗${NC} Could not determine client ID. Please check the import output above."
+            exit 1
         fi
     fi
 else
@@ -446,6 +468,55 @@ asyncio.run(get_client())
     if [ -n "$CLIENT_ID" ]; then
         echo "  Using existing Client ID: $CLIENT_ID"
         export CLIENT_ID="$CLIENT_ID"
+    fi
+    
+    # Assign client to admin and test users (if they don't have one)
+    if [ -n "$CLIENT_ID" ]; then
+        echo -e "${GREEN}[4.5/7]${NC} Assigning client to users..."
+        uv run python -c "
+import asyncio
+import sys
+from pathlib import Path
+sys.path.insert(0, str(Path('.').absolute()))
+from models.database import get_async_session_local
+from models.user import User
+from models.client import Client
+from sqlalchemy import select
+import uuid
+
+async def assign_client_to_users():
+    AsyncSessionLocal = get_async_session_local()
+    async with AsyncSessionLocal() as session:
+        # Get client
+        result = await session.execute(
+            select(Client).where(Client.client_id == uuid.UUID('$CLIENT_ID'))
+        )
+        client = result.scalar_one_or_none()
+        if not client:
+            return
+        
+        # Assign to admin user
+        result = await session.execute(
+            select(User).where(User.email == '$ADMIN_EMAIL')
+        )
+        admin = result.scalar_one_or_none()
+        if admin and not admin.client_id:
+            admin.client_id = client.client_id
+            print('  ✓ Assigned client to admin user')
+        
+        # Assign to test user
+        result = await session.execute(
+            select(User).where(User.email == '$TEST_EMAIL')
+        )
+        test_user = result.scalar_one_or_none()
+        if test_user and not test_user.client_id:
+            test_user.client_id = client.client_id
+            print('  ✓ Assigned client to test user')
+        
+        await session.commit()
+
+asyncio.run(assign_client_to_users())
+" 2>/dev/null || true
     fi
 fi
 echo ""

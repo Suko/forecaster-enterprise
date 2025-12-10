@@ -15,9 +15,10 @@ Step 2: Create admin user
   ↓
 Step 3: Create test user
   ↓
-Step 4: Import CSV sales data
+Step 4: Import sales data (Default: Both CSV + M5)
   → Creates client
-  → Imports sales data to ts_demand_daily
+  → Imports CSV sales data to ts_demand_daily
+  → Imports M5 dataset to ts_demand_daily
   ↓
 Step 5: Setup test data
   → Creates products, locations, suppliers, stock
@@ -29,16 +30,28 @@ Step 6: Done!
 
 ---
 
-## Step 4: CSV Import
+## Step 4: Sales Data Import
+
+**Default behavior:** Imports **both** CSV and M5 datasets
 
 **What it does:**
 - Creates or finds client
-- Imports CSV sales data to `ts_demand_daily` table
-- Sales data may have old dates (e.g., 2024-12-31)
+- Imports CSV sales data to `ts_demand_daily` table (synthetic data)
+- Imports M5 dataset to `ts_demand_daily` table (real historical patterns)
+- Sales data may have old dates (e.g., 2024-12-31) - will be shifted in Step 5
 
-**Script used:** `setup_demo_client.py`
+**Scripts used:**
+- `setup_demo_client.py` (CSV import)
+- `download_m5_data.py` (M5 import)
 
-**Result:** Sales data exists but dates may be old
+**Result:** Both datasets coexist with different item_id prefixes:
+- CSV: `SKU-001`, `SKU-002`, etc.
+- M5: `M5_HOBBIES_1_008_CA_1_evaluation`, etc.
+
+**Options:**
+- `--csv-only`: Import only CSV (skip M5)
+- `--m5-only`: Import only M5 (skip CSV)
+- Default: Import both
 
 ---
 
@@ -93,7 +106,7 @@ cd backend
 **What happens:**
 1. ✅ Migrations run
 2. ✅ Admin & test users created
-3. ✅ CSV sales data imported
+3. ✅ **Both CSV and M5 sales data imported** (default)
 4. ✅ Test data created
 5. ✅ **Sales dates shifted to recent** (automatic)
 6. ✅ **Historical stock populated** (automatic)
@@ -101,7 +114,13 @@ cd backend
 ### Custom Options
 
 ```bash
-# Skip CSV import (if you already have sales data)
+# Import only CSV (skip M5)
+./setup.sh --csv-only
+
+# Import only M5 (skip CSV)
+./setup.sh --m5-only
+
+# Skip all data import
 ./setup.sh --skip-csv-import
 
 # Skip test data setup (if already done)

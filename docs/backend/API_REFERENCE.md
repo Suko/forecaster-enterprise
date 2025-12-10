@@ -49,7 +49,25 @@ Content-Type: application/json
   "password": "securepassword",
   "name": "User Name"
 }
+
+Response:
+{
+  "id": "user-uuid",
+  "email": "user@example.com",
+  "name": "User Name",
+  "role": "user",
+  "is_active": true
+}
 ```
+
+**Notes:**
+- **Role**: Automatically set to `"user"` by default (cannot be set during registration)
+- **Admin users**: Use `create_user.py` script to create admin users directly:
+  ```bash
+  python create_user.py admin@example.com password123 --admin
+  ```
+- **Role changes**: Only admins can change roles via `PATCH /api/v1/auth/users/{user_id}`
+- **Password**: Must be 8-128 characters
 
 ### Login
 ```http

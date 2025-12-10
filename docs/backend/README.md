@@ -7,19 +7,34 @@
 
 ## Quick Start
 
+### First-Time Setup (Recommended)
+```bash
+cd forecaster_enterprise/backend
+
+# Run automated setup script
+./setup.sh
+
+# Or with custom options
+./setup.sh --admin-email admin@example.com --admin-password mypassword
+```
+
+### Manual Setup
 ```bash
 cd forecaster_enterprise/backend
 
 # 1. Run migrations
 uv run alembic upgrade head
 
-# 2. Set up test data
-uv run python scripts/setup_test_data.py --client-id <uuid>
+# 2. Create admin user (optional)
+uv run python create_user.py admin@example.com password123 --admin
 
-# 3. Start server
+# 3. Set up test data
+uv run python scripts/setup_test_data.py --client-name "Demo Client"
+
+# 4. Start server
 uv run uvicorn main:app --reload
 
-# 4. Run tests
+# 5. Run tests
 uv run pytest tests/test_api/test_inventory_api.py -v
 ```
 

@@ -6,7 +6,7 @@ Pydantic models for inventory management API requests and responses.
 from pydantic import BaseModel, Field
 from typing import Optional, List
 from decimal import Decimal
-from datetime import date
+from datetime import date, datetime
 from uuid import UUID
 
 
@@ -40,8 +40,8 @@ class ProductResponse(ProductBase):
     """Schema for product response"""
     id: UUID
     client_id: UUID
-    created_at: date
-    updated_at: date
+    created_at: datetime
+    updated_at: datetime
     
     class Config:
         from_attributes = True
@@ -170,8 +170,8 @@ class ProductSupplierResponse(ProductSupplierBase):
     item_id: str
     supplier_id: UUID
     supplier: SupplierInfo
-    created_at: date
-    updated_at: date
+    created_at: datetime
+    updated_at: datetime
     
     class Config:
         from_attributes = True

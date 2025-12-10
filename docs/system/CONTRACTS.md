@@ -148,7 +148,58 @@ curl -X POST "http://localhost:8000/api/v1/forecast" \
 
 ---
 
-## 7. Logging & Monitoring
+## 7. Time & Date Management
+
+### Timezone Handling
+
+| Layer | Standard | Timezone |
+|-------|----------|----------|
+| Database | `TIMESTAMP WITH TIME ZONE` | UTC |
+| Models | `DateTime(timezone=True)` | UTC |
+| API Schemas | `datetime` (ISO 8601) | UTC |
+| Business Logic | `date` for business dates | Client timezone |
+| API Responses | ISO 8601 strings | UTC |
+
+### Date vs DateTime
+
+| Field Type | Database | Model | Schema | Use Case |
+|------------|----------|-------|--------|----------|
+| **Timestamps** | `TIMESTAMP WITH TIME ZONE` | `DateTime(timezone=True)` | `datetime` | `created_at`, `updated_at`, `order_date` |
+| **Business Dates** | `DATE` | `Date` | `date` | `date_local`, `expected_delivery_date`, `start_date` |
+
+### Rules
+
+1. **All timestamps in UTC**: Database stores all `DateTime` fields in UTC
+2. **Business dates are date-only**: No time component for dates like `date_local`, delivery dates
+3. **API serialization**: All `datetime` fields serialized as ISO 8601 strings in UTC
+4. **Client timezone**: Business dates respect client timezone for display, but stored as UTC dates
+5. **Schema validation**: Use `datetime` for timestamps, `date` for business dates
+
+### Examples
+
+**Database Model:**
+```python
+created_at = Column(DateTime(timezone=True), server_default=func.now())
+date_local = Column(Date, nullable=False)
+```
+
+**Pydantic Schema:**
+```python
+created_at: datetime  # For timestamps
+date_local: date      # For business dates
+```
+
+**API Response:**
+```json
+{
+  "created_at": "2025-12-10T08:28:37Z",
+  "date_local": "2025-12-10"
+}
+```
+
+---
+
+## 8. Logging & Monitoring
 
 ### Required Logs
 

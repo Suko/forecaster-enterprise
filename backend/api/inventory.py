@@ -165,8 +165,24 @@ async def get_product_suppliers(
         # Build response
         supplier_info = SupplierInfo.model_validate(supplier)
         
-        response = ProductSupplierResponse.model_validate(condition)
-        response.supplier = supplier_info
+        # Build response dict with supplier info
+        response_dict = {
+            "id": condition.id,
+            "client_id": condition.client_id,
+            "item_id": condition.item_id,
+            "supplier_id": condition.supplier_id,
+            "supplier": supplier_info,
+            "moq": condition.moq,
+            "lead_time_days": condition.lead_time_days,
+            "supplier_cost": condition.supplier_cost,
+            "packaging_unit": condition.packaging_unit,
+            "packaging_qty": condition.packaging_qty,
+            "is_primary": condition.is_primary,
+            "notes": condition.notes,
+            "created_at": condition.created_at,
+            "updated_at": condition.updated_at,
+        }
+        response = ProductSupplierResponse.model_validate(response_dict)
         
         result_list.append(response)
     
@@ -199,6 +215,9 @@ async def add_product_supplier(
             notes=data.notes
         )
         
+        # Refresh to get updated timestamps
+        await db.refresh(condition)
+        
         # Get supplier info for response
         from sqlalchemy import select
         from models.supplier import Supplier
@@ -210,8 +229,24 @@ async def add_product_supplier(
         supplier = supplier_result.scalar_one()
         supplier_info = SupplierInfo.model_validate(supplier)
         
-        response = ProductSupplierResponse.model_validate(condition)
-        response.supplier = supplier_info
+        # Build response with supplier info
+        response_dict = {
+            "id": condition.id,
+            "client_id": condition.client_id,
+            "item_id": condition.item_id,
+            "supplier_id": condition.supplier_id,
+            "supplier": supplier_info,
+            "moq": condition.moq,
+            "lead_time_days": condition.lead_time_days,
+            "supplier_cost": condition.supplier_cost,
+            "packaging_unit": condition.packaging_unit,
+            "packaging_qty": condition.packaging_qty,
+            "is_primary": condition.is_primary,
+            "notes": condition.notes,
+            "created_at": condition.created_at,
+            "updated_at": condition.updated_at,
+        }
+        response = ProductSupplierResponse.model_validate(response_dict)
         
         return response
         

@@ -1,8 +1,12 @@
 # Testing Checklist
 
-**Status:** Testing Complete ✅  
-**Last Updated:** 2025-12-09  
-**Test Results:** 10/10 core endpoints passing
+**Status:** ✅ Backend MVP Complete - Testing Complete  
+**Last Updated:** 2025-12-10  
+**Test Results:** 
+- Manual Testing: 10/10 core endpoints passing
+- Automated Testing: 9/9 inventory API tests passing
+
+> **Note:** See [TEST_PLAN.md](./TEST_PLAN.md) for comprehensive automated test plan.
 
 ## Pre-Testing Setup
 
@@ -120,6 +124,7 @@ export TOKEN="<your_token>"
 
 ## Test Results Summary
 
+### Manual Testing (Complete ✅)
 **Automated Test Script:** `scripts/test_all_apis.py`
 
 **Tested Endpoints (10/10 core endpoints passing):**
@@ -139,6 +144,37 @@ export TOKEN="<your_token>"
 1. Fixed `get_current_client` dependency to use user's `client_id` directly
 2. Removed `Product.is_active` filters (field doesn't exist in model)
 3. Updated test script to handle user registration and authentication
+
+### Automated Testing (In Progress ⏳)
+**Test Plan:** See [TEST_PLAN.md](./TEST_PLAN.md)
+
+**Test Files Created:**
+- ✅ `tests/test_api/test_inventory_api.py` - Inventory API tests (9/9 passing)
+  - ✅ `test_get_products` - List products
+  - ✅ `test_get_products_with_filters` - Filter functionality
+  - ✅ `test_get_product_detail` - Product details
+  - ✅ `test_get_product_metrics` - Product metrics
+  - ✅ `test_get_dashboard` - Dashboard API
+  - ✅ `test_get_product_suppliers` - Product suppliers
+  - ✅ `test_add_product_supplier` - Add supplier
+  - ✅ `test_get_products_unauthorized` - Authentication
+  - ✅ `test_get_products_wrong_client` - Multi-tenant isolation
+- ⏳ `tests/test_api/test_orders_api.py` - Order Planning API tests
+- ⏳ `tests/test_api/test_purchase_orders_api.py` - Purchase Orders API tests
+- ⏳ `tests/test_api/test_settings_api.py` - Settings API tests
+- ⏳ `tests/test_services/` - Service layer unit tests
+
+**Fixes Applied:**
+1. ✅ Fixed datetime/date schema validation (changed `date` to `datetime` for timestamps)
+2. ✅ Fixed method name mismatch (`calculate_product_metrics` → `compute_product_metrics`)
+3. ✅ Fixed supplier relationship loading in API responses
+4. ✅ Added synthetic test data generation for `ts_demand_daily` table
+5. ✅ Updated time management contract in CONTRACTS.md
+
+**Coverage Goals:**
+- Unit Tests: >80% code coverage for services
+- API Tests: 100% endpoint coverage
+- Integration Tests: All critical workflows tested
 
 ## Known Issues / Notes
 

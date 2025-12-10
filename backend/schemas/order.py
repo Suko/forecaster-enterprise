@@ -6,7 +6,7 @@ Pydantic models for order planning and purchase orders.
 from pydantic import BaseModel, Field
 from typing import Optional, List
 from decimal import Decimal
-from datetime import date
+from datetime import date, datetime
 from uuid import UUID
 
 
@@ -43,8 +43,8 @@ class CartItemResponse(CartItemBase):
     packaging_qty: Optional[int] = None
     product_name: str
     supplier_name: str
-    created_at: date
-    updated_at: date
+    created_at: datetime
+    updated_at: datetime
     
     class Config:
         from_attributes = True
@@ -111,8 +111,8 @@ class PurchaseOrderResponse(BaseModel):
     notes: Optional[str] = None
     created_by: Optional[str] = None
     items: List[PurchaseOrderItemResponse]
-    created_at: date
-    updated_at: date
+    created_at: datetime
+    updated_at: datetime
     
     class Config:
         from_attributes = True

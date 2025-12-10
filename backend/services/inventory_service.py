@@ -111,7 +111,7 @@ class InventoryService:
             return None
         
         # Get metrics using metrics service
-        metrics = await self.metrics_service.calculate_product_metrics(client_id, item_id)
+        metrics = await self.metrics_service.compute_product_metrics(client_id, item_id)
         
         product_detail = ProductDetailResponse.model_validate(product)
         product_detail.metrics = metrics
@@ -129,7 +129,7 @@ class InventoryService:
         
         Uses MetricsService to calculate metrics.
         """
-        return await self.metrics_service.calculate_product_metrics(client_id, item_id, location_id)
+        return await self.metrics_service.compute_product_metrics(client_id, item_id, location_id)
     
     async def get_product_suppliers(
         self,

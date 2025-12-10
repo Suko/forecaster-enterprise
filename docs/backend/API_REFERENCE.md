@@ -6,6 +6,26 @@
 
 ---
 
+## Quick Start (Frontend)
+
+```typescript
+// 1. Login
+const res = await fetch('/api/v1/auth/login', {
+  method: 'POST',
+  headers: { 'Content-Type': 'application/json' },
+  body: JSON.stringify({ email: 'user@example.com', password: 'password' })
+});
+const { access_token } = await res.json();
+
+// 2. Use token in all requests
+const headers = { 'Authorization': `Bearer ${access_token}` };
+
+// 3. Get dashboard
+const dashboard = await fetch('/api/v1/dashboard', { headers }).then(r => r.json());
+```
+
+---
+
 ## Table of Contents
 
 1. [Authentication](#authentication)

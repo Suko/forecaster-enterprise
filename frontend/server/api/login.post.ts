@@ -14,7 +14,8 @@ export default defineEventHandler(async (event) => {
     const { email, password } = await readValidatedBody(event, bodySchema.parse)
 
     const config = useRuntimeConfig()
-    const apiBaseUrl = config.public.apiBaseUrl
+    // Use private apiBaseUrl for server-side calls (reaches backend via Docker network)
+    const apiBaseUrl = config.apiBaseUrl
 
     // Forward to FastAPI backend
     // FastAPI expects OAuth2PasswordRequestForm which uses form data

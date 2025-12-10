@@ -22,18 +22,16 @@ FIRST_TIME_SETUP=$(PGPASSWORD=$DB_PASSWORD psql -h "$DB_HOST" -U "$DB_USER" -d "
 if [ "$FIRST_TIME_SETUP" = "true" ]; then
   echo "First-time setup detected..."
   
-  # Create admin user
+  # First create client and test data (this creates the client needed for admin user)
+  echo "Setting up client and data..."
+  python scripts/setup_test_data.py --client-name "${CLIENT_NAME:-Demo Client}" || echo "Client setup may have failed"
+  
+  # Then create admin user (now client exists)
   if [ -n "$ADMIN_EMAIL" ] && [ -n "$ADMIN_PASSWORD" ]; then
     echo "Creating admin user..."
     python create_user.py "$ADMIN_EMAIL" "$ADMIN_PASSWORD" \
       --name "${ADMIN_NAME:-Admin User}" \
       --admin || echo "Admin user may already exist"
-  fi
-  
-  # Setup test data if requested
-  if [ "$SETUP_TEST_DATA" = "true" ]; then
-    echo "Setting up test data..."
-    python scripts/setup_test_data.py --client-name "${CLIENT_NAME:-Demo Client}" || echo "Test data setup skipped"
   fi
   
   echo "First-time setup completed!"

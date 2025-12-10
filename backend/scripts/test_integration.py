@@ -20,7 +20,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
 from sqlalchemy import text, select
-from models.database import AsyncSessionLocal
+from models.database import get_async_session_local
 from models.client import Client
 from models.user import User
 from models.forecast import ForecastRun, ForecastResult
@@ -30,6 +30,7 @@ from forecasting.services.quality_calculator import QualityCalculator
 
 async def check_database_setup():
     """Check if database tables exist"""
+    AsyncSessionLocal = get_async_session_local()
     async with AsyncSessionLocal() as session:
         # Check clients table
         try:
@@ -63,6 +64,7 @@ async def check_database_setup():
 
 async def find_or_create_test_user(client_id: str) -> str:
     """Find or create a test user"""
+    AsyncSessionLocal = get_async_session_local()
     async with AsyncSessionLocal() as session:
         # Look for existing test user
         result = await session.execute(
@@ -91,6 +93,7 @@ async def find_or_create_test_user(client_id: str) -> str:
 
 async def find_or_create_test_client():
     """Find or create a test client"""
+    AsyncSessionLocal = get_async_session_local()
     async with AsyncSessionLocal() as session:
         # Look for existing test client
         result = await session.execute(
@@ -118,6 +121,7 @@ async def find_or_create_test_client():
 
 async def check_test_data(client_id: str):
     """Check if test data exists for client"""
+    AsyncSessionLocal = get_async_session_local()
     async with AsyncSessionLocal() as session:
         result = await session.execute(
             text("""
@@ -151,6 +155,7 @@ async def test_forecast_generation(client_id: str, user_id: str):
     print("Testing Forecast Generation")
     print("="*60)
     
+    AsyncSessionLocal = get_async_session_local()
     async with AsyncSessionLocal() as session:
         service = ForecastService(session)
         
@@ -206,6 +211,7 @@ async def test_quality_metrics(client_id: str):
     print("Testing Quality Metrics")
     print("="*60)
     
+    AsyncSessionLocal = get_async_session_local()
     async with AsyncSessionLocal() as session:
         calculator = QualityCalculator(session)
         

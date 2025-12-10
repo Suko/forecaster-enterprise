@@ -1,0 +1,160 @@
+# Cursor Rules for Forecaster Enterprise
+
+Based on system contracts defined in `docs/system/CONTRACTS.md`
+
+## Critical Naming Conventions
+
+### Product Identifier: `item_id` (NOT `sku`)
+- **CRITICAL**: All new tables and APIs MUST use `item_id` as the primary product identifier
+- This matches the forecasting engine: `ts_demand_daily.item_id`, `forecast_results.item_id`, `sku_classifications.item_id`
+- ✅ **Correct**: `products.item_id`, `stock_levels.item_id`, `purchase_order_items.item_id`
+- ❌ **Wrong**: `products.sku` as primary key (will break forecasting integration)
+- Optional: Add `sku` column as alias for external systems, but `item_id` is canonical
+
+## Multi-Tenant Isolation
+
+- **ALL database queries MUST filter by `client_id`**
+- Never query data without `client_id` filter
+- All tables must have `client_id` column
+- API endpoints must use `get_current_client()` dependency
+- Cache keys must include `client_id`
+
+Example:
+```python
+# ✅ Correct
+query = select(Product).where(
+    Product.client_id == client_id,
+    Product.item_id == item_id
+)
+
+# ❌ Wrong
+query = select(Product).where(Product.item_id == item_id)
+```
+
+## Time & Date Management
+
+### Timestamps vs Business Dates
+
+**Timestamps** (use `datetime`):
+- Database: `DateTime(timezone=True)`
+- Schema: `datetime`
+- Examples: `created_at`, `updated_at`, `order_date`
+- Always stored in UTC
+
+**Business Dates** (use `date`):
+- Database: `Date`
+- Schema: `date`
+- Examples: `date_local`, `expected_delivery_date`, `start_date`
+- No time component
+
+**Rules:**
+1. All `DateTime` fields in UTC with `timezone=True`
+2. Business dates use `Date` type (no time)
+3. API responses: `datetime` as ISO 8601 strings, `date` as YYYY-MM-DD
+4. Never mix `date` and `datetime` types incorrectly
+
+Example:
+```python
+# ✅ Correct
+created_at = Column(DateTime(timezone=True), server_default=func.now())
+date_local = Column(Date, nullable=False)
+
+# Schema
+created_at: datetime
+date_local: date
+```
+
+## Authentication Patterns
+
+- **User calls**: Use JWT token in `Authorization: Bearer <token>` header
+- **Service calls**: Use `X-API-Key: <key>` header, `client_id` in request body
+- Always use `get_current_client()` dependency for authenticated endpoints
+- Extract `client_id` from token for user calls
+
+## Data Validation
+
+### Inventory Data (ts_demand_daily)
+- Minimum 30 days history required
+- Date format: YYYY-MM-DD
+- No negative values for `units_sold`
+- `item_id` must match existing products
+
+### SKU Identifiers
+- Alphanumeric + underscores only
+- 1-255 characters
+- Case-sensitive
+
+## API Response Patterns
+
+### Success Response
+- Include all required fields
+- Use proper schema types (`datetime` for timestamps, `date` for business dates)
+- Include relationships when required (e.g., `supplier` in `ProductSupplierResponse`)
+
+### Error Response
+```json
+{
+  "status": "error",
+  "error_code": "ERROR_CODE",
+  "message": "Human-readable message"
+}
+```
+
+## Architecture Patterns
+
+### Layered Architecture
+1. **API Layer** (`api/`): Thin route handlers, delegate to services
+2. **Schema Layer** (`schemas/`): Pydantic models for validation
+3. **Service Layer** (`services/`): Business logic
+4. **Model Layer** (`models/`): SQLAlchemy models
+
+### Service Pattern
+```python
+class Service:
+    def __init__(self, db: AsyncSession):
+        self.db = db
+    
+    async def method(self, client_id: UUID, ...):
+        # Always filter by client_id
+        query = select(Model).where(Model.client_id == client_id)
+        ...
+```
+
+### API Route Pattern
+```python
+@router.get("/endpoint")
+async def endpoint(
+    client: Client = Depends(get_current_client),
+    db: AsyncSession = Depends(get_db)
+):
+    service = Service(db)
+    return await service.method(client.client_id, ...)
+```
+
+## Testing Rules
+
+- All tests must use `test_client_obj` fixture for Client model
+- All tests must use `test_client` fixture for AsyncClient
+- Always test multi-tenant isolation
+- Use `populate_test_data` fixture when `ts_demand_daily` is needed
+- Test fixtures should create synthetic data if CSV unavailable
+
+## Code Quality
+
+- Follow existing patterns in codebase
+- Use type hints
+- Add docstrings for public methods
+- Handle errors gracefully with proper HTTP status codes
+- Never expose internal errors to API responses
+
+## Performance
+
+- Database queries must use indexes (especially `client_id`, `item_id`)
+- Use pagination for list endpoints
+- Avoid N+1 queries (use joins or eager loading)
+- Cache expensive computations
+
+---
+
+**Reference**: See `docs/system/CONTRACTS.md` for complete system contracts.
+

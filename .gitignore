@@ -85,14 +85,18 @@ data/*/*_clean.csv
 !data/**/*.py
 !data/**/*.md
 
-# Model files (if any are saved locally)
+# ML Model files (if any are saved locally)
 *.pth
 *.pt
 *.h5
 *.ckpt
 *.pkl
-models/
-checkpoints/
+# Ignore ML model directories (but NOT backend/models/ which contains SQLAlchemy models)
+**/checkpoints/
+**/saved_models/
+**/model_checkpoints/
+# Explicitly allow backend/models/ (SQLAlchemy models)
+!backend/models/
 
 # Test reports (generated files)
 backend/reports/*.json

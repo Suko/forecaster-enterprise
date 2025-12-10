@@ -1,3 +1,10 @@
+# Ensure backend directory is in Python path (for Docker/container environments)
+import sys
+from pathlib import Path
+_backend_dir = Path(__file__).parent.parent
+if str(_backend_dir) not in sys.path:
+    sys.path.insert(0, str(_backend_dir))
+
 # Export database base and functions
 from .database import (
     Base,

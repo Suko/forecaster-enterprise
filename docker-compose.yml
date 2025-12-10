@@ -44,9 +44,6 @@ services:
       - TEST_EMAIL=${TEST_EMAIL:-}
       - TEST_PASSWORD=${TEST_PASSWORD:-}
       - TEST_NAME=${TEST_NAME:-Test User}
-    volumes:
-      # Mount data directory for CSV imports (optional)
-      - ./data:/app/data:ro
     depends_on:
       db:
         condition: service_healthy
@@ -68,7 +65,7 @@ services:
     environment:
       # Nuxt uses NUXT_ prefix for runtime config override
       - NUXT_API_BASE_URL=http://backend:8000
-      - NUXT_PUBLIC_API_BASE_URL=http://localhost:8000
+      - NUXT_PUBLIC_API_BASE_URL=${NUXT_PUBLIC_API_BASE_URL:-http://localhost:8000}
       - NUXT_SESSION_PASSWORD=${NUXT_SESSION_PASSWORD}
     depends_on:
       backend:

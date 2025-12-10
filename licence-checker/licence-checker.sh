@@ -119,7 +119,7 @@ while true; do
             # Use docker ps -f instead of --filter for explicit filtering syntax
             # -q: only show IDs
             # -a: include stopped containers (in case something stopped between checks)
-            CONTAINER_IDS=$(docker ps -qa -f "label=com.myapp.license=true")
+            CONTAINER_IDS=$(docker ps -qa -f "label=com.forecasting.license=true")
             
             if [ -n "$CONTAINER_IDS" ]; then
                 # Use plain docker stop with IDs instead of xargs for clarity

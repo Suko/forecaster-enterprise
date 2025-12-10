@@ -3,16 +3,16 @@ services:
   license-watcher:
     build: ./licence-checker
     container_name: licence-watcher
-    restart: on-failure:5                   # Stops trying after 5 failed starts
+    restart: on-failure:5 # Stops trying after 5 failed starts
     environment:
-      LICENSE_URL: ${LICENSE_URL}           # from .env file
-      LICENSE_KEY: ${LICENSE_KEY}           # from .env file
-      CHECK_INTERVAL: "3600"                  # 1 hour (3600)
-      GRACE_PERIOD: "172800"                    # 2 days (172800)
+      LICENSE_URL: ${LICENSE_URL} # from .env file
+      LICENSE_KEY: ${LICENSE_KEY} # from .env file
+      CHECK_INTERVAL: "3600" # 1 hour (3600)
+      GRACE_PERIOD: "172800" # 2 days (172800)
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock:ro
       - license_data:/data
     labels:
-      com.myapp.license: "true"
+      com.forecasting.license: "true"
 volumes:
   license_data:

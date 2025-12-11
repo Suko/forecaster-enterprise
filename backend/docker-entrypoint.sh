@@ -22,20 +22,20 @@ FIRST_TIME_SETUP=$(PGPASSWORD=$DB_PASSWORD psql -h "$DB_HOST" -U "$DB_USER" -d "
 if [ "$FIRST_TIME_SETUP" = "true" ]; then
   echo "First-time setup detected, running setup.sh..."
   
-  # Build arguments for setup.sh
-  SETUP_ARGS=""
-  [ -n "$ADMIN_EMAIL" ] && SETUP_ARGS="$SETUP_ARGS --admin-email $ADMIN_EMAIL"
-  [ -n "$ADMIN_PASSWORD" ] && SETUP_ARGS="$SETUP_ARGS --admin-password $ADMIN_PASSWORD"
-  [ -n "$ADMIN_NAME" ] && SETUP_ARGS="$SETUP_ARGS --admin-name \"$ADMIN_NAME\""
-  [ -n "$CLIENT_NAME" ] && SETUP_ARGS="$SETUP_ARGS --client-name \"$CLIENT_NAME\""
-  [ -n "$TEST_EMAIL" ] && SETUP_ARGS="$SETUP_ARGS --test-email $TEST_EMAIL"
-  [ -n "$TEST_PASSWORD" ] && SETUP_ARGS="$SETUP_ARGS --test-password $TEST_PASSWORD"
-  [ -n "$CSV_PATH" ] && SETUP_ARGS="$SETUP_ARGS --csv-path $CSV_PATH"
-  [ "$SKIP_TEST_DATA" = "true" ] && SETUP_ARGS="$SETUP_ARGS --skip-test-data"
-  [ "$SKIP_CSV_IMPORT" = "true" ] && SETUP_ARGS="$SETUP_ARGS --skip-csv-import"
+  # Build arguments array for setup.sh (properly handles spaces in values)
+  SETUP_ARGS=()
+  [ -n "$ADMIN_EMAIL" ] && SETUP_ARGS+=("--admin-email" "$ADMIN_EMAIL")
+  [ -n "$ADMIN_PASSWORD" ] && SETUP_ARGS+=("--admin-password" "$ADMIN_PASSWORD")
+  [ -n "$ADMIN_NAME" ] && SETUP_ARGS+=("--admin-name" "$ADMIN_NAME")
+  [ -n "$CLIENT_NAME" ] && SETUP_ARGS+=("--client-name" "$CLIENT_NAME")
+  [ -n "$TEST_EMAIL" ] && SETUP_ARGS+=("--test-email" "$TEST_EMAIL")
+  [ -n "$TEST_PASSWORD" ] && SETUP_ARGS+=("--test-password" "$TEST_PASSWORD")
+  [ -n "$CSV_PATH" ] && SETUP_ARGS+=("--csv-path" "$CSV_PATH")
+  [ "$SKIP_TEST_DATA" = "true" ] && SETUP_ARGS+=("--skip-test-data")
+  [ "$SKIP_CSV_IMPORT" = "true" ] && SETUP_ARGS+=("--skip-csv-import")
   
   # Run setup script (migrations already done, but alembic is idempotent)
-  bash /app/setup.sh $SETUP_ARGS || echo "Setup completed with warnings"
+  bash /app/setup.sh "${SETUP_ARGS[@]}" || echo "Setup completed with warnings"
 else
   echo "Existing database detected, skipping first-time setup"
 fi

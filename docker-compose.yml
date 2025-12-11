@@ -25,6 +25,8 @@ services:
     restart: unless-stopped
     ports:
       - "8000:8000"
+    volumes:
+      - ./data:/data:ro
     env_file:
       - .env
     environment:
@@ -40,7 +42,7 @@ services:
       # First-time setup (override in .env if needed)
       - SETUP_TEST_DATA=${SETUP_TEST_DATA:-false}
       - CLIENT_NAME=${CLIENT_NAME:-Demo Client}
-      - CSV_PATH=${CSV_PATH:-}
+      - CSV_PATH=${CSV_PATH:-/data/synthetic_data/synthetic_ecom_chronos2_demo.csv}
       - TEST_EMAIL=${TEST_EMAIL:-}
       - TEST_PASSWORD=${TEST_PASSWORD:-}
       - TEST_NAME=${TEST_NAME:-Test User}

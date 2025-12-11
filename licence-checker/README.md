@@ -113,7 +113,7 @@ CREATE TABLE activations (
 You need to create two PostgreSQL functions:
 
 1. `check_rate_limit(user_ip text, limit_count int, window_seconds int)`
-2. `activate_device_transactional(p_license_id uuid, p_machine_id text, p_max_machines int)`
+2. `activate_device_safe(p_license_id uuid, p_machine_id text, p_max_machines int)`
 
 ## Deployment
 

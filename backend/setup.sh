@@ -24,6 +24,15 @@
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 export PYTHONPATH="${PYTHONPATH:+$PYTHONPATH:}$SCRIPT_DIR"
 
+# Detect Docker environment - if in Docker, use python/alembic directly (venv is active)
+if [ -f "/.dockerenv" ] || [ -n "$DOCKER_CONTAINER" ] || grep -q docker /proc/1/cgroup 2>/dev/null; then
+    IN_DOCKER=true
+    RUN_PREFIX=""
+else
+    IN_DOCKER=false
+    RUN_PREFIX="uv run "
+fi
+
 echo "═══════════════════════════════════════════════════════════════"
 echo "  Backend First-Time Setup"
 echo "═══════════════════════════════════════════════════════════════"
@@ -153,14 +162,17 @@ done
 echo -e "${GREEN}[0/7]${NC} Checking prerequisites..."
 echo ""
 
-# Check for uv
-if ! command -v uv &> /dev/null; then
+# Check for uv (only needed outside Docker)
+if [ "$IN_DOCKER" = true ]; then
+    echo -e "${GREEN}✓${NC} Running in Docker (venv already active)"
+elif ! command -v uv &> /dev/null; then
     echo -e "${RED}✗${NC} uv is not installed"
     echo "   Install from: https://github.com/astral-sh/uv"
     echo "   Or run: curl -LsSf https://astral.sh/uv/install.sh | sh"
     exit 1
+else
+    echo -e "${GREEN}✓${NC} uv found"
 fi
-echo -e "${GREEN}✓${NC} uv found"
 
 # Check for Python 3.12+
 PYTHON_VERSION=$(python3 --version 2>&1 | awk '{print $2}' | cut -d. -f1,2)
@@ -179,36 +191,41 @@ echo ""
 # ============================================================================
 echo -e "${GREEN}[0.5/7]${NC} Setting up environment..."
 
-# Create .env from .env.example if it doesn't exist
-ENV_FILE="$SCRIPT_DIR/.env"
-ENV_EXAMPLE="$SCRIPT_DIR/.env.example"
-
-if [ ! -f "$ENV_FILE" ]; then
-    if [ -f "$ENV_EXAMPLE" ]; then
-        echo "  Creating .env file from .env.example..."
-        cp "$ENV_EXAMPLE" "$ENV_FILE"
-        
-        # Generate a secure JWT secret key
-        if command -v openssl &> /dev/null; then
-            JWT_SECRET=$(openssl rand -hex 32)
-            # Replace JWT_SECRET_KEY in .env (works on both macOS and Linux)
-            if [[ "$OSTYPE" == "darwin"* ]]; then
-                sed -i '' "s/JWT_SECRET_KEY=.*/JWT_SECRET_KEY=$JWT_SECRET/" "$ENV_FILE"
-            else
-                sed -i "s/JWT_SECRET_KEY=.*/JWT_SECRET_KEY=$JWT_SECRET/" "$ENV_FILE"
-            fi
-            echo -e "${GREEN}✓${NC} Generated secure JWT secret key"
-        else
-            echo -e "${YELLOW}⚠${NC} openssl not found - using default JWT secret (change in production!)"
-        fi
-        
-        echo -e "${GREEN}✓${NC} Created .env file"
-        echo -e "${YELLOW}⚠${NC} Please check DATABASE_URL in .env matches your PostgreSQL setup"
-    else
-        echo -e "${YELLOW}⚠${NC} .env.example not found - using environment variables"
-    fi
+# Skip .env creation in Docker (environment variables are set by docker-compose)
+if [ "$IN_DOCKER" = true ]; then
+    echo -e "${GREEN}✓${NC} Using environment variables from Docker"
 else
-    echo -e "${GREEN}✓${NC} .env file already exists"
+    # Create .env from .env.example if it doesn't exist
+    ENV_FILE="$SCRIPT_DIR/.env"
+    ENV_EXAMPLE="$SCRIPT_DIR/.env.example"
+
+    if [ ! -f "$ENV_FILE" ]; then
+        if [ -f "$ENV_EXAMPLE" ]; then
+            echo "  Creating .env file from .env.example..."
+            cp "$ENV_EXAMPLE" "$ENV_FILE"
+            
+            # Generate a secure JWT secret key
+            if command -v openssl &> /dev/null; then
+                JWT_SECRET=$(openssl rand -hex 32)
+                # Replace JWT_SECRET_KEY in .env (works on both macOS and Linux)
+                if [[ "$OSTYPE" == "darwin"* ]]; then
+                    sed -i '' "s/JWT_SECRET_KEY=.*/JWT_SECRET_KEY=$JWT_SECRET/" "$ENV_FILE"
+                else
+                    sed -i "s/JWT_SECRET_KEY=.*/JWT_SECRET_KEY=$JWT_SECRET/" "$ENV_FILE"
+                fi
+                echo -e "${GREEN}✓${NC} Generated secure JWT secret key"
+            else
+                echo -e "${YELLOW}⚠${NC} openssl not found - using default JWT secret (change in production!)"
+            fi
+            
+            echo -e "${GREEN}✓${NC} Created .env file"
+            echo -e "${YELLOW}⚠${NC} Please check DATABASE_URL in .env matches your PostgreSQL setup"
+        else
+            echo -e "${YELLOW}⚠${NC} .env.example not found - using environment variables"
+        fi
+    else
+        echo -e "${GREEN}✓${NC} .env file already exists"
+    fi
 fi
 echo ""
 
@@ -216,11 +233,15 @@ echo ""
 # DEPENDENCY INSTALLATION
 # ============================================================================
 echo -e "${GREEN}[0.7/7]${NC} Installing dependencies..."
-echo "  This may take a few minutes on first run..."
-if uv sync --quiet 2>&1 | grep -v "Resolved\|Downloaded\|Installed"; then
-    echo -e "${GREEN}✓${NC} Dependencies installed"
+if [ "$IN_DOCKER" = true ]; then
+    echo -e "${GREEN}✓${NC} Dependencies already installed in Docker image"
 else
-    echo -e "${GREEN}✓${NC} Dependencies ready"
+    echo "  This may take a few minutes on first run..."
+    if uv sync --quiet 2>&1 | grep -v "Resolved\|Downloaded\|Installed"; then
+        echo -e "${GREEN}✓${NC} Dependencies installed"
+    else
+        echo -e "${GREEN}✓${NC} Dependencies ready"
+    fi
 fi
 echo ""
 
@@ -229,16 +250,17 @@ echo ""
 # ============================================================================
 echo -e "${GREEN}[0.9/7]${NC} Checking database connection..."
 # Try to connect to database (non-blocking - will fail gracefully in migrations if needed)
-if uv run python -c "
+if ${RUN_PREFIX}python -c "
 import sys
 from pathlib import Path
 sys.path.insert(0, str(Path('.').absolute()))
 try:
     from models.database import get_async_session_local
+    from sqlalchemy import text
     import asyncio
     async def check():
         async with get_async_session_local()() as session:
-            await session.execute('SELECT 1')
+            await session.execute(text('SELECT 1'))
     asyncio.run(check())
     print('✓ Database connection successful')
     sys.exit(0)
@@ -265,12 +287,51 @@ echo ""
 
 # Step 1: Run migrations
 echo -e "${GREEN}[1/7]${NC} Running database migrations..."
-uv run alembic upgrade head
+${RUN_PREFIX}alembic upgrade head
 if [ $? -eq 0 ]; then
     echo -e "${GREEN}✓${NC} Migrations completed"
 else
     echo -e "${RED}✗${NC} Migration failed"
     exit 1
+fi
+echo ""
+
+# Step 1.5: Create client first (required for users)
+echo -e "${GREEN}[1.5/7]${NC} Creating demo client..."
+CLIENT_OUTPUT=$(${RUN_PREFIX}python -c "
+import asyncio
+import sys
+from pathlib import Path
+sys.path.insert(0, str(Path('.').absolute()))
+from models.database import get_async_session_local
+from models.client import Client
+from sqlalchemy import select
+
+async def create_client():
+    name = '$CLIENT_NAME'
+    AsyncSessionLocal = get_async_session_local()
+    async with AsyncSessionLocal() as session:
+        result = await session.execute(select(Client).where(Client.name == name))
+        existing = result.scalar_one_or_none()
+        if existing:
+            print(f'Client already exists: {existing.client_id}')
+            return str(existing.client_id)
+        client = Client(name=name, timezone='UTC', currency='EUR', is_active=True)
+        session.add(client)
+        await session.commit()
+        await session.refresh(client)
+        print(f'Created client: {client.client_id}')
+        return str(client.client_id)
+
+print(asyncio.run(create_client()))
+" 2>&1)
+echo "$CLIENT_OUTPUT"
+CLIENT_ID=$(echo "$CLIENT_OUTPUT" | grep -oE '[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}' | tail -1)
+if [ -n "$CLIENT_ID" ]; then
+    echo -e "${GREEN}✓${NC} Client ready: $CLIENT_ID"
+    export CLIENT_ID
+else
+    echo -e "${YELLOW}⚠${NC} Could not extract client ID"
 fi
 echo ""
 
@@ -280,9 +341,16 @@ if [ "$SKIP_ADMIN" != "true" ]; then
     echo "  Email: $ADMIN_EMAIL"
     echo "  Name: $ADMIN_NAME"
     
-    uv run python create_user.py "$ADMIN_EMAIL" "$ADMIN_PASSWORD" \
-        --name "$ADMIN_NAME" \
-        --admin
+    if [ -n "$CLIENT_ID" ]; then
+        ${RUN_PREFIX}python create_user.py "$ADMIN_EMAIL" "$ADMIN_PASSWORD" \
+            --name "$ADMIN_NAME" \
+            --admin \
+            --client-id "$CLIENT_ID"
+    else
+        ${RUN_PREFIX}python create_user.py "$ADMIN_EMAIL" "$ADMIN_PASSWORD" \
+            --name "$ADMIN_NAME" \
+            --admin
+    fi
     
     if [ $? -eq 0 ]; then
         echo -e "${GREEN}✓${NC} Admin user created"
@@ -300,8 +368,14 @@ if [ "$SKIP_TEST_USER" != "true" ]; then
     echo "  Email: $TEST_EMAIL"
     echo "  Name: $TEST_NAME"
     
-    uv run python create_user.py "$TEST_EMAIL" "$TEST_PASSWORD" \
-        --name "$TEST_NAME"
+    if [ -n "$CLIENT_ID" ]; then
+        ${RUN_PREFIX}python create_user.py "$TEST_EMAIL" "$TEST_PASSWORD" \
+            --name "$TEST_NAME" \
+            --client-id "$CLIENT_ID"
+    else
+        ${RUN_PREFIX}python create_user.py "$TEST_EMAIL" "$TEST_PASSWORD" \
+            --name "$TEST_NAME"
+    fi
     
     if [ $? -eq 0 ]; then
         echo -e "${GREEN}✓${NC} Test user created"
@@ -352,65 +426,79 @@ if [ "$SKIP_CSV_IMPORT" != "true" ]; then
                 if [ -f "$CSV_ABS_PATH" ]; then
                     CSV_PATH="$CSV_ABS_PATH"
                 else
-                    echo -e "${RED}✗${NC} CSV file not found: $CSV_PATH"
+                    echo -e "${YELLOW}⚠${NC} CSV file not found: $CSV_PATH"
                     echo "   Tried: $CSV_PATH"
                     echo "   Tried: $BACKEND_DIR/$CSV_PATH"
                     echo "   Tried: $PROJECT_ROOT/$CSV_PATH"
-                    exit 1
+                    if [ "$IN_DOCKER" = true ]; then
+                        echo "   (This is expected in Docker - data files are not mounted)"
+                        IMPORT_CSV="false"
+                    else
+                        exit 1
+                    fi
                 fi
             fi
         fi
         
-        echo "  CSV path: $CSV_PATH"
-        
-        # Create or get the client and import CSV
-        CLIENT_OUTPUT=$(uv run python scripts/setup_demo_client.py --name "$CLIENT_NAME" --csv "$CSV_PATH" 2>&1)
-        echo "$CLIENT_OUTPUT"
-        
-        # Extract client ID from CSV import output
-        CLIENT_ID=$(echo "$CLIENT_OUTPUT" | grep -i "Client ID:" | grep -oE '[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}' | head -1)
-        
-        if [ -z "$CLIENT_ID" ]; then
-            CLIENT_ID=$(echo "$CLIENT_OUTPUT" | grep -E "(Client.*ID|client_id)" | grep -oE '[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}' | head -1)
-        fi
-        
-        if [ -n "$CLIENT_ID" ]; then
-            echo -e "${GREEN}✓${NC} CSV data imported"
-            echo "  Client ID: $CLIENT_ID"
-            export CLIENT_ID="$CLIENT_ID"
+        # Only import if file was found
+        if [ "$IMPORT_CSV" == "true" ] && [ -f "$CSV_PATH" ]; then
+            echo "  CSV path: $CSV_PATH"
+            
+            # Create or get the client and import CSV
+            CLIENT_OUTPUT=$(${RUN_PREFIX}python scripts/setup_demo_client.py --name "$CLIENT_NAME" --csv "$CSV_PATH" 2>&1)
+            echo "$CLIENT_OUTPUT"
+            
+            # Extract client ID from CSV import output
+            CSV_CLIENT_ID=$(echo "$CLIENT_OUTPUT" | grep -i "Client ID:" | grep -oE '[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}' | head -1)
+            
+            if [ -z "$CSV_CLIENT_ID" ]; then
+                CSV_CLIENT_ID=$(echo "$CLIENT_OUTPUT" | grep -E "(Client.*ID|client_id)" | grep -oE '[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}' | head -1)
+            fi
+            
+            if [ -n "$CSV_CLIENT_ID" ]; then
+                echo -e "${GREEN}✓${NC} CSV data imported"
+                echo "  Client ID: $CSV_CLIENT_ID"
+                export CLIENT_ID="$CSV_CLIENT_ID"
+            fi
         fi
     fi
     
-    # Import M5 if needed
+    # Import M5 if needed (skip in Docker by default - takes too long for first start)
     if [ "$IMPORT_M5" == "true" ]; then
-        echo -e "${GREEN}[4/7]${NC} Downloading and importing M5 dataset..."
-        echo "  This will download M5 dataset from Zenodo (if not already downloaded)"
-        echo "  Then import selected SKUs to ts_demand_daily"
-        echo "  Note: No API credentials needed - downloads directly from Zenodo"
-        
-        # Download and import M5 data (use existing client if CSV was imported)
-        if [ -n "$CLIENT_ID" ]; then
-            M5_OUTPUT=$(uv run python scripts/download_m5_data.py --client-id "$CLIENT_ID" --n-skus 40 2>&1)
+        if [ "$IN_DOCKER" = true ]; then
+            echo -e "${YELLOW}[4/7]${NC} Skipping M5 dataset download in Docker (too slow for first start)"
+            echo "   You can import data later using the API or mounted volumes"
+            IMPORT_M5="false"
         else
-            M5_OUTPUT=$(uv run python scripts/download_m5_data.py --client-name "$CLIENT_NAME" --n-skus 40 2>&1)
-        fi
-        echo "$M5_OUTPUT"
-        
-        # Extract client ID from M5 import output (if not already set)
-        if [ -z "$CLIENT_ID" ]; then
-            CLIENT_ID=$(echo "$M5_OUTPUT" | grep -i "Client ID:" | grep -oE '[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}' | head -1)
+            echo -e "${GREEN}[4/7]${NC} Downloading and importing M5 dataset..."
+            echo "  This will download M5 dataset from Zenodo (if not already downloaded)"
+            echo "  Then import selected SKUs to ts_demand_daily"
+            echo "  Note: No API credentials needed - downloads directly from Zenodo"
             
-            if [ -z "$CLIENT_ID" ]; then
-                CLIENT_ID=$(echo "$M5_OUTPUT" | grep -E "(Client.*ID|client_id)" | grep -oE '[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}' | head -1)
-            fi
-            
+            # Download and import M5 data (use existing client if CSV was imported)
             if [ -n "$CLIENT_ID" ]; then
-                echo -e "${GREEN}✓${NC} M5 data imported"
-                echo "  Client ID: $CLIENT_ID"
-                export CLIENT_ID="$CLIENT_ID"
+                M5_OUTPUT=$(${RUN_PREFIX}python scripts/download_m5_data.py --client-id "$CLIENT_ID" --n-skus 40 2>&1)
+            else
+                M5_OUTPUT=$(${RUN_PREFIX}python scripts/download_m5_data.py --client-name "$CLIENT_NAME" --n-skus 40 2>&1)
             fi
-        else
-            echo -e "${GREEN}✓${NC} M5 data imported (using existing client)"
+            echo "$M5_OUTPUT"
+            
+            # Extract client ID from M5 import output (if not already set)
+            if [ -z "$CLIENT_ID" ]; then
+                CLIENT_ID=$(echo "$M5_OUTPUT" | grep -i "Client ID:" | grep -oE '[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}' | head -1)
+                
+                if [ -z "$CLIENT_ID" ]; then
+                    CLIENT_ID=$(echo "$M5_OUTPUT" | grep -E "(Client.*ID|client_id)" | grep -oE '[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}' | head -1)
+                fi
+                
+                if [ -n "$CLIENT_ID" ]; then
+                    echo -e "${GREEN}✓${NC} M5 data imported"
+                    echo "  Client ID: $CLIENT_ID"
+                    export CLIENT_ID="$CLIENT_ID"
+                fi
+            else
+                echo -e "${GREEN}✓${NC} M5 data imported (using existing client)"
+            fi
         fi
     fi
     
@@ -418,7 +506,7 @@ if [ "$SKIP_CSV_IMPORT" != "true" ]; then
     if [ -z "$CLIENT_ID" ]; then
         echo -e "${YELLOW}⚠${NC} Could not extract client ID from import output"
         echo "  Attempting to get client ID from database..."
-        CLIENT_ID=$(uv run python -c "
+        CLIENT_ID=$(${RUN_PREFIX}python -c "
 import asyncio
 import sys
 from pathlib import Path
@@ -440,14 +528,19 @@ asyncio.run(get_client())
             echo "  Found Client ID: $CLIENT_ID"
             export CLIENT_ID="$CLIENT_ID"
         else
-            echo -e "${RED}✗${NC} Could not determine client ID. Please check the import output above."
-            exit 1
+            if [ "$IN_DOCKER" = true ]; then
+                echo -e "${YELLOW}⚠${NC} No data imported in Docker - client and users created, but no demo data"
+                echo "   Import data using the API or mount CSV files to /data volume"
+            else
+                echo -e "${RED}✗${NC} Could not determine client ID. Please check the import output above."
+                exit 1
+            fi
         fi
     fi
 else
     echo -e "${YELLOW}[4/7]${NC} Skipping CSV import (--skip-csv-import)"
     # Try to get existing client ID
-    CLIENT_ID=$(uv run python -c "
+    CLIENT_ID=$(${RUN_PREFIX}python -c "
 import asyncio
 import sys
 from pathlib import Path
@@ -473,7 +566,7 @@ asyncio.run(get_client())
     # Assign client to admin and test users (if they don't have one)
     if [ -n "$CLIENT_ID" ]; then
         echo -e "${GREEN}[4.5/7]${NC} Assigning client to users..."
-        uv run python -c "
+        ${RUN_PREFIX}python -c "
 import asyncio
 import sys
 from pathlib import Path
@@ -523,33 +616,40 @@ echo ""
 
 # Step 5: Set up test data (products, locations, suppliers, stock levels)
 # This also shifts sales data dates to recent and populates historical stock
+# In Docker without data import, skip this step
 if [ "$SKIP_TEST_DATA" != "true" ]; then
-    echo -e "${GREEN}[5/7]${NC} Setting up test data (products, locations, suppliers, stock)..."
-    echo "  Client name: $CLIENT_NAME"
-    echo "  This will also:"
-    echo "    - Shift sales data dates to recent (makes all data relative to today)"
-    echo "    - Populate historical stock data (stock_on_date)"
-    
-    if [ -n "$CLIENT_ID" ]; then
-        CLIENT_ARG="--client-id $CLIENT_ID"
+    # Check if we should skip in Docker (no data imported)
+    if [ "$IN_DOCKER" = true ] && [ "$IMPORT_CSV" != "true" ] && [ "$IMPORT_M5" != "true" ]; then
+        echo -e "${YELLOW}[5/7]${NC} Skipping test data setup (no sales data imported in Docker)"
+        echo "   To set up test data, mount your CSV files and run setup manually"
     else
-        CLIENT_ARG="--client-name $CLIENT_NAME"
-    fi
-    
-    # Run setup_test_data.py and capture output
-    # This automatically:
-    # - Creates products, locations, suppliers, stock levels
-    # - Shifts sales data dates to recent (Step 9)
-    # - Populates historical stock (Step 10)
-    TEST_DATA_OUTPUT=$(uv run python scripts/setup_test_data.py $CLIENT_ARG 2>&1)
-    echo "$TEST_DATA_OUTPUT"
-    
-    if echo "$TEST_DATA_OUTPUT" | grep -qi "error\|failed\|warning.*no.*item_ids"; then
-        echo -e "${YELLOW}⚠${NC} Test data setup had issues - check output above"
-    else
-        echo -e "${GREEN}✓${NC} Test data setup completed"
-        echo -e "${GREEN}✓${NC} Sales data dates shifted to recent"
-        echo -e "${GREEN}✓${NC} Historical stock data populated"
+        echo -e "${GREEN}[5/7]${NC} Setting up test data (products, locations, suppliers, stock)..."
+        echo "  Client name: $CLIENT_NAME"
+        echo "  This will also:"
+        echo "    - Shift sales data dates to recent (makes all data relative to today)"
+        echo "    - Populate historical stock data (stock_on_date)"
+        
+        if [ -n "$CLIENT_ID" ]; then
+            CLIENT_ARG="--client-id $CLIENT_ID"
+        else
+            CLIENT_ARG="--client-name $CLIENT_NAME"
+        fi
+        
+        # Run setup_test_data.py and capture output
+        # This automatically:
+        # - Creates products, locations, suppliers, stock levels
+        # - Shifts sales data dates to recent (Step 9)
+        # - Populates historical stock (Step 10)
+        TEST_DATA_OUTPUT=$(${RUN_PREFIX}python scripts/setup_test_data.py $CLIENT_ARG 2>&1)
+        echo "$TEST_DATA_OUTPUT"
+        
+        if echo "$TEST_DATA_OUTPUT" | grep -qi "error\|failed\|warning.*no.*item_ids"; then
+            echo -e "${YELLOW}⚠${NC} Test data setup had issues - check output above"
+        else
+            echo -e "${GREEN}✓${NC} Test data setup completed"
+            echo -e "${GREEN}✓${NC} Sales data dates shifted to recent"
+            echo -e "${GREEN}✓${NC} Historical stock data populated"
+        fi
     fi
 else
     echo -e "${YELLOW}[5/7]${NC} Skipping test data setup (--skip-test-data)"
@@ -560,7 +660,7 @@ echo ""
 echo -e "${GREEN}[6/7]${NC} Verifying setup..."
 # Quick verification that data exists
 if [ -n "$CLIENT_ID" ] && [ "$SKIP_TEST_DATA" != "true" ]; then
-    VERIFY_OUTPUT=$(uv run python -c "
+    VERIFY_OUTPUT=$(${RUN_PREFIX}python -c "
 import asyncio
 import sys
 from pathlib import Path
@@ -596,7 +696,7 @@ echo "📋 Quick Start:"
 echo ""
 echo "1. Start the server:"
 echo "   ${GREEN}cd $SCRIPT_DIR${NC}"
-echo "   ${GREEN}uv run uvicorn main:app --reload${NC}"
+echo "   ${GREEN}${RUN_PREFIX}uvicorn main:app --reload${NC}"
 echo ""
 echo "2. Access the API:"
 echo "   ${GREEN}http://localhost:8000${NC}"
@@ -616,11 +716,11 @@ if [ -n "$CLIENT_ID" ]; then
     echo ""
 fi
 echo "5. Run tests:"
-echo "   ${GREEN}uv run pytest tests/test_api/test_inventory_api.py -v${NC}"
+echo "   ${GREEN}${RUN_PREFIX}pytest tests/test_api/test_inventory_api.py -v${NC}"
 echo ""
 echo "═══════════════════════════════════════════════════════════════"
 echo ""
 echo "💡 Tip: If you need to reset test data, run:"
-echo "   ${GREEN}uv run python scripts/reset_test_data.py --client-id $CLIENT_ID${NC}"
+echo "   ${GREEN}${RUN_PREFIX}python scripts/reset_test_data.py --client-id $CLIENT_ID${NC}"
 echo ""
 

@@ -1,0 +1,62 @@
+services:
+  db:
+    image: postgres:16-alpine
+    container_name: forecast-db-dev
+    restart: unless-stopped
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_USER: ${DB_USER:-postgres}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-postgres123}
+      POSTGRES_DB: ${DB_NAME:-forecaster_enterprise}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER:-postgres}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  setup:
+    build: ./backend
+    container_name: forecast-setup-dev
+    restart: "no"
+    entrypoint: []  # Override default entrypoint
+    env_file:
+      - .env
+    environment:
+      - DB_HOST=db
+      - DATABASE_URL=postgresql://${DB_USER:-postgres}:${DB_PASSWORD:-postgres123}@db:5432/${DB_NAME:-forecaster_enterprise}?sslmode=disable
+      - ADMIN_EMAIL=${ADMIN_EMAIL:-admin@example.com}
+      - ADMIN_PASSWORD=${ADMIN_PASSWORD:-admin123}
+      - ADMIN_NAME=${ADMIN_NAME:-Admin User}
+      - CLIENT_NAME=${CLIENT_NAME:-Demo Client}
+      - SKIP_TEST_DATA=${SKIP_TEST_DATA:-true}
+      - SKIP_CSV_IMPORT=${SKIP_CSV_IMPORT:-true}
+    depends_on:
+      db:
+        condition: service_healthy
+    command:
+      - sh
+      - -c
+      - |
+        echo 'Waiting for database...'
+        until PGPASSWORD=$${DB_PASSWORD} psql -h db -U $${DB_USER} -d $${DB_NAME} -c '\q' 2>/dev/null; do
+          echo 'Database is unavailable - sleeping'
+          sleep 2
+        done
+        echo 'Database is ready!'
+        echo 'Running migrations...'
+        alembic upgrade head
+        echo 'Checking if setup is needed...'
+        FIRST_TIME=$$(PGPASSWORD=$${DB_PASSWORD} psql -h db -U $${DB_USER} -d $${DB_NAME} -tAc "SELECT CASE WHEN EXISTS (SELECT 1 FROM users) THEN 'false' ELSE 'true' END;" 2>/dev/null || echo 'true')
+        if [ "$$FIRST_TIME" = 'true' ]; then
+          echo 'Running first-time setup...'
+          bash /app/setup.sh --skip-test-data --skip-csv-import
+          echo '✅ Setup complete!'
+        else
+          echo '✅ Database already initialized, skipping setup'
+        fi
+
+volumes:
+  postgres_data:

@@ -1,0 +1,5 @@
+id,client_id,external_id,name,contact_email,contact_phone,address,supplier_type,is_synced,notes,created_at,updated_at
+7a471a06-e9aa-4ad2-b323-5a82c5b318ed,56b5ffb9-c0a3-49c4-acb2-cd0438da3f64,,Manufacturing Partner,prod@manufacturing.com,,,WO,f,,2025-12-11 12:41:07.243998+00,2025-12-11 12:41:07.243998+00
+5fde3eaa-97b0-4a81-990c-279cf0d090a1,56b5ffb9-c0a3-49c4-acb2-cd0438da3f64,,Supplier A,contact@supplier-a.com,,,PO,f,,2025-12-11 12:41:07.243998+00,2025-12-11 12:41:07.243998+00
+179c3af5-6ae8-4abe-8590-afad664a9dbf,56b5ffb9-c0a3-49c4-acb2-cd0438da3f64,,Supplier B,info@supplier-b.com,,,PO,f,,2025-12-11 12:41:07.243998+00,2025-12-11 12:41:07.243998+00
+63439a2c-42f6-4bb4-9763-136635900f41,56b5ffb9-c0a3-49c4-acb2-cd0438da3f64,,Supplier C,sales@supplier-c.com,,,PO,f,,2025-12-11 12:41:07.243998+00,2025-12-11 12:41:07.243998+00

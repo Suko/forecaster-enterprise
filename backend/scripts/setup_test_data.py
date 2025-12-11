@@ -9,12 +9,15 @@ Creates test data for MVP development:
 - Product-Supplier conditions (MOQ, lead time)
 - Stock levels
 - Client settings
+- Historical stock (stock_on_date) for multi-year history
 
 Usage:
     uv run python backend/scripts/setup_test_data.py \
         [--client-id <uuid>] \
         [--client-name "Demo Client"] \
-        [--clear-existing]
+        [--clear-existing] \
+        [--use-m5-locations] \
+        [--stock-history-days 1095]
 """
 import asyncio
 import argparse
@@ -137,8 +140,12 @@ async def create_products(client_id: str, item_ids: List[str], clear_existing: b
         return created
 
 
-async def create_locations(client_id: str, clear_existing: bool = False) -> int:
-    """Create sample locations"""
+async def create_locations(
+    client_id: str,
+    clear_existing: bool = False,
+    use_m5_locations: bool = False
+) -> int:
+    """Create sample locations (default set or M5 store set)"""
     AsyncSessionLocal = get_async_session_local()
     async with AsyncSessionLocal() as session:
         if clear_existing:
@@ -148,11 +155,26 @@ async def create_locations(client_id: str, clear_existing: bool = False) -> int:
             )
             await session.commit()
         
-        locations_data = [
-            {"location_id": "WH-001", "name": "Main Warehouse", "city": "Ljubljana", "country": "Slovenia"},
-            {"location_id": "WH-002", "name": "Secondary Warehouse", "city": "Maribor", "country": "Slovenia"},
-            {"location_id": "STORE-001", "name": "Retail Store 1", "city": "Ljubljana", "country": "Slovenia"},
-        ]
+        locations_data = (
+            [
+                {"location_id": "CA_1", "name": "CA Store 1", "city": "California", "country": "USA"},
+                {"location_id": "CA_2", "name": "CA Store 2", "city": "California", "country": "USA"},
+                {"location_id": "CA_3", "name": "CA Store 3", "city": "California", "country": "USA"},
+                {"location_id": "TX_1", "name": "TX Store 1", "city": "Texas", "country": "USA"},
+                {"location_id": "TX_2", "name": "TX Store 2", "city": "Texas", "country": "USA"},
+                {"location_id": "WI_1", "name": "WI Store 1", "city": "Wisconsin", "country": "USA"},
+                {"location_id": "WI_2", "name": "WI Store 2", "city": "Wisconsin", "country": "USA"},
+                {"location_id": "WI_3", "name": "WI Store 3", "city": "Wisconsin", "country": "USA"},
+                {"location_id": "WI_4", "name": "WI Store 4", "city": "Wisconsin", "country": "USA"},
+                {"location_id": "WI_5", "name": "WI Store 5", "city": "Wisconsin", "country": "USA"},
+            ]
+            if use_m5_locations
+            else [
+                {"location_id": "WH-001", "name": "Main Warehouse", "city": "Ljubljana", "country": "Slovenia"},
+                {"location_id": "WH-002", "name": "Secondary Warehouse", "city": "Maribor", "country": "Slovenia"},
+                {"location_id": "STORE-001", "name": "Retail Store 1", "city": "Ljubljana", "country": "Slovenia"},
+            ]
+        )
         
         created = 0
         for loc_data in locations_data:
@@ -395,7 +417,9 @@ async def setup_test_data(
     client_name: str = "Demo Client",
     clear_existing: bool = False,
     days_back: int = 30,
-    skip_recent_sales: bool = False
+    skip_recent_sales: bool = False,
+    use_m5_locations: bool = False,
+    stock_history_days: int = 1095
 ) -> dict:
     """Complete test data setup"""
     print("="*60)
@@ -422,7 +446,11 @@ async def setup_test_data(
     
     # Step 4: Create locations
     print(f"\n4. Creating locations...")
-    locations_created = await create_locations(client_id, clear_existing)
+    locations_created = await create_locations(
+        client_id,
+        clear_existing,
+        use_m5_locations=use_m5_locations
+    )
     
     # Get location_ids
     AsyncSessionLocal = get_async_session_local()
@@ -490,7 +518,7 @@ async def setup_test_data(
         stock_result = await populate_historical_stock(
             client_id=client_id,
             item_ids=item_ids,
-            days_back=365,  # Populate last year
+            days_back=stock_history_days,
             reference_date=None  # Use today
         )
         
@@ -536,6 +564,8 @@ async def main():
     parser.add_argument("--clear-existing", action="store_true", help="Clear existing test data first")
     parser.add_argument("--days-back", type=int, default=30, help="Days of recent sales data to generate (default: 30)")
     parser.add_argument("--skip-recent-sales", action="store_true", help="Skip generating recent sales data")
+    parser.add_argument("--use-m5-locations", action="store_true", help="Seed M5 store locations (CA/TX/WI stores)")
+    parser.add_argument("--stock-history-days", type=int, default=1095, help="Days of stock_on_date history to populate (default: 3 years)")
     
     args = parser.parse_args()
     
@@ -545,7 +575,9 @@ async def main():
             client_name=args.client_name,
             clear_existing=args.clear_existing,
             days_back=args.days_back,
-            skip_recent_sales=args.skip_recent_sales
+            skip_recent_sales=args.skip_recent_sales,
+            use_m5_locations=args.use_m5_locations,
+            stock_history_days=args.stock_history_days
         )
         
         if "error" in result:
@@ -562,4 +594,3 @@ async def main():
 
 if __name__ == "__main__":
     asyncio.run(main())
-

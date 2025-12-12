@@ -19,10 +19,10 @@ const toast = useToast();
 const draftQuantities = ref<Record<string, number | string>>({});
 
 type PurchaseOrderDraft = {
-  shipping_method?: string
-  shipping_unit?: string
-  notes?: string
-}
+  shipping_method?: string;
+  shipping_unit?: string;
+  notes?: string;
+};
 
 const poDrafts = ref<Record<string, PurchaseOrderDraft>>({});
 const DRAFTS_STORAGE_KEY = "fe:po-drafts:v1";
@@ -114,24 +114,40 @@ const onUpdateQuantity = async (item: CartItem) => {
 
   try {
     await updateCartItem(item.item_id, item.supplier_id, { quantity: Math.floor(nextQty) });
-    toast.add({ title: "Updated", description: `${item.product_name} quantity updated`, color: "green" });
+    toast.add({
+      title: "Updated",
+      description: `${item.product_name} quantity updated`,
+      color: "green",
+    });
     await loadCart();
   } catch (err: any) {
     const wasAuthError = await handleAuthError(err);
     if (wasAuthError) return;
-    toast.add({ title: "Update failed", description: err.message || "Failed to update item", color: "red" });
+    toast.add({
+      title: "Update failed",
+      description: err.message || "Failed to update item",
+      color: "red",
+    });
   }
 };
 
 const onRemoveItem = async (item: CartItem) => {
   try {
     await removeFromCart(item.item_id, item.supplier_id);
-    toast.add({ title: "Removed", description: `${item.product_name} removed from cart`, color: "green" });
+    toast.add({
+      title: "Removed",
+      description: `${item.product_name} removed from cart`,
+      color: "green",
+    });
     await loadCart();
   } catch (err: any) {
     const wasAuthError = await handleAuthError(err);
     if (wasAuthError) return;
-    toast.add({ title: "Remove failed", description: err.message || "Failed to remove item", color: "red" });
+    toast.add({
+      title: "Remove failed",
+      description: err.message || "Failed to remove item",
+      color: "red",
+    });
   }
 };
 
@@ -143,7 +159,11 @@ const onClearCart = async () => {
   } catch (err: any) {
     const wasAuthError = await handleAuthError(err);
     if (wasAuthError) return;
-    toast.add({ title: "Clear failed", description: err.message || "Failed to clear cart", color: "red" });
+    toast.add({
+      title: "Clear failed",
+      description: err.message || "Failed to clear cart",
+      color: "red",
+    });
   }
 };
 
@@ -168,7 +188,11 @@ const onCreatePoForSupplier = async (supplierId: string) => {
   } catch (err: any) {
     const wasAuthError = await handleAuthError(err);
     if (wasAuthError) return;
-    toast.add({ title: "Create PO failed", description: err.message || "Failed to create PO", color: "red" });
+    toast.add({
+      title: "Create PO failed",
+      description: err.message || "Failed to create PO",
+      color: "red",
+    });
   } finally {
     creatingPoSupplierId.value = null;
   }
@@ -191,7 +215,12 @@ onMounted(async () => {
     <PurchaseOrdersSectionTabs />
 
     <div class="flex items-center justify-end gap-2">
-      <UButton icon="i-lucide-refresh-cw" variant="ghost" :loading="loading" @click="loadCart">
+      <UButton
+        icon="i-lucide-refresh-cw"
+        variant="ghost"
+        :loading="loading"
+        @click="loadCart"
+      >
         Refresh
       </UButton>
       <UButton
@@ -205,11 +234,23 @@ onMounted(async () => {
       </UButton>
     </div>
 
-    <div v-if="loading" class="flex items-center justify-center py-12">
-      <UIcon name="i-lucide-loader-2" class="w-8 h-8 animate-spin text-primary" />
+    <div
+      v-if="loading"
+      class="flex items-center justify-center py-12"
+    >
+      <UIcon
+        name="i-lucide-loader-2"
+        class="w-8 h-8 animate-spin text-primary"
+      />
     </div>
 
-    <UAlert v-else-if="error" color="error" variant="soft" title="Error loading cart" :description="error" />
+    <UAlert
+      v-else-if="error"
+      color="error"
+      variant="soft"
+      title="Error loading cart"
+      :description="error"
+    />
 
     <UCard v-else-if="items.length === 0">
       <div class="p-6 text-center text-muted">
@@ -217,7 +258,10 @@ onMounted(async () => {
       </div>
     </UCard>
 
-    <div v-else class="space-y-4">
+    <div
+      v-else
+      class="space-y-4"
+    >
       <UCard>
         <template #header>
           <div class="flex items-center justify-between">
@@ -229,7 +273,10 @@ onMounted(async () => {
         </template>
       </UCard>
 
-      <UCard v-for="group in groupedBySupplier" :key="group.supplier_id">
+      <UCard
+        v-for="group in groupedBySupplier"
+        :key="group.supplier_id"
+      >
         <template #header>
           <div class="flex items-center justify-between gap-3">
             <div>
@@ -240,7 +287,9 @@ onMounted(async () => {
               >
                 {{ group.supplier_name }}
               </button>
-              <p class="text-xs text-muted">{{ group.items.length }} item(s) · {{ formatMoney(group.total) }}</p>
+              <p class="text-xs text-muted">
+                {{ group.items.length }} item(s) · {{ formatMoney(group.total) }}
+              </p>
             </div>
             <UButton
               icon="i-lucide-file-plus-2"
@@ -264,12 +313,20 @@ onMounted(async () => {
               placeholder="Shipping unit (optional)"
               size="sm"
             />
-            <UInput v-model="poDrafts[group.supplier_id].notes" placeholder="Notes (optional)" size="sm" />
+            <UInput
+              v-model="poDrafts[group.supplier_id].notes"
+              placeholder="Notes (optional)"
+              size="sm"
+            />
           </div>
         </div>
 
         <div class="divide-y">
-          <div v-for="item in group.items" :key="keyFor(item)" class="py-3 flex items-center gap-3">
+          <div
+            v-for="item in group.items"
+            :key="keyFor(item)"
+            class="py-3 flex items-center gap-3"
+          >
             <div class="flex-1 min-w-0">
               <div class="font-medium truncate">{{ item.product_name }}</div>
               <div class="text-xs text-muted">{{ item.item_id }}</div>
@@ -288,12 +345,22 @@ onMounted(async () => {
               />
             </div>
 
-            <UButton size="sm" variant="soft" @click="onUpdateQuantity(item)">Update</UButton>
-            <UButton size="sm" color="red" variant="ghost" @click="onRemoveItem(item)">Remove</UButton>
+            <UButton
+              size="sm"
+              variant="soft"
+              @click="onUpdateQuantity(item)"
+              >Update</UButton
+            >
+            <UButton
+              size="sm"
+              color="red"
+              variant="ghost"
+              @click="onRemoveItem(item)"
+              >Remove</UButton
+            >
           </div>
         </div>
       </UCard>
     </div>
   </div>
 </template>
-

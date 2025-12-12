@@ -26,7 +26,9 @@ export default defineEventHandler(async (event) => {
         .map(([k, v]) => [k, String(v)])
     ).toString();
 
-    return await authenticatedFetch(event, `/api/v1/purchase-orders/from-cart?${qs}`, { method: "POST" });
+    return await authenticatedFetch(event, `/api/v1/purchase-orders/from-cart?${qs}`, {
+      method: "POST",
+    });
   } catch (error: any) {
     if (error.statusCode === 401) {
       throw createError({ statusCode: 401, statusMessage: "Not authenticated" });
@@ -37,4 +39,3 @@ export default defineEventHandler(async (event) => {
     });
   }
 });
-

@@ -1,7 +1,7 @@
 <template>
   <div class="p-8">
     <h1 class="text-3xl font-bold mb-6 text-gray-900 dark:text-white">Settings</h1>
-    
+
     <UTabs
       :items="tabs"
       :default-value="activeTab"
@@ -20,19 +20,19 @@
           Documentation
         </UButton>
       </template>
-      
+
       <template #general>
         <slot name="general">
           <GeneralSection />
         </slot>
       </template>
-      
+
       <template #users>
         <slot name="users">
           <UsersSection />
         </slot>
       </template>
-      
+
       <template #notifications>
         <slot name="notifications">
           <div class="py-8">
@@ -40,7 +40,7 @@
           </div>
         </slot>
       </template>
-      
+
       <template #security>
         <slot name="security">
           <div class="py-8">
@@ -62,23 +62,23 @@ const tabs: TabsItem[] = [
   {
     label: "General",
     value: "general",
-    slot: "general"
+    slot: "general",
   },
   {
     label: "Users",
     value: "users",
-    slot: "users"
+    slot: "users",
   },
   {
     label: "Notifications",
     value: "notifications",
-    slot: "notifications"
+    slot: "notifications",
   },
   {
     label: "Security",
     value: "security",
-    slot: "security"
-  }
+    slot: "security",
+  },
 ];
 
 const activeTab = computed(() => {
@@ -106,4 +106,3 @@ const handleTabChange = (value: string | number) => {
   }
 };
 </script>
-

@@ -103,7 +103,12 @@ onMounted(async () => {
     <div class="flex items-center justify-between gap-3">
       <div class="text-sm text-muted">{{ total }} supplier(s)</div>
       <div class="flex items-center gap-2">
-        <UInput v-model="searchQuery" icon="i-lucide-search" placeholder="Search suppliers..." class="w-64" />
+        <UInput
+          v-model="searchQuery"
+          icon="i-lucide-search"
+          placeholder="Search suppliers..."
+          class="w-64"
+        />
         <USelectMenu
           v-model="selectedType"
           :options="typeOptions"
@@ -111,25 +116,43 @@ onMounted(async () => {
           option-attribute="label"
           class="w-56"
         />
-        <UButton icon="i-lucide-refresh-cw" variant="ghost" :loading="loading" @click="loadSuppliers({ reset: true })">
+        <UButton
+          icon="i-lucide-refresh-cw"
+          variant="ghost"
+          :loading="loading"
+          @click="loadSuppliers({ reset: true })"
+        >
           Refresh
         </UButton>
       </div>
     </div>
 
-    <div v-if="loading && suppliers.length === 0" class="flex items-center justify-center py-12">
-      <UIcon name="i-lucide-loader-2" class="w-8 h-8 animate-spin text-primary" />
+    <div
+      v-if="loading && suppliers.length === 0"
+      class="flex items-center justify-center py-12"
+    >
+      <UIcon
+        name="i-lucide-loader-2"
+        class="w-8 h-8 animate-spin text-primary"
+      />
     </div>
 
-    <UAlert v-else-if="error" color="error" variant="soft" title="Error loading suppliers" :description="error" />
+    <UAlert
+      v-else-if="error"
+      color="error"
+      variant="soft"
+      title="Error loading suppliers"
+      :description="error"
+    />
 
     <UCard v-else-if="suppliers.length === 0">
-      <div class="p-6 text-center text-muted">
-        No suppliers found.
-      </div>
+      <div class="p-6 text-center text-muted">No suppliers found.</div>
     </UCard>
 
-    <div v-else class="space-y-2">
+    <div
+      v-else
+      class="space-y-2"
+    >
       <UCard
         v-for="supplier in suppliers"
         :key="supplier.id"
@@ -140,28 +163,49 @@ onMounted(async () => {
           <div class="min-w-0">
             <div class="flex items-center gap-2">
               <div class="font-semibold truncate">{{ supplier.name }}</div>
-              <UBadge :color="badgeColorForType(supplier.supplier_type)" variant="soft">
+              <UBadge
+                :color="badgeColorForType(supplier.supplier_type)"
+                variant="soft"
+              >
                 {{ supplier.supplier_type }}
               </UBadge>
-              <UBadge v-if="supplier.is_synced" color="green" variant="soft">Synced</UBadge>
+              <UBadge
+                v-if="supplier.is_synced"
+                color="green"
+                variant="soft"
+                >Synced</UBadge
+              >
             </div>
             <div class="text-sm text-muted truncate">
-              {{ supplier.contact_email || 'No email' }}
+              {{ supplier.contact_email || "No email" }}
             </div>
-            <div v-if="supplier.contact_phone" class="text-xs text-muted">
+            <div
+              v-if="supplier.contact_phone"
+              class="text-xs text-muted"
+            >
               {{ supplier.contact_phone }}
             </div>
           </div>
-          <UIcon name="i-lucide-chevron-right" class="size-4 text-muted" />
+          <UIcon
+            name="i-lucide-chevron-right"
+            class="size-4 text-muted"
+          />
         </div>
       </UCard>
 
-      <div v-if="page < totalPages" class="pt-2">
-        <UButton :loading="loading" variant="soft" block @click="loadMore">
+      <div
+        v-if="page < totalPages"
+        class="pt-2"
+      >
+        <UButton
+          :loading="loading"
+          variant="soft"
+          block
+          @click="loadMore"
+        >
           Load more
         </UButton>
       </div>
     </div>
   </div>
 </template>
-

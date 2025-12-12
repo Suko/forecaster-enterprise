@@ -9,10 +9,7 @@ export default defineEventHandler(async (event) => {
   const { user } = await requireUserSession(event);
 
   try {
-    const dashboardData = await authenticatedFetch<DashboardResponse>(
-      event,
-      "/api/v1/dashboard"
-    );
+    const dashboardData = await authenticatedFetch<DashboardResponse>(event, "/api/v1/dashboard");
 
     return dashboardData;
   } catch (error: any) {

@@ -10,14 +10,10 @@ export default defineEventHandler(async (event) => {
   try {
     const body = await readBody(event);
 
-    const result = await authenticatedFetch(
-      event,
-      "/api/v1/order-planning/cart/add",
-      {
-        method: "POST",
-        body,
-      }
-    );
+    const result = await authenticatedFetch(event, "/api/v1/order-planning/cart/add", {
+      method: "POST",
+      body,
+    });
 
     return result;
   } catch (error: any) {
@@ -33,4 +29,3 @@ export default defineEventHandler(async (event) => {
     });
   }
 });
-

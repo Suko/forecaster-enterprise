@@ -14,7 +14,7 @@ export const useRecommendations = () => {
   ): Promise<Recommendation[]> => {
     try {
       const queryParams = new URLSearchParams();
-      
+
       if (filters?.recommendation_type) {
         queryParams.append("type", filters.recommendation_type);
       }

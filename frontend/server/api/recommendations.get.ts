@@ -11,14 +11,15 @@ export default defineEventHandler(async (event) => {
   try {
     const query = getQuery(event);
     const queryString = new URLSearchParams(
-      Object.entries(query).filter(([_, v]) => v !== undefined && v !== null && v !== "")
+      Object.entries(query)
+        .filter(([_, v]) => v !== undefined && v !== null && v !== "")
         .map(([k, v]) => [k, String(v)])
     ).toString();
 
-    const recommendations = await authenticatedFetch<{ recommendations: Recommendation[], total: number }>(
-      event,
-      `/api/v1/recommendations${queryString ? `?${queryString}` : ""}`
-    );
+    const recommendations = await authenticatedFetch<{
+      recommendations: Recommendation[];
+      total: number;
+    }>(event, `/api/v1/recommendations${queryString ? `?${queryString}` : ""}`);
 
     return recommendations.recommendations;
   } catch (error: any) {

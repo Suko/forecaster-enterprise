@@ -9,7 +9,7 @@ const bodySchema = z.object({
 export default defineEventHandler(async (event) => {
   const clientIP = getClientIP(event);
   const userAgent = getUserAgent(event);
-  
+
   try {
     const { email, password } = await readValidatedBody(event, bodySchema.parse);
 
@@ -39,7 +39,7 @@ export default defineEventHandler(async (event) => {
       try {
         const userResponse = await $fetch(`${apiBaseUrl}/auth/me`, {
           headers: {
-            "Authorization": `Bearer ${accessToken}`,
+            Authorization: `Bearer ${accessToken}`,
           },
         });
         userInfo = userResponse as any;
@@ -111,4 +111,3 @@ export default defineEventHandler(async (event) => {
     });
   }
 });
-

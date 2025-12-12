@@ -11,7 +11,8 @@ export default defineEventHandler(async (event) => {
   try {
     const query = getQuery(event);
     const queryString = new URLSearchParams(
-      Object.entries(query).filter(([_, v]) => v !== undefined && v !== null && v !== "")
+      Object.entries(query)
+        .filter(([_, v]) => v !== undefined && v !== null && v !== "")
         .map(([k, v]) => [k, String(v)])
     ).toString();
 
@@ -34,4 +35,3 @@ export default defineEventHandler(async (event) => {
     });
   }
 });
-

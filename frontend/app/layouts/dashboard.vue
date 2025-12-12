@@ -9,26 +9,26 @@ const mainMenuItems = computed<NavigationMenuItem[]>(() => [
     label: "Dashboard",
     icon: "i-lucide-layout-dashboard",
     to: "/dashboard",
-    active: route.path === "/dashboard"
+    active: route.path === "/dashboard",
   },
   {
     label: "Inventory",
     icon: "i-lucide-package",
     to: "/inventory",
-    active: route.path.startsWith("/inventory")
+    active: route.path.startsWith("/inventory"),
   },
   {
     label: "Recommendations",
     icon: "i-lucide-lightbulb",
     to: "/recommendations",
-    active: route.path.startsWith("/recommendations")
+    active: route.path.startsWith("/recommendations"),
   },
   {
     label: "Purchase Orders",
     icon: "i-lucide-receipt",
     to: "/purchase-orders/draft",
-    active: route.path.startsWith("/purchase-orders")
-  }
+    active: route.path.startsWith("/purchase-orders"),
+  },
 ]);
 
 const settingsItem = ref<NavigationMenuItem>({
@@ -41,18 +41,22 @@ const settingsItem = ref<NavigationMenuItem>({
       label: "Users",
       icon: "i-lucide-users",
       to: "/settings/users",
-      active: false
-    }
-  ]
+      active: false,
+    },
+  ],
 });
 
-watch(() => route.path, (path) => {
-  settingsItem.value.active = path.startsWith("/settings");
-  settingsItem.value.defaultOpen = path.startsWith("/settings");
-  if (settingsItem.value.children) {
-    settingsItem.value.children[0].active = path === "/settings/users";
-  }
-}, { immediate: true });
+watch(
+  () => route.path,
+  (path) => {
+    settingsItem.value.active = path.startsWith("/settings");
+    settingsItem.value.defaultOpen = path.startsWith("/settings");
+    if (settingsItem.value.children) {
+      settingsItem.value.children[0].active = path === "/settings/users";
+    }
+  },
+  { immediate: true }
+);
 
 const otherMenuItems = computed<NavigationMenuItem[]>(() => [settingsItem.value]);
 
@@ -74,12 +78,22 @@ const pageTitle = computed(() => {
 
 <template>
   <UDashboardGroup>
-    <UDashboardSidebar collapsible resizable>
+    <UDashboardSidebar
+      collapsible
+      resizable
+    >
       <template #header="{ collapsed }">
-        <div v-if="!collapsed" class="flex items-center gap-2">
+        <div
+          v-if="!collapsed"
+          class="flex items-center gap-2"
+        >
           <h1 class="text-xl font-bold text-primary">Forecast Enterprise</h1>
         </div>
-        <UIcon v-else name="i-lucide-layout-dashboard" class="size-5 text-primary mx-auto" />
+        <UIcon
+          v-else
+          name="i-lucide-layout-dashboard"
+          class="size-5 text-primary mx-auto"
+        />
       </template>
 
       <template #default="{ collapsed }">
@@ -94,9 +108,9 @@ const pageTitle = computed(() => {
       <template #footer="{ collapsed }">
         <UButton
           :avatar="{
-            src: undefined
+            src: undefined,
           }"
-          :label="collapsed ? undefined : (user?.email || 'User')"
+          :label="collapsed ? undefined : user?.email || 'User'"
           color="neutral"
           variant="ghost"
           class="w-full"
@@ -104,7 +118,10 @@ const pageTitle = computed(() => {
           @click="handleLogout"
         >
           <template #trailing>
-            <UIcon name="i-lucide-log-out" class="size-4" />
+            <UIcon
+              name="i-lucide-log-out"
+              class="size-4"
+            />
           </template>
         </UButton>
       </template>
@@ -114,7 +131,7 @@ const pageTitle = computed(() => {
       <template #header>
         <UDashboardNavbar :title="pageTitle">
           <template #trailing>
-            <span class="text-sm text-muted">{{ user?.email || 'Guest' }}</span>
+            <span class="text-sm text-muted">{{ user?.email || "Guest" }}</span>
           </template>
         </UDashboardNavbar>
       </template>

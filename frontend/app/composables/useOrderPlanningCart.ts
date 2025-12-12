@@ -17,11 +17,17 @@ export const useOrderPlanningCart = () => {
     });
   };
 
-  const removeFromCart = async (itemId: string, supplierId: string): Promise<{ message: string }> => {
-    return await $fetch<{ message: string }>(`/api/order-planning/cart/${encodeURIComponent(itemId)}`, {
-      method: "DELETE",
-      query: { supplier_id: supplierId },
-    });
+  const removeFromCart = async (
+    itemId: string,
+    supplierId: string
+  ): Promise<{ message: string }> => {
+    return await $fetch<{ message: string }>(
+      `/api/order-planning/cart/${encodeURIComponent(itemId)}`,
+      {
+        method: "DELETE",
+        query: { supplier_id: supplierId },
+      }
+    );
   };
 
   const clearCart = async (): Promise<{ message: string }> => {
@@ -37,4 +43,3 @@ export const useOrderPlanningCart = () => {
     clearCart,
   };
 };
-

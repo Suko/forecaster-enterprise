@@ -31,7 +31,9 @@ const statusOptions = [
   { label: "Cancelled", value: "cancelled" },
 ];
 
-const selectedStatus = ref<"pending" | "confirmed" | "shipped" | "received" | "cancelled">("pending");
+const selectedStatus = ref<"pending" | "confirmed" | "shipped" | "received" | "cancelled">(
+  "pending"
+);
 
 const formatMoney = (value: string | number) => {
   const num = Number(value || 0);
@@ -84,7 +86,11 @@ const onSaveStatus = async () => {
   } catch (err: any) {
     const wasAuthError = await handleAuthError(err);
     if (wasAuthError) return;
-    toast.add({ title: "Update failed", description: err.message || "Failed to update status", color: "red" });
+    toast.add({
+      title: "Update failed",
+      description: err.message || "Failed to update status",
+      color: "red",
+    });
   } finally {
     saving.value = false;
   }
@@ -100,13 +106,27 @@ onMounted(async () => {
     <div class="flex items-center justify-between gap-3">
       <div>
         <h1 class="text-3xl font-bold">Purchase Order</h1>
-        <p v-if="po" class="text-sm text-muted">{{ po.po_number }} · {{ po.supplier_name }}</p>
+        <p
+          v-if="po"
+          class="text-sm text-muted"
+        >
+          {{ po.po_number }} · {{ po.supplier_name }}
+        </p>
       </div>
       <div class="flex items-center gap-2">
-        <UButton icon="i-lucide-arrow-left" variant="ghost" @click="navigateTo('/purchase-orders')">
+        <UButton
+          icon="i-lucide-arrow-left"
+          variant="ghost"
+          @click="navigateTo('/purchase-orders')"
+        >
           Back
         </UButton>
-        <UButton icon="i-lucide-refresh-cw" variant="ghost" :loading="loading" @click="loadPo">
+        <UButton
+          icon="i-lucide-refresh-cw"
+          variant="ghost"
+          :loading="loading"
+          @click="loadPo"
+        >
           Refresh
         </UButton>
       </div>
@@ -114,13 +134,28 @@ onMounted(async () => {
 
     <PurchaseOrdersSectionTabs />
 
-    <div v-if="loading" class="flex items-center justify-center py-12">
-      <UIcon name="i-lucide-loader-2" class="w-8 h-8 animate-spin text-primary" />
+    <div
+      v-if="loading"
+      class="flex items-center justify-center py-12"
+    >
+      <UIcon
+        name="i-lucide-loader-2"
+        class="w-8 h-8 animate-spin text-primary"
+      />
     </div>
 
-    <UAlert v-else-if="error" color="error" variant="soft" title="Error loading purchase order" :description="error" />
+    <UAlert
+      v-else-if="error"
+      color="error"
+      variant="soft"
+      title="Error loading purchase order"
+      :description="error"
+    />
 
-    <div v-else-if="po" class="space-y-4">
+    <div
+      v-else-if="po"
+      class="space-y-4"
+    >
       <UCard>
         <template #header>
           <div class="flex items-center justify-between gap-3">
@@ -140,7 +175,11 @@ onMounted(async () => {
                 option-attribute="label"
                 class="w-44"
               />
-              <UButton :loading="saving" @click="onSaveStatus">Save</UButton>
+              <UButton
+                :loading="saving"
+                @click="onSaveStatus"
+                >Save</UButton
+              >
             </div>
           </div>
           <div>
@@ -154,17 +193,21 @@ onMounted(async () => {
             <div class="text-xs text-muted">Shipping</div>
             <div class="text-sm mt-1">
               <span v-if="po.shipping_method">{{ po.shipping_method }}</span>
-              <span v-else class="text-muted">—</span>
+              <span
+                v-else
+                class="text-muted"
+                >—</span
+              >
               <span v-if="po.shipping_unit"> · {{ po.shipping_unit }}</span>
             </div>
           </div>
           <div>
             <div class="text-xs text-muted">Created By</div>
-            <div class="text-sm mt-1">{{ po.created_by || '—' }}</div>
+            <div class="text-sm mt-1">{{ po.created_by || "—" }}</div>
           </div>
           <div class="md:col-span-2">
             <div class="text-xs text-muted">Notes</div>
-            <div class="text-sm mt-1 whitespace-pre-line">{{ po.notes || '—' }}</div>
+            <div class="text-sm mt-1 whitespace-pre-line">{{ po.notes || "—" }}</div>
           </div>
         </div>
       </UCard>
@@ -184,7 +227,9 @@ onMounted(async () => {
               <UButton
                 icon="i-lucide-receipt"
                 variant="ghost"
-                @click="navigateTo({ path: '/purchase-orders', query: { supplier_id: po.supplier_id } })"
+                @click="
+                  navigateTo({ path: '/purchase-orders', query: { supplier_id: po.supplier_id } })
+                "
               >
                 All POs
               </UButton>
@@ -192,8 +237,14 @@ onMounted(async () => {
           </div>
         </template>
 
-        <div v-if="supplierLoading" class="p-6 flex items-center justify-center">
-          <UIcon name="i-lucide-loader-2" class="w-6 h-6 animate-spin text-primary" />
+        <div
+          v-if="supplierLoading"
+          class="p-6 flex items-center justify-center"
+        >
+          <UIcon
+            name="i-lucide-loader-2"
+            class="w-6 h-6 animate-spin text-primary"
+          />
         </div>
         <UAlert
           v-else-if="supplierError"
@@ -202,7 +253,10 @@ onMounted(async () => {
           title="Error loading supplier"
           :description="supplierError"
         />
-        <div v-else class="p-4 grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div
+          v-else
+          class="p-4 grid grid-cols-1 md:grid-cols-2 gap-4"
+        >
           <div>
             <div class="text-xs text-muted">Name</div>
             <div class="text-sm mt-1">{{ supplier?.name || po.supplier_name }}</div>
@@ -210,13 +264,13 @@ onMounted(async () => {
           <div>
             <div class="text-xs text-muted">Contact</div>
             <div class="text-sm mt-1">
-              <div>{{ supplier?.contact_email || '—' }}</div>
+              <div>{{ supplier?.contact_email || "—" }}</div>
               <div v-if="supplier?.contact_phone">{{ supplier.contact_phone }}</div>
             </div>
           </div>
           <div class="md:col-span-2">
             <div class="text-xs text-muted">Address</div>
-            <div class="text-sm mt-1 whitespace-pre-line">{{ supplier?.address || '—' }}</div>
+            <div class="text-sm mt-1 whitespace-pre-line">{{ supplier?.address || "—" }}</div>
           </div>
         </div>
       </UCard>
@@ -226,7 +280,11 @@ onMounted(async () => {
           <h2 class="text-lg font-semibold">Items</h2>
         </template>
         <div class="divide-y">
-          <div v-for="item in po.items" :key="item.id" class="py-3 flex items-center gap-3">
+          <div
+            v-for="item in po.items"
+            :key="item.id"
+            class="py-3 flex items-center gap-3"
+          >
             <div class="flex-1 min-w-0">
               <div class="font-medium truncate">{{ item.product_name }}</div>
               <div class="text-xs text-muted">{{ item.item_id }}</div>

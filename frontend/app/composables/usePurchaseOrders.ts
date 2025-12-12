@@ -2,10 +2,10 @@ import type { PurchaseOrder, PurchaseOrdersListResponse } from "~/types/order";
 
 export const usePurchaseOrders = () => {
   const fetchPurchaseOrders = async (params?: {
-    status?: string
-    supplier_id?: string
-    page?: number
-    page_size?: number
+    status?: string;
+    supplier_id?: string;
+    page?: number;
+    page_size?: number;
   }): Promise<PurchaseOrdersListResponse> => {
     return await $fetch<PurchaseOrdersListResponse>("/api/purchase-orders", { query: params });
   };
@@ -15,10 +15,10 @@ export const usePurchaseOrders = () => {
   };
 
   const createPurchaseOrderFromCart = async (data: {
-    supplier_id: string
-    shipping_method?: string
-    shipping_unit?: string
-    notes?: string
+    supplier_id: string;
+    shipping_method?: string;
+    shipping_unit?: string;
+    notes?: string;
   }): Promise<PurchaseOrder> => {
     return await $fetch<PurchaseOrder>("/api/purchase-orders/from-cart", {
       method: "POST",
@@ -43,4 +43,3 @@ export const usePurchaseOrders = () => {
     updatePurchaseOrderStatus,
   };
 };
-

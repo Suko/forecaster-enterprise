@@ -5,7 +5,9 @@ const route = useRoute();
 
 const isSupplierRoute = computed(() => route.path.startsWith("/purchase-orders/suppliers"));
 const isDraftRoute = computed(() => route.path === "/purchase-orders/draft");
-const isOrdersRoute = computed(() => route.path === "/purchase-orders" || route.path.startsWith("/purchase-orders/"));
+const isOrdersRoute = computed(
+  () => route.path === "/purchase-orders" || route.path.startsWith("/purchase-orders/")
+);
 
 const items = computed<NavigationMenuItem[]>(() => [
   {
@@ -30,6 +32,8 @@ const items = computed<NavigationMenuItem[]>(() => [
 </script>
 
 <template>
-  <UNavigationMenu :items="items" class="mb-4" />
+  <UNavigationMenu
+    :items="items"
+    class="mb-4"
+  />
 </template>
-

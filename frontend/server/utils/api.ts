@@ -20,9 +20,9 @@ export async function authenticatedFetch(
   const config = useRuntimeConfig();
   // Use private apiBaseUrl for server-side calls (reaches backend via Docker network)
   const apiBaseUrl = config.apiBaseUrl;
-  
+
   const token = await getAccessToken(event);
-  
+
   if (!token) {
     throw createError({
       statusCode: 401,
@@ -31,9 +31,9 @@ export async function authenticatedFetch(
   }
 
   const headers: Record<string, string> = {
-    "Authorization": `Bearer ${token}`,
+    Authorization: `Bearer ${token}`,
     "Content-Type": "application/json",
-    ...(options.headers as Record<string, string> || {}),
+    ...((options.headers as Record<string, string>) || {}),
   };
 
   const response = await $fetch(`${apiBaseUrl}${endpoint}`, {
@@ -58,4 +58,3 @@ export async function validateToken(event: H3Event): Promise<boolean> {
     throw error;
   }
 }
-

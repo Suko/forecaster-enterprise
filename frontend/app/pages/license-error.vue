@@ -13,15 +13,13 @@
               class="w-12 h-12 text-red-500"
             />
           </div>
-          <h1 class="text-2xl font-bold text-gray-900 dark:text-white">
-            License Required
-          </h1>
+          <h1 class="text-2xl font-bold text-gray-900 dark:text-white">License Required</h1>
         </div>
       </template>
 
       <p class="text-gray-500 dark:text-gray-400 mb-6">
-        The application license has expired or is invalid. Please contact your
-        administrator to renew the license.
+        The application license has expired or is invalid. Please contact your administrator to
+        renew the license.
       </p>
 
       <UAlert

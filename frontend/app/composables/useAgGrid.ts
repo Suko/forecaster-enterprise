@@ -6,17 +6,16 @@
 import type { Product, ProductListResponse, ProductFilters } from "~/types/product";
 
 export const useAgGridProducts = () => {
-
   /**
    * Fetch products with filters and pagination
    */
   const fetchProducts = async (params: {
-    page: number
-    pageSize: number
-    sortModel?: Array<{ colId: string; sort: "asc" | "desc" }>
-    filterModel?: Record<string, any>
-    search?: string
-    supplierId?: string
+    page: number;
+    pageSize: number;
+    sortModel?: Array<{ colId: string; sort: "asc" | "desc" }>;
+    filterModel?: Record<string, any>;
+    search?: string;
+    supplierId?: string;
   }): Promise<{ rowData: Product[]; totalRows: number }> => {
     try {
       // Build query parameters

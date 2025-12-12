@@ -8,10 +8,7 @@ export const useApi = () => {
   /**
    * Make an authenticated API call through Nuxt server routes
    */
-  const apiCall = async <T = any>(
-    endpoint: string,
-    options: RequestInit = {}
-  ): Promise<T> => {
+  const apiCall = async <T = any>(endpoint: string, options: RequestInit = {}): Promise<T> => {
     if (!user.value) {
       throw new Error("Not authenticated");
     }
@@ -30,12 +27,3 @@ export const useApi = () => {
     apiCall,
   };
 };
-
-
-
-
-
-
-
-
-

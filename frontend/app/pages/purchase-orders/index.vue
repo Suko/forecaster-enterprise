@@ -103,7 +103,12 @@ onMounted(async () => {
         >
           Clear supplier
         </UButton>
-        <UButton icon="i-lucide-refresh-cw" variant="ghost" :loading="loading" @click="loadOrders">
+        <UButton
+          icon="i-lucide-refresh-cw"
+          variant="ghost"
+          :loading="loading"
+          @click="loadOrders"
+        >
           Refresh
         </UButton>
       </div>
@@ -111,11 +116,23 @@ onMounted(async () => {
 
     <PurchaseOrdersSectionTabs />
 
-    <div v-if="loading && orders.length === 0" class="flex items-center justify-center py-12">
-      <UIcon name="i-lucide-loader-2" class="w-8 h-8 animate-spin text-primary" />
+    <div
+      v-if="loading && orders.length === 0"
+      class="flex items-center justify-center py-12"
+    >
+      <UIcon
+        name="i-lucide-loader-2"
+        class="w-8 h-8 animate-spin text-primary"
+      />
     </div>
 
-    <UAlert v-else-if="error" color="error" variant="soft" title="Error loading purchase orders" :description="error" />
+    <UAlert
+      v-else-if="error"
+      color="error"
+      variant="soft"
+      title="Error loading purchase orders"
+      :description="error"
+    />
 
     <UCard v-else-if="orders.length === 0">
       <div class="p-6 text-center text-muted">
@@ -123,7 +140,10 @@ onMounted(async () => {
       </div>
     </UCard>
 
-    <div v-else class="space-y-2">
+    <div
+      v-else
+      class="space-y-2"
+    >
       <UCard
         v-for="po in orders"
         :key="po.id"
@@ -134,7 +154,11 @@ onMounted(async () => {
           <div class="min-w-0">
             <div class="flex items-center gap-2">
               <div class="font-semibold">{{ po.po_number }}</div>
-              <UBadge :color="badgeColorForStatus(po.status)" variant="soft">{{ po.status }}</UBadge>
+              <UBadge
+                :color="badgeColorForStatus(po.status)"
+                variant="soft"
+                >{{ po.status }}</UBadge
+              >
             </div>
             <div class="text-sm text-muted truncate">{{ po.supplier_name }}</div>
             <div class="text-xs text-muted">

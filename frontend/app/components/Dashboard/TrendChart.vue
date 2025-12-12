@@ -22,7 +22,10 @@
           :options="chartOptions"
           ref="chartRef"
         />
-        <div v-else class="flex items-center justify-center h-64 text-gray-400">
+        <div
+          v-else
+          class="flex items-center justify-center h-64 text-gray-400"
+        >
           No data available
         </div>
       </ClientOnly>
@@ -35,10 +38,10 @@ import { Line } from "vue-chartjs";
 import type { ChartData, ChartOptions } from "chart.js";
 
 interface Props {
-  title: string
-  data: Array<{ date: string; value: number }>
-  label?: string
-  color?: string
+  title: string;
+  data: Array<{ date: string; value: number }>;
+  label?: string;
+  color?: string;
 }
 
 const props = withDefaults(defineProps<Props>(), {
@@ -150,4 +153,3 @@ onMounted(() => {
   }
 });
 </script>
-

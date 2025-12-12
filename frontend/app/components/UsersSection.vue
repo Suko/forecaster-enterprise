@@ -45,7 +45,9 @@
             value-key="value"
             size="sm"
             variant="ghost"
-            @update:model-value="(value) => updateRole(user, typeof value === 'string' ? value : value?.value || value)"
+            @update:model-value="
+              (value) => updateRole(user, typeof value === 'string' ? value : value?.value || value)
+            "
           >
             <template #default>
               <span class="text-sm lowercase">{{ user.role }}</span>
@@ -62,22 +64,34 @@
         </div>
       </div>
 
-      <div v-if="loading" class="flex justify-center py-8">
-        <UIcon name="i-lucide-loader-2" class="size-6 animate-spin text-gray-400" />
+      <div
+        v-if="loading"
+        class="flex justify-center py-8"
+      >
+        <UIcon
+          name="i-lucide-loader-2"
+          class="size-6 animate-spin text-gray-400"
+        />
       </div>
 
-      <div v-if="!loading && filteredUsers.length === 0" class="text-center py-12">
+      <div
+        v-if="!loading && filteredUsers.length === 0"
+        class="text-center py-12"
+      >
         <p class="text-gray-500 dark:text-gray-400">
-          {{ searchQuery ? 'No users found' : 'No users yet' }}
+          {{ searchQuery ? "No users found" : "No users yet" }}
         </p>
       </div>
     </div>
 
-    <UModal v-model="showModal" :ui="{ width: 'sm:max-w-md' }">
+    <UModal
+      v-model="showModal"
+      :ui="{ width: 'sm:max-w-md' }"
+    >
       <UCard>
         <template #header>
           <h3 class="text-lg font-semibold">
-            {{ editingUser ? 'Edit User' : 'Add User' }}
+            {{ editingUser ? "Edit User" : "Add User" }}
           </h3>
         </template>
 
@@ -86,7 +100,11 @@
           :state="formState"
           @submit="handleSubmit"
         >
-          <UFormField label="Email" name="email" required>
+          <UFormField
+            label="Email"
+            name="email"
+            required
+          >
             <UInput
               v-model="formState.email"
               type="email"
@@ -106,18 +124,28 @@
             />
           </UFormField>
 
-          <UFormField label="Name" name="name">
+          <UFormField
+            label="Name"
+            name="name"
+          >
             <UInput v-model="formState.name" />
           </UFormField>
 
-          <UFormField label="Role" name="role" required>
+          <UFormField
+            label="Role"
+            name="role"
+            required
+          >
             <USelect
               v-model="formState.role"
               :options="roleOptions"
             />
           </UFormField>
 
-          <UFormField label="Status" name="is_active">
+          <UFormField
+            label="Status"
+            name="is_active"
+          >
             <USwitch
               v-model="formState.is_active"
               label="Active"
@@ -137,7 +165,7 @@
                 type="submit"
                 :loading="submitting"
               >
-                {{ editingUser ? 'Update' : 'Create' }}
+                {{ editingUser ? "Update" : "Create" }}
               </UButton>
             </div>
           </template>
@@ -145,14 +173,18 @@
       </UCard>
     </UModal>
 
-    <UModal v-model="showDeleteModal" :ui="{ width: 'sm:max-w-md' }">
+    <UModal
+      v-model="showDeleteModal"
+      :ui="{ width: 'sm:max-w-md' }"
+    >
       <UCard>
         <template #header>
           <h3 class="text-lg font-semibold text-red-600">Delete User</h3>
         </template>
 
         <p class="text-gray-600 mb-4">
-          Are you sure you want to delete <strong>{{ userToDelete?.email }}</strong>? This action cannot be undone.
+          Are you sure you want to delete <strong>{{ userToDelete?.email }}</strong
+          >? This action cannot be undone.
         </p>
 
         <template #footer>
@@ -185,11 +217,11 @@ import type { FormSubmitEvent } from "#ui/types";
 const { apiCall } = useApi();
 
 interface User {
-  id: string
-  email: string
-  name: string | null
-  role: string
-  is_active: boolean
+  id: string;
+  email: string;
+  name: string | null;
+  role: string;
+  is_active: boolean;
 }
 
 const users = ref<User[]>([]);
@@ -203,7 +235,7 @@ const userToDelete = ref<User | null>(null);
 
 const roleOptions = [
   { label: "Admin", value: "admin" },
-  { label: "User", value: "user" }
+  { label: "User", value: "user" },
 ];
 
 const formState = reactive({
@@ -211,7 +243,7 @@ const formState = reactive({
   password: "",
   name: "",
   role: "user",
-  is_active: true
+  is_active: true,
 });
 
 const schema = computed(() => {
@@ -219,17 +251,18 @@ const schema = computed(() => {
     email: z.string().email("Invalid email address"),
     name: z.string().optional(),
     role: z.enum(["admin", "user"]),
-    is_active: z.boolean()
+    is_active: z.boolean(),
   };
-  
+
   if (editingUser.value) {
     return z.object(baseSchema);
   } else {
     return z.object({
       ...baseSchema,
-      password: z.string()
+      password: z
+        .string()
         .min(8, "Password must be at least 8 characters")
-        .max(128, "Password must be no more than 128 characters")
+        .max(128, "Password must be no more than 128 characters"),
     });
   }
 });
@@ -239,9 +272,10 @@ const searchQuery = ref("");
 const filteredUsers = computed(() => {
   if (!searchQuery.value) return users.value;
   const query = searchQuery.value.toLowerCase();
-  return users.value.filter(user => 
-    user.email.toLowerCase().includes(query) ||
-    (user.name && user.name.toLowerCase().includes(query))
+  return users.value.filter(
+    (user) =>
+      user.email.toLowerCase().includes(query) ||
+      (user.name && user.name.toLowerCase().includes(query))
   );
 });
 
@@ -253,23 +287,27 @@ const getUsername = (user: User) => {
 };
 
 const getUserActions = (user: User) => [
-  [{
-    label: "Edit",
-    icon: "i-lucide-edit",
-    click: () => openEditModal(user)
-  }],
-  [{
-    label: "Delete",
-    icon: "i-lucide-trash-2",
-    click: () => confirmDelete(user)
-  }]
+  [
+    {
+      label: "Edit",
+      icon: "i-lucide-edit",
+      click: () => openEditModal(user),
+    },
+  ],
+  [
+    {
+      label: "Delete",
+      icon: "i-lucide-trash-2",
+      click: () => confirmDelete(user),
+    },
+  ],
 ];
 
 const updateRole = async (user: User, newRole: string) => {
   try {
     await apiCall(`/users/${user.id}`, {
       method: "PATCH",
-      body: JSON.stringify({ role: newRole })
+      body: JSON.stringify({ role: newRole }),
     });
     await fetchUsers();
   } catch (error: any) {
@@ -322,8 +360,8 @@ const handleSubmit = async (event: FormSubmitEvent<any>) => {
         body: JSON.stringify({
           name: formState.name,
           role: formState.role,
-          is_active: formState.is_active
-        })
+          is_active: formState.is_active,
+        }),
       });
     } else {
       await apiCall("/users", {
@@ -332,8 +370,8 @@ const handleSubmit = async (event: FormSubmitEvent<any>) => {
           email: formState.email,
           password: formState.password,
           name: formState.name,
-          role: formState.role
-        })
+          role: formState.role,
+        }),
       });
     }
     await fetchUsers();
@@ -352,11 +390,11 @@ const confirmDelete = (user: User) => {
 
 const handleDelete = async () => {
   if (!userToDelete.value) return;
-  
+
   deleting.value = true;
   try {
     await apiCall(`/users/${userToDelete.value.id}`, {
-      method: "DELETE"
+      method: "DELETE",
     });
     await fetchUsers();
     showDeleteModal.value = false;
@@ -372,11 +410,3 @@ onMounted(() => {
   fetchUsers();
 });
 </script>
-
-
-
-
-
-
-
-

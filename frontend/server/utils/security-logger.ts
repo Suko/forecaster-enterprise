@@ -4,21 +4,25 @@
  */
 
 interface SecurityEvent {
-  type: "login_success" | "login_failure" | "auth_failure" | "rate_limit" | "token_validation_failure" | "unauthorized_access"
-  email?: string
-  ip?: string
-  userAgent?: string
-  details?: Record<string, any>
-  timestamp: Date
+  type:
+    | "login_success"
+    | "login_failure"
+    | "auth_failure"
+    | "rate_limit"
+    | "token_validation_failure"
+    | "unauthorized_access";
+  email?: string;
+  ip?: string;
+  userAgent?: string;
+  details?: Record<string, any>;
+  timestamp: Date;
 }
 
 /**
  * Log a security event
  * In production, this should integrate with your logging system (e.g., Winston, Pino, CloudWatch)
  */
-export function logSecurityEvent(
-  event: Omit<SecurityEvent, "timestamp">
-): void {
+export function logSecurityEvent(event: Omit<SecurityEvent, "timestamp">): void {
   const securityEvent: SecurityEvent = {
     ...event,
     timestamp: new Date(),
@@ -56,11 +60,3 @@ export function getClientIP(event: any): string {
 export function getUserAgent(event: any): string {
   return event.node.req.headers["user-agent"] || "unknown";
 }
-
-
-
-
-
-
-
-

@@ -14,10 +14,14 @@ export default defineEventHandler(async (event) => {
 
   try {
     const body = await readBody(event);
-    return await authenticatedFetch(event, `/api/v1/purchase-orders/${encodeURIComponent(id)}/status`, {
-      method: "PUT",
-      body,
-    });
+    return await authenticatedFetch(
+      event,
+      `/api/v1/purchase-orders/${encodeURIComponent(id)}/status`,
+      {
+        method: "PUT",
+        body,
+      }
+    );
   } catch (error: any) {
     if (error.statusCode === 401) {
       throw createError({ statusCode: 401, statusMessage: "Not authenticated" });
@@ -28,4 +32,3 @@ export default defineEventHandler(async (event) => {
     });
   }
 });
-

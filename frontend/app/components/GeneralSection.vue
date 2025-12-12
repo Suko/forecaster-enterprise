@@ -13,14 +13,20 @@
       </template>
 
       <div class="space-y-4">
-        <UFormField label="Company Name" name="companyName">
+        <UFormField
+          label="Company Name"
+          name="companyName"
+        >
           <UInput
             v-model="formState.companyName"
             placeholder="Enter company name"
           />
         </UFormField>
 
-        <UFormField label="Timezone" name="timezone">
+        <UFormField
+          label="Timezone"
+          name="timezone"
+        >
           <USelect
             v-model="formState.timezone"
             :options="timezoneOptions"
@@ -28,7 +34,10 @@
           />
         </UFormField>
 
-        <UFormField label="Language" name="language">
+        <UFormField
+          label="Language"
+          name="language"
+        >
           <USelect
             v-model="formState.language"
             :options="languageOptions"
@@ -39,9 +48,7 @@
 
       <template #footer>
         <div class="flex justify-end">
-          <UButton>
-            Save Changes
-          </UButton>
+          <UButton> Save Changes </UButton>
         </div>
       </template>
     </UCard>
@@ -52,7 +59,7 @@
 const formState = reactive({
   companyName: "",
   timezone: "UTC",
-  language: "en"
+  language: "en",
 });
 
 const timezoneOptions = [
@@ -61,14 +68,13 @@ const timezoneOptions = [
   { label: "America/Los_Angeles", value: "America/Los_Angeles" },
   { label: "Europe/London", value: "Europe/London" },
   { label: "Europe/Paris", value: "Europe/Paris" },
-  { label: "Asia/Tokyo", value: "Asia/Tokyo" }
+  { label: "Asia/Tokyo", value: "Asia/Tokyo" },
 ];
 
 const languageOptions = [
   { label: "English", value: "en" },
   { label: "Spanish", value: "es" },
   { label: "French", value: "fr" },
-  { label: "German", value: "de" }
+  { label: "German", value: "de" },
 ];
 </script>
-

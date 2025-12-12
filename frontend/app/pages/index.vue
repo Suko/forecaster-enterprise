@@ -1,7 +1,5 @@
 <template>
-  <div
-    class="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900"
-  >
+  <div class="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900">
     <UCard class="max-w-md w-full mx-4">
       <template #header>
         <h1 class="text-2xl font-bold">Forecaster Enterprise</h1>
@@ -9,8 +7,8 @@
 
       <div class="space-y-4">
         <p class="text-gray-600 dark:text-gray-400">
-          Welcome to Forecaster Enterprise - AI-powered demand forecasting for
-          inventory optimization.
+          Welcome to Forecaster Enterprise - AI-powered demand forecasting for inventory
+          optimization.
         </p>
 
         <div class="flex gap-3">

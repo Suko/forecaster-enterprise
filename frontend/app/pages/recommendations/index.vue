@@ -25,7 +25,10 @@
     <UCard>
       <template #header>
         <div class="flex items-center gap-2">
-          <UIcon name="i-lucide-sparkles" class="w-5 h-5 text-primary" />
+          <UIcon
+            name="i-lucide-sparkles"
+            class="w-5 h-5 text-primary"
+          />
           <h3 class="text-lg font-semibold">Natural Language Query</h3>
         </div>
       </template>
@@ -47,14 +50,17 @@
           </template>
         </UInput>
         <p class="text-xs text-gray-500 mt-2">
-          💡 Example queries: "Show understocked products", "Sort by inventory
-          value", "Filter by category"
+          💡 Example queries: "Show understocked products", "Sort by inventory value", "Filter by
+          category"
         </p>
       </div>
     </UCard>
 
     <!-- Loading State -->
-    <div v-if="loading" class="flex items-center justify-center py-12">
+    <div
+      v-if="loading"
+      class="flex items-center justify-center py-12"
+    >
       <UIcon
         name="i-lucide-loader-2"
         class="w-8 h-8 animate-spin text-primary"
@@ -71,7 +77,10 @@
     />
 
     <!-- Recommendations Grid -->
-    <div v-else class="h-[calc(100vh-400px)]">
+    <div
+      v-else
+      class="h-[calc(100vh-400px)]"
+    >
       <ClientOnly>
         <ag-grid-vue
           :columnDefs="columnDefs"
@@ -97,10 +106,7 @@ import { ModuleRegistry, AllCommunityModule } from "ag-grid-community";
 import "ag-grid-community/styles/ag-grid.css";
 import "ag-grid-community/styles/ag-theme-alpine.css";
 import type { ColDef, GridReadyEvent } from "ag-grid-community";
-import type {
-  Recommendation,
-  RecommendationType,
-} from "~/types/recommendation";
+import type { Recommendation, RecommendationType } from "~/types/recommendation";
 
 // Register AG Grid modules
 ModuleRegistry.registerModules([AllCommunityModule]);
@@ -255,11 +261,7 @@ const onGridReady = (params: GridReadyEvent) => {
 const onCellClicked = async (params: any) => {
   if (params.column.colId === "actions") {
     try {
-      await addToCart(
-        params.data.item_id,
-        params.data.supplier_id,
-        params.data.suggested_quantity
-      );
+      await addToCart(params.data.item_id, params.data.supplier_id, params.data.suggested_quantity);
       // Show success notification
       const toast = useToast();
       toast.add({

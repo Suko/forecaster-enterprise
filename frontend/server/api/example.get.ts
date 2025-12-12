@@ -13,7 +13,7 @@ export default defineEventHandler(async (event) => {
     // Make authenticated request to backend
     // The JWT token is automatically added from the session
     const userInfo = await authenticatedFetch(event, "/auth/me");
-    
+
     return {
       message: "This is a protected route",
       user: userInfo,
@@ -28,4 +28,3 @@ export default defineEventHandler(async (event) => {
     throw error;
   }
 });
-

@@ -30,6 +30,7 @@ import type { FormSubmitEvent, AuthFormField } from '@nuxt/ui'
 
 definePageMeta({
   layout: false,
+  auth: false,
 })
 
 const { loggedIn, fetch: refreshSession } = useUserSession()

@@ -150,7 +150,6 @@ import type { DashboardResponse } from '~/types/dashboard'
 
 definePageMeta({
   layout: 'dashboard',
-  middleware: 'auth',
 })
 
 const { user, fetch } = useUserSession()

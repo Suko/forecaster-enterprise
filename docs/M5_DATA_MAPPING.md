@@ -143,7 +143,8 @@ M5 uses hierarchical IDs: `{cat_id}_{dept_id}_{item_id}_{state_id}_{store_id}_ev
 
 | M5 Field | Our Field | Transformation |
 |----------|-----------|----------------|
-| `id` | `item_id` | Prefixed with `M5_` → `M5_{id}` |
+| `item_id` | `item_id` | Prefixed with `M5_` → `M5_{item_id}` (store is not embedded) |
+| `store_id` | `location_id` | Direct mapping (e.g., `CA_1`) |
 | `d_1, d_2, ..., d_1913` | `units_sold` | Direct value (one per day) |
 | Calendar `date` | `date_local` | Direct mapping (d_1 → first date, etc.) |
 | N/A | `client_id` | From import parameters |
@@ -262,7 +263,7 @@ d,date,...
 
 ### **3. Item ID Prefix:**
 - All M5 items prefixed with `M5_` to distinguish from other data sources
-- Format: `M5_{original_m5_id}`
+- Format: `M5_{item_id}` (store/location is captured separately in `location_id`)
 
 ### **4. Data Quality:**
 - Missing values (`NaN`) converted to `0`
@@ -337,3 +338,4 @@ The script analyzes each SKU to determine:
 5. **Item IDs:** Prefixed with `M5_` for identification
 
 **Result:** Real-world daily sales data ready for forecasting! 🎉
+

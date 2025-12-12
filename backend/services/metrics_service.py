@@ -91,28 +91,48 @@ class MetricsService:
         from sqlalchemy import text
         
         # First try: Get average from last 30 days
-        sql_query = text("""
-            SELECT AVG(daily_total) as avg_demand
-            FROM (
-                SELECT date_local, SUM(units_sold) as daily_total
-                FROM ts_demand_daily
-                WHERE client_id = :client_id
-                  AND item_id = :item_id
-                  AND date_local >= :start_date
-                  AND date_local <= :end_date
-                GROUP BY date_local
-            ) daily_totals
-        """)
-        
-        result = await self.db.execute(
-            sql_query,
-            {
+        if location_id is None:
+            sql_query = text("""
+                SELECT AVG(daily_total) as avg_demand
+                FROM (
+                    SELECT date_local, SUM(units_sold) as daily_total
+                    FROM ts_demand_daily
+                    WHERE client_id = :client_id
+                      AND item_id = :item_id
+                      AND date_local >= :start_date
+                      AND date_local <= :end_date
+                    GROUP BY date_local
+                ) daily_totals
+            """)
+            params = {
                 "client_id": str(client_id),
                 "item_id": item_id,
                 "start_date": start_date,
                 "end_date": end_date
             }
-        )
+        else:
+            sql_query = text("""
+                SELECT AVG(daily_total) as avg_demand
+                FROM (
+                    SELECT date_local, SUM(units_sold) as daily_total
+                    FROM ts_demand_daily
+                    WHERE client_id = :client_id
+                      AND item_id = :item_id
+                      AND location_id = :location_id
+                      AND date_local >= :start_date
+                      AND date_local <= :end_date
+                    GROUP BY date_local
+                ) daily_totals
+            """)
+            params = {
+                "client_id": str(client_id),
+                "item_id": item_id,
+                "location_id": str(location_id),
+                "start_date": start_date,
+                "end_date": end_date
+            }
+        
+        result = await self.db.execute(sql_query, params)
         row = result.fetchone()
         
         if row and row[0]:
@@ -120,28 +140,48 @@ class MetricsService:
         
         # Fallback: If no data in last 30 days, use most recent available data
         # This handles cases where sales data dates haven't been shifted to recent
-        fallback_query = text("""
-            SELECT AVG(daily_total) as avg_demand
-            FROM (
-                SELECT date_local, SUM(units_sold) as daily_total
-                FROM ts_demand_daily
-                WHERE client_id = :client_id
-                  AND item_id = :item_id
-                  AND units_sold > 0
-                GROUP BY date_local
-                ORDER BY date_local DESC
-                LIMIT :days
-            ) daily_totals
-        """)
-        
-        result = await self.db.execute(
-            fallback_query,
-            {
+        if location_id is None:
+            fallback_query = text("""
+                SELECT AVG(daily_total) as avg_demand
+                FROM (
+                    SELECT date_local, SUM(units_sold) as daily_total
+                    FROM ts_demand_daily
+                    WHERE client_id = :client_id
+                      AND item_id = :item_id
+                      AND units_sold > 0
+                    GROUP BY date_local
+                    ORDER BY date_local DESC
+                    LIMIT :days
+                ) daily_totals
+            """)
+            fallback_params = {
                 "client_id": str(client_id),
                 "item_id": item_id,
                 "days": days
             }
-        )
+        else:
+            fallback_query = text("""
+                SELECT AVG(daily_total) as avg_demand
+                FROM (
+                    SELECT date_local, SUM(units_sold) as daily_total
+                    FROM ts_demand_daily
+                    WHERE client_id = :client_id
+                      AND item_id = :item_id
+                      AND location_id = :location_id
+                      AND units_sold > 0
+                    GROUP BY date_local
+                    ORDER BY date_local DESC
+                    LIMIT :days
+                ) daily_totals
+            """)
+            fallback_params = {
+                "client_id": str(client_id),
+                "item_id": item_id,
+                "location_id": str(location_id),
+                "days": days
+            }
+        
+        result = await self.db.execute(fallback_query, fallback_params)
         row = result.fetchone()
         
         if row and row[0]:

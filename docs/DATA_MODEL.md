@@ -7,7 +7,7 @@
 | Table | Stock Field | Granularity | Purpose |
 |-------|-------------|-------------|---------|
 | `stock_levels` | `current_stock` | **Per Location** | Current inventory snapshot |
-| `ts_demand_daily` | `stock_on_date` | **Per SKU (Aggregated)** | Historical stock trends |
+| `ts_demand_daily` | `stock_on_date` | **Per SKU × Location** | Historical stock trends per site |
 
 ### Key Difference
 
@@ -58,9 +58,8 @@ The absolute minimum data needed to run forecasting is **time series sales data*
     │                                forecasting engine)            │
     │  • units_sold    DECIMAL     - Units sold                      │
     │                                                               │
-    │  REQUIRED (multi-location):                                   │
+    │  REQUIRED:                                                    │
     │  • location_id   VARCHAR     - Warehouse/store identifier      │
-    │                                (if multi-location)            │
     │                                                               │
     │  OPTIONAL:                                                    │
     │  • revenue       DECIMAL     - If available                    │
@@ -824,4 +823,3 @@ CREATE TABLE client_settings (
 - Computed data (DIR, risk) is regenerated, not synced
 - Foreign keys ensure data integrity
 - Minimum 3 weeks history required, 2 years recommended for accurate forecasting
-

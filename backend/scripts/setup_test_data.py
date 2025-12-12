@@ -99,6 +99,26 @@ async def get_existing_item_ids(client_id: str) -> List[str]:
         return item_ids
 
 
+async def get_item_location_map(client_id: str) -> dict:
+    """Map item_id -> list of location_ids present in ts_demand_daily"""
+    AsyncSessionLocal = get_async_session_local()
+    async with AsyncSessionLocal() as session:
+        result = await session.execute(
+            text("""
+                SELECT item_id, location_id
+                FROM ts_demand_daily
+                WHERE client_id = :client_id
+                GROUP BY item_id, location_id
+                ORDER BY item_id, location_id
+            """),
+            {"client_id": client_id}
+        )
+        mapping = {}
+        for item_id, location_id in result.fetchall():
+            mapping.setdefault(item_id, []).append(location_id)
+        return mapping
+
+
 async def create_products(client_id: str, item_ids: List[str], clear_existing: bool = False) -> int:
     """Create products from item_ids"""
     AsyncSessionLocal = get_async_session_local()
@@ -314,7 +334,8 @@ async def create_stock_levels(
     client_id: str, 
     item_ids: List[str], 
     location_ids: List[str],
-    clear_existing: bool = False
+    clear_existing: bool = False,
+    item_location_map: Optional[dict] = None
 ) -> int:
     """Create sample stock levels"""
     AsyncSessionLocal = get_async_session_local()
@@ -329,7 +350,9 @@ async def create_stock_levels(
         created = 0
         
         for item_id in item_ids:
-            for location_id in location_ids:
+            # Use per-item location mapping when available; otherwise use all locations
+            candidate_locations = item_location_map.get(item_id, location_ids) if item_location_map else location_ids
+            for location_id in candidate_locations:
                 # Check if stock level already exists
                 result = await session.execute(
                     select(StockLevel).where(
@@ -433,6 +456,7 @@ async def setup_test_data(
     # Step 2: Get existing item_ids from ts_demand_daily
     print(f"\n2. Getting item_ids from ts_demand_daily...")
     item_ids = await get_existing_item_ids(client_id)
+    item_location_map = await get_item_location_map(client_id)
     if not item_ids:
         print("⚠️  WARNING: No item_ids found in ts_demand_daily. Please import sales data first.")
         print("   Run: python backend/scripts/import_csv_to_ts_demand_daily.py")
@@ -472,7 +496,13 @@ async def setup_test_data(
     
     # Step 7: Create stock levels
     print(f"\n7. Creating stock levels...")
-    stock_created = await create_stock_levels(client_id, item_ids, location_ids, clear_existing)
+    stock_created = await create_stock_levels(
+        client_id,
+        item_ids,
+        location_ids,
+        clear_existing,
+        item_location_map=item_location_map
+    )
     
     # Step 8: Create client settings
     print(f"\n8. Creating client settings...")

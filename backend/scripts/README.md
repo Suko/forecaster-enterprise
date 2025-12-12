@@ -74,6 +74,8 @@ python backend/scripts/import_csv_to_ts_demand_daily.py \
 |--------|---------|-------------|
 | `setup_demo_client.py` | Create client + import data | **Start here** - Quick demo setup |
 | `import_csv_to_ts_demand_daily.py` | Import CSV only | When client already exists |
+| `build_local_seed.sh` | Build curated local seed + dump | Preparing shared demo dataset |
+| `push_seed_to_supabase.sh` | Overwrite Supabase from local dump | Share demo dataset across devs |
 
 ---
 
@@ -122,6 +124,31 @@ curl -X POST http://localhost:8000/api/v1/forecast \
     "client_id": "123e4567-e89b-12d3-a456-426614174000"
   }'
 ```
+
+---
+
+## Shared Supabase Demo Dataset (Local‑First)
+
+To avoid slow network inserts, build seed data locally, then push a data‑only dump to Supabase.
+
+### 1) Build locally
+
+```bash
+cd backend
+M5_SKUS=200 M5_HISTORY_DAYS=1095 STOCK_HISTORY_DAYS=1095 ./scripts/build_local_seed.sh
+```
+
+This creates `../data/seed/demo_seed.dump`.
+
+### 2) Push to Supabase (overwrite)
+
+```bash
+export SUPABASE_PG_URL="postgresql://postgres:<pass>@db.<ref>.supabase.co:5432/postgres?sslmode=require"
+cd backend
+./scripts/push_seed_to_supabase.sh --wipe-mode all
+```
+
+Use `--wipe-mode client` to only delete/reseed one client, or `--wipe-mode none` to append.
 
 ---
 

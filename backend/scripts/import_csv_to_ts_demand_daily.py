@@ -58,7 +58,8 @@ async def check_table_exists() -> bool:
 async def import_csv_to_ts_demand_daily(
     csv_path: Path,
     client_id: str,
-    clear_existing: bool = False
+    clear_existing: bool = False,
+    default_location_id: str = "UNSPECIFIED"
 ) -> dict:
     """
     Import CSV data into ts_demand_daily table
@@ -101,6 +102,7 @@ async def import_csv_to_ts_demand_daily(
     for _, row in df.iterrows():
         rows_to_insert.append({
             'item_id': str(row['sku']),
+            'location_id': str(row['location_id']) if 'location_id' in df.columns else default_location_id,
             'date_local': row['date'],
             'units_sold': float(row.get('sales_qty', 0)),
             'client_id': client_id,
@@ -128,9 +130,9 @@ async def import_csv_to_ts_demand_daily(
             print(f"Inserting {len(rows_to_insert):,} rows...")
             insert_query = text("""
                 INSERT INTO ts_demand_daily 
-                (item_id, date_local, units_sold, client_id, promotion_flag, holiday_flag, is_weekend, marketing_spend)
-                VALUES (:item_id, :date_local, :units_sold, :client_id, :promotion_flag, :holiday_flag, :is_weekend, :marketing_spend)
-                ON CONFLICT (item_id, date_local, client_id) DO UPDATE
+                (item_id, location_id, date_local, units_sold, client_id, promotion_flag, holiday_flag, is_weekend, marketing_spend)
+                VALUES (:item_id, :location_id, :date_local, :units_sold, :client_id, :promotion_flag, :holiday_flag, :is_weekend, :marketing_spend)
+                ON CONFLICT (item_id, location_id, date_local, client_id) DO UPDATE
                 SET units_sold = EXCLUDED.units_sold,
                     promotion_flag = EXCLUDED.promotion_flag,
                     holiday_flag = EXCLUDED.holiday_flag,
@@ -241,4 +243,3 @@ async def main():
 
 if __name__ == '__main__':
     asyncio.run(main())
-

@@ -49,9 +49,25 @@ async def clear_all_test_data(
         deleted_counts = {}
         
         # Delete in order (respecting foreign keys)
+        # purchase_order_items does NOT have client_id, so delete via PO join first.
+        po_items_result = await session.execute(
+            text("""
+                DELETE FROM purchase_order_items
+                WHERE po_id IN (
+                    SELECT id FROM purchase_orders WHERE client_id = :client_id
+                )
+            """),
+            {"client_id": client_id}
+        )
+        deleted_counts["purchase_order_items"] = po_items_result.rowcount
+        print(f"   Deleted {po_items_result.rowcount} Purchase order items")
+
         tables = [
             ("order_cart_items", "Order cart items"),
-            ("purchase_order_items", "Purchase order items"),
+            ("forecast_results", "Forecast results"),
+            ("forecast_runs", "Forecast runs"),
+            ("sku_classifications", "SKU classifications"),
+            ("inventory_metrics", "Inventory metrics"),
             ("purchase_orders", "Purchase orders"),
             ("product_supplier_conditions", "Product-supplier conditions"),
             ("stock_levels", "Stock levels"),

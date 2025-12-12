@@ -1,8 +1,8 @@
 <template>
-  <div class="p-6 space-y-4">
-    <div class="flex items-center justify-between">
-      <h1 class="text-3xl font-bold">Inventory</h1>
-      <div class="flex items-center gap-2">
+	  <div class="p-6 space-y-4">
+	    <div class="flex items-center justify-between">
+	      <h1 class="text-3xl font-bold">Inventory</h1>
+	      <div class="flex items-center gap-2">
         <UInput
           v-model="searchQuery"
           icon="i-lucide-search"
@@ -10,16 +10,25 @@
           class="w-64"
           @input="onSearch"
         />
-        <UButton
-          icon="i-lucide-refresh-cw"
-          variant="ghost"
-          :loading="loading"
-          @click="loadProducts"
-        >
-          Refresh
-        </UButton>
-      </div>
-    </div>
+	        <UButton
+	          icon="i-lucide-refresh-cw"
+	          variant="ghost"
+	          :loading="loading"
+	          @click="loadProducts"
+	        >
+	          Refresh
+	        </UButton>
+	        <UButton
+	          v-if="supplierId"
+	          icon="i-lucide-x"
+	          variant="ghost"
+	          :disabled="loading"
+	          @click="navigateTo('/inventory')"
+	        >
+	          Clear supplier
+	        </UButton>
+	      </div>
+	    </div>
 
     <!-- Loading State -->
     <div v-if="loading" class="flex items-center justify-center py-12">
@@ -74,10 +83,15 @@ ModuleRegistry.registerModules([AllCommunityModule])
 
 definePageMeta({
   layout: 'dashboard',
-  middleware: 'auth',
 })
 
 const { fetchProducts } = useAgGridProducts()
+const route = useRoute()
+
+const supplierId = computed(() =>
+  typeof route.query.supplier_id === 'string' ? route.query.supplier_id : undefined
+)
+const itemQuery = computed(() => (typeof route.query.item === 'string' ? route.query.item : undefined))
 
 const rowData = ref<Product[]>([])
 const loading = ref(false)
@@ -231,11 +245,12 @@ const loadProducts = async () => {
   try {
     // Fetch all products (up to 1000, which is the API max)
     // AG Grid will handle client-side pagination
-    const result = await fetchProducts({
-      page: 1,
-      pageSize: 1000, // Fetch all products
-      search: searchQuery.value || undefined,
-    })
+	    const result = await fetchProducts({
+	      page: 1,
+	      pageSize: 1000, // Fetch all products
+	      search: searchQuery.value || undefined,
+	      supplierId: supplierId.value,
+	    })
     rowData.value = result.rowData
     
     // Reset to first page after loading
@@ -262,6 +277,13 @@ const onPaginationChanged = () => {
 
 // Load data on mount, not on grid ready
 onMounted(() => {
+  if (itemQuery.value && !searchQuery.value) {
+    searchQuery.value = itemQuery.value
+  }
+	  loadProducts()
+})
+
+watch(supplierId, () => {
   loadProducts()
 })
 

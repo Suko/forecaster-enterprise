@@ -100,7 +100,6 @@ ModuleRegistry.registerModules([AllCommunityModule])
 
 definePageMeta({
   layout: 'dashboard',
-  middleware: 'auth',
 })
 
 const { fetchRecommendations, addToCart } = useRecommendations()

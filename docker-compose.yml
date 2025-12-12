@@ -3,6 +3,8 @@ services:
     image: postgres:16-alpine
     container_name: forecast-db
     restart: unless-stopped
+    labels:
+      - "forecast.license.stop=true"
     environment:
       POSTGRES_USER: ${DB_USER:-postgres}
       POSTGRES_PASSWORD: ${DB_PASSWORD:-postgres}
@@ -16,13 +18,13 @@ services:
       interval: 30s
       timeout: 10s
       retries: 3
-    labels:
-      com.forecasting.license: "true"
 
   backend:
     build: ./backend
-    container_name: forecaster-backend
+    container_name: forecast-backend
     restart: unless-stopped
+    labels:
+      - "forecast.license.stop=true"
     ports:
       - "8000:8000"
     volumes:
@@ -55,20 +57,22 @@ services:
       timeout: 10s
       retries: 3
       start_period: 60s
-    labels:
-      com.forecasting.license: "true"
 
   frontend:
     build: ./frontend
-    container_name: nuxt-frontend
+    container_name: forecast-frontend
     restart: unless-stopped
     ports:
       - "3000:3000"
+    volumes:
+      - license_data:/license-data:ro
     environment:
       # Nuxt uses NUXT_ prefix for runtime config override
       - NUXT_API_BASE_URL=http://backend:8000
       - NUXT_PUBLIC_API_BASE_URL=${NUXT_PUBLIC_API_BASE_URL:-http://localhost:8000}
       - NUXT_SESSION_PASSWORD=${NUXT_SESSION_PASSWORD}
+      # License grace period (must match license-watcher)
+      - LICENSE_GRACE_PERIOD=${GRACE_PERIOD:-172800}
     depends_on:
       backend:
         condition: service_healthy
@@ -86,12 +90,10 @@ services:
       timeout: 10s
       retries: 3
       start_period: 30s
-    labels:
-      com.forecasting.license: "true"
 
   license-watcher:
     build: ./licence-checker
-    container_name: licence-watcher
+    container_name: forecast-licence-watcher
     restart: on-failure:5
     environment:
       LICENSE_URL: ${LICENSE_URL}
@@ -101,8 +103,7 @@ services:
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock:ro
       - license_data:/data
-    labels:
-      com.forecasting.license: "true"
+      - license_data:/license-data
 
 volumes:
   postgres_data:

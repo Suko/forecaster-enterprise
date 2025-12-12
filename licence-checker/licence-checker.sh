@@ -58,6 +58,31 @@ if [ "$MAX_FAILS" -lt 1 ]; then
     MAX_FAILS=1
 fi
 
+# === License Status File ===
+# This file is read by the frontend to show license status to users
+mkdir -p /license-data
+LICENSE_STATUS_FILE="/license-data/license-status.json"
+
+# Write license status to shared file (read by frontend)
+write_status() {
+    local valid="$1"
+    local reason="${2:-}"
+    local timestamp=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
+    
+    if [ "$valid" = "true" ]; then
+        cat > "$LICENSE_STATUS_FILE" <<EOF
+{"valid":true,"checkedAt":"$timestamp"}
+EOF
+    else
+        cat > "$LICENSE_STATUS_FILE" <<EOF
+{"valid":false,"reason":"$reason","checkedAt":"$timestamp"}
+EOF
+    fi
+}
+
+# Initialize status file as valid (optimistic start)
+write_status "true"
+
 # --- License Check Function ---
 check_license() {
     # Perform CURL request, capture response code, and save body to temp file.
@@ -96,11 +121,16 @@ CHECK_STATUS=$?
 
 if [ "$CHECK_STATUS" -eq 0 ]; then
     echo "[$(date '+%Y-%m-%d %H:%M:%S')] Initial license check success ✓"
+    write_status "true"
 else
     # Treat initial failure as the first fail count
     FAIL_COUNT=$((FAIL_COUNT + 1))
     echo "[$(date '+%Y-%m-%d %H:%M:%S')] Initial check failed - fail $FAIL_COUNT/$MAX_FAILS"
 fi
+
+# Track if services were stopped due to license
+SERVICES_STOPPED=false
+LICENSE_LABEL="forecast.license.stop=true"
 
 while true; do
     sleep "$CHECK_INTERVAL"
@@ -108,28 +138,86 @@ while true; do
     if check_license; then
         echo "[$(date '+%Y-%m-%d %H:%M:%S')] License valid ✓"
         FAIL_COUNT=0
+        
+        # Auto-restart services if they were stopped due to license and license is now valid
+        if [ "$SERVICES_STOPPED" = true ]; then
+            echo "[$(date '+%Y-%m-%d %H:%M:%S')] License renewed! Restarting services..."
+            STOPPED_CONTAINERS=$(docker ps -qa -f "label=$LICENSE_LABEL")
+            if [ -n "$STOPPED_CONTAINERS" ]; then
+                # Start db first, then backend (respects dependency order)
+                # Get container names to start in correct order
+                DB_CONTAINER=$(docker ps -qa -f "label=$LICENSE_LABEL" -f "name=db")
+                BACKEND_CONTAINER=$(docker ps -qa -f "label=$LICENSE_LABEL" -f "name=backend")
+                
+                # Start db first
+                if [ -n "$DB_CONTAINER" ]; then
+                    echo "[$(date '+%Y-%m-%d %H:%M:%S')] Starting database..."
+                    docker start "$DB_CONTAINER"
+                    
+                    # Wait for db to be healthy (max 60s)
+                    echo "[$(date '+%Y-%m-%d %H:%M:%S')] Waiting for database to be healthy..."
+                    for i in $(seq 1 30); do
+                        if docker inspect --format='{{.State.Health.Status}}' "$DB_CONTAINER" 2>/dev/null | grep -q "healthy"; then
+                            echo "[$(date '+%Y-%m-%d %H:%M:%S')] Database healthy ✓"
+                            break
+                        fi
+                        sleep 2
+                    done
+                fi
+                
+                # Then start backend
+                if [ -n "$BACKEND_CONTAINER" ]; then
+                    echo "[$(date '+%Y-%m-%d %H:%M:%S')] Starting backend..."
+                    docker start "$BACKEND_CONTAINER"
+                    
+                    # Wait for backend to be healthy (max 90s - it has start_period: 60s)
+                    echo "[$(date '+%Y-%m-%d %H:%M:%S')] Waiting for backend to be healthy..."
+                    for i in $(seq 1 45); do
+                        if docker inspect --format='{{.State.Health.Status}}' "$BACKEND_CONTAINER" 2>/dev/null | grep -q "healthy"; then
+                            echo "[$(date '+%Y-%m-%d %H:%M:%S')] Backend healthy ✓"
+                            break
+                        fi
+                        sleep 2
+                    done
+                fi
+                
+                echo "[$(date '+%Y-%m-%d %H:%M:%S')] Services restarted ✓"
+                SERVICES_STOPPED=false
+                # Only write valid status after services are healthy
+                write_status "true"
+            fi
+        else
+            # Services already running, just update status
+            write_status "true"
+        fi
     else
         FAIL_COUNT=$((FAIL_COUNT + 1))
         
         echo "[$(date '+%Y-%m-%d %H:%M:%S')] License invalid or unreachable – fail $FAIL_COUNT/$MAX_FAILS"
 
-        if [ "$FAIL_COUNT" -ge "$MAX_FAILS" ]; then
-            echo "GRACE PERIOD EXPIRED – shutting down containers..."
+        if [ "$FAIL_COUNT" -ge "$MAX_FAILS" ] && [ "$SERVICES_STOPPED" = false ]; then
+            echo "GRACE PERIOD EXPIRED – stopping licensed services..."
             
-            # Use docker ps -f instead of --filter for explicit filtering syntax
-            # -q: only show IDs
-            # -a: include stopped containers (in case something stopped between checks)
-            CONTAINER_IDS=$(docker ps -qa -f "label=com.forecasting.license=true")
+            # Stop all containers with the license label (backend + db)
+            # Frontend stays running to show license error page
+            CONTAINERS_TO_STOP=$(docker ps -q -f "label=$LICENSE_LABEL")
             
-            if [ -n "$CONTAINER_IDS" ]; then
-                # Use plain docker stop with IDs instead of xargs for clarity
-                echo "$CONTAINER_IDS" | xargs docker stop -t 20 
+            if [ -n "$CONTAINERS_TO_STOP" ]; then
+                for CONTAINER in $CONTAINERS_TO_STOP; do
+                    CONTAINER_NAME=$(docker inspect --format '{{.Name}}' "$CONTAINER" | sed 's/^\///')
+                    echo "Stopping container: $CONTAINER_NAME ($CONTAINER)"
+                    docker stop -t 10 "$CONTAINER"
+                done
+                echo "Licensed services stopped. Frontend will display license error."
+                SERVICES_STOPPED=true
+                write_status "false" "expired"
             else
-                echo "No labeled containers found to stop."
+                echo "No containers with label $LICENSE_LABEL found."
             fi
 
-            echo "Containers stopped. License watcher exiting."
-            exit 0
+            # Keep license-watcher running to allow recovery if license is renewed
+            echo "License watcher will continue checking for license renewal..."
+            echo "Services will auto-restart when license becomes valid again."
         fi
     fi
 done

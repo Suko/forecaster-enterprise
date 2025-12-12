@@ -16,6 +16,7 @@ Forecaster Enterprise is a full-stack application for inventory forecasting and 
 - **Dashboard Layout**: Collapsible sidebar navigation with responsive design
 - **Settings Management**: Comprehensive settings pages with tabs (General, Users, Notifications, Security)
 - **API Integration**: Seamless integration with FastAPI backend through Nuxt server routes
+- **Fast Package Management**: Uses Bun for lightning-fast dependency installation and script execution
 
 ## Tech Stack
 
@@ -94,34 +95,37 @@ The application uses `nuxt-auth-utils` following the [official Nuxt 4.x authenti
 ### Usage
 
 **Protected Routes:**
+
 ```vue
 <script setup>
 definePageMeta({
-  layout: 'dashboard',
-  middleware: 'auth'
-})
+  layout: "dashboard",
+  middleware: "auth",
+});
 </script>
 ```
 
 **Accessing User Session:**
+
 ```vue
 <script setup>
-const { loggedIn, user, clear: clearSession } = useUserSession()
+const { loggedIn, user, clear: clearSession } = useUserSession();
 
 if (loggedIn.value) {
-  console.log(user.value?.email)
+  console.log(user.value?.email);
 }
 </script>
 ```
 
 **Making Authenticated API Calls:**
+
 ```vue
 <script setup>
-const { apiCall } = useApi()
+const { apiCall } = useApi();
 
 const fetchData = async () => {
-  const data = await apiCall('/users', { method: 'GET' })
-}
+  const data = await apiCall("/users", { method: "GET" });
+};
 </script>
 ```
 
@@ -131,13 +135,15 @@ For detailed authentication documentation, see [AUTH_SETUP.md](./AUTH_SETUP.md).
 
 ### Prerequisites
 
-- Node.js 18+ 
-- npm, pnpm, yarn, or bun
+- Node.js 18+
+- Bun (recommended), or npm/pnpm/yarn
 
 ### Installation
 
 ```bash
-# Install dependencies
+# Install dependencies (Bun - recommended for speed)
+bun install
+# or
 npm install
 # or
 pnpm install
@@ -157,6 +163,9 @@ NUXT_PUBLIC_API_BASE_URL=http://localhost:8000
 ### Development Server
 
 ```bash
+# Start development server (Bun - recommended)
+bun run dev
+# or
 npm run dev
 ```
 
@@ -165,26 +174,34 @@ The application will be available at `http://localhost:3000`.
 ### Production Build
 
 ```bash
-# Build for production
+# Build for production (Bun - recommended)
+bun run build
+# or
 npm run build
 
 # Preview production build locally
+bun run preview
+# or
 npm run preview
 ```
 
 ## Key Pages
 
 ### Dashboard (`/dashboard`)
+
 Main dashboard with overview metrics and navigation.
 
 ### Settings (`/settings`)
+
 Comprehensive settings management with tabbed interface:
+
 - **General**: Account information and preferences
 - **Users**: User management with role assignment
 - **Notifications**: Notification preferences (coming soon)
 - **Security**: Security settings (coming soon)
 
 ### User Management
+
 - View all users with search functionality
 - Invite new users by email
 - Edit user roles (Admin/User)
@@ -194,24 +211,27 @@ Comprehensive settings management with tabbed interface:
 ## API Integration
 
 All API calls go through Nuxt server routes (`/api/*`) which:
+
 1. Handle authentication automatically
 2. Forward requests to FastAPI backend
 3. Manage JWT tokens securely
 4. Handle errors gracefully
 
 **Server Route Example:**
+
 ```typescript
 // server/api/users.get.ts
 export default defineEventHandler(async (event) => {
-  const users = await authenticatedFetch(event, '/users')
-  return users
-})
+  const users = await authenticatedFetch(event, "/users");
+  return users;
+});
 ```
 
 **Client Usage:**
+
 ```typescript
-const { apiCall } = useApi()
-const users = await apiCall('/users')
+const { apiCall } = useApi();
+const users = await apiCall("/users");
 ```
 
 ## Security Features

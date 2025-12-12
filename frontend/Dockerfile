@@ -1,19 +1,19 @@
-# Multi-stage Dockerfile for Nuxt 3 Frontend
+# Multi-stage Dockerfile for Nuxt 3 Frontend with Bun
 # syntax=docker/dockerfile:1
 
 # Stage 1: Dependencies
-FROM node:20-alpine AS deps
+FROM oven/bun:1-alpine AS deps
 WORKDIR /app
 
 # Copy package files
-COPY package.json package-lock.json ./
+COPY package.json package-lock.json* ./
 
 # Install dependencies with cache
-RUN --mount=type=cache,target=/root/.npm \
-    npm ci
+RUN --mount=type=cache,target=/root/.bun \
+    bun install --frozen-lockfile
 
 # Stage 2: Builder
-FROM node:20-alpine AS builder
+FROM oven/bun:1-alpine AS builder
 WORKDIR /app
 
 # Copy dependencies from deps stage
@@ -23,7 +23,7 @@ COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 
 # Build the application
-RUN npm run build
+RUN bun run build
 
 # Stage 3: Production
 FROM node:20-alpine AS runner

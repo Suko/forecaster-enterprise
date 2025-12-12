@@ -3,16 +3,16 @@
  * Handles chart data fetching and configuration
  */
 
-import type { TimePeriod, TrendDataPoint } from '~/types/dashboard'
+import type { TimePeriod, TrendDataPoint } from "~/types/dashboard";
 
 export const useDashboardCharts = () => {
-  const { apiCall } = useApi()
-  const config = useRuntimeConfig()
+  const { apiCall } = useApi();
+  const config = useRuntimeConfig();
 
   /**
    * Fetch trend data for dashboard charts
    */
-  const fetchTrendData = async (period: TimePeriod = 'monthly'): Promise<TrendDataPoint[]> => {
+  const fetchTrendData = async (period: TimePeriod = "monthly"): Promise<TrendDataPoint[]> => {
     try {
       // TODO: Update when backend endpoint is available
       // For now, return empty array
@@ -21,12 +21,12 @@ export const useDashboardCharts = () => {
       // )
       // return response
 
-      return []
+      return [];
     } catch (error) {
-      console.error('Error fetching trend data:', error)
-      return []
+      console.error("Error fetching trend data:", error);
+      return [];
     }
-  }
+  };
 
   /**
    * Format data for Chart.js
@@ -38,16 +38,16 @@ export const useDashboardCharts = () => {
         {
           label,
           data: data.map((d) => d.value),
-          borderColor: 'rgb(59, 130, 246)',
-          backgroundColor: 'rgba(59, 130, 246, 0.1)',
+          borderColor: "rgb(59, 130, 246)",
+          backgroundColor: "rgba(59, 130, 246, 0.1)",
           tension: 0.4,
         },
       ],
-    }
-  }
+    };
+  };
 
   return {
     fetchTrendData,
     formatChartData,
-  }
-}
+  };
+};

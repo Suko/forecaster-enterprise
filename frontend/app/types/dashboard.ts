@@ -28,7 +28,7 @@ export interface DashboardResponse {
   top_overstocked: TopProduct[]
 }
 
-export type TimePeriod = 'daily' | 'weekly' | 'monthly' | 'quarterly' | 'yearly'
+export type TimePeriod = "daily" | "weekly" | "monthly" | "quarterly" | "yearly"
 
 export interface TrendDataPoint {
   date: string

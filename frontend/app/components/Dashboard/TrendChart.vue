@@ -31,8 +31,8 @@
 </template>
 
 <script setup lang="ts">
-import { Line } from 'vue-chartjs'
-import type { ChartData, ChartOptions } from 'chart.js'
+import { Line } from "vue-chartjs";
+import type { ChartData, ChartOptions } from "chart.js";
 
 interface Props {
   title: string
@@ -42,18 +42,18 @@ interface Props {
 }
 
 const props = withDefaults(defineProps<Props>(), {
-  label: 'Value',
-  color: 'rgb(59, 130, 246)',
-})
+  label: "Value",
+  color: "rgb(59, 130, 246)",
+});
 
-const chartRef = ref<InstanceType<typeof Line>>()
+const chartRef = ref<InstanceType<typeof Line>>();
 
-const chartData = computed<ChartData<'line'>>(() => {
+const chartData = computed<ChartData<"line">>(() => {
   if (!props.data || props.data.length === 0) {
     return {
       labels: [],
       datasets: [],
-    }
+    };
   }
 
   return {
@@ -63,21 +63,21 @@ const chartData = computed<ChartData<'line'>>(() => {
         label: props.label,
         data: props.data.map((d) => d.value),
         borderColor: props.color,
-        backgroundColor: props.color.replace('rgb', 'rgba').replace(')', ', 0.1)'),
+        backgroundColor: props.color.replace("rgb", "rgba").replace(")", ", 0.1)"),
         tension: 0.4,
         fill: true,
       },
     ],
-  }
-})
+  };
+});
 
-const chartOptions = computed<ChartOptions<'line'>>(() => ({
+const chartOptions = computed<ChartOptions<"line">>(() => ({
   responsive: true,
   maintainAspectRatio: false,
   plugins: {
     legend: {
       display: true,
-      position: 'top',
+      position: "top",
     },
     zoom: {
       zoom: {
@@ -88,33 +88,33 @@ const chartOptions = computed<ChartOptions<'line'>>(() => ({
         pinch: {
           enabled: true,
         },
-        mode: 'x',
+        mode: "x",
         drag: {
           enabled: true,
-          backgroundColor: 'rgba(59, 130, 246, 0.1)',
-          borderColor: 'rgba(59, 130, 246, 0.3)',
+          backgroundColor: "rgba(59, 130, 246, 0.1)",
+          borderColor: "rgba(59, 130, 246, 0.3)",
           borderWidth: 1,
         },
       },
       pan: {
         enabled: true,
-        mode: 'x',
-        modifierKey: 'ctrl',
+        mode: "x",
+        modifierKey: "ctrl",
       },
     },
   },
   scales: {
     x: {
-      type: 'time',
+      type: "time",
       time: {
-        unit: 'day',
+        unit: "day",
         displayFormats: {
-          day: 'MMM dd',
+          day: "MMM dd",
         },
       },
       title: {
         display: true,
-        text: 'Date',
+        text: "Date",
       },
     },
     y: {
@@ -126,28 +126,28 @@ const chartOptions = computed<ChartOptions<'line'>>(() => ({
     },
   },
   interaction: {
-    mode: 'nearest',
-    axis: 'x',
+    mode: "nearest",
+    axis: "x",
     intersect: false,
   },
-}))
+}));
 
-const showResetZoom = ref(false)
+const showResetZoom = ref(false);
 
 const resetZoom = () => {
   if (chartRef.value?.chart) {
-    chartRef.value.chart.resetZoom()
-    showResetZoom.value = false
+    chartRef.value.chart.resetZoom();
+    showResetZoom.value = false;
   }
-}
+};
 
 // Watch for zoom changes
 onMounted(() => {
   if (chartRef.value?.chart) {
-    chartRef.value.chart.canvas.addEventListener('wheel', () => {
-      showResetZoom.value = true
-    })
+    chartRef.value.chart.canvas.addEventListener("wheel", () => {
+      showResetZoom.value = true;
+    });
   }
-})
+});
 </script>
 

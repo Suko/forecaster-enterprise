@@ -53,57 +53,57 @@
 </template>
 
 <script setup lang="ts">
-import type { TabsItem } from '@nuxt/ui'
+import type { TabsItem } from "@nuxt/ui";
 
-const route = useRoute()
-const router = useRouter()
+const route = useRoute();
+const router = useRouter();
 
 const tabs: TabsItem[] = [
   {
-    label: 'General',
-    value: 'general',
-    slot: 'general'
+    label: "General",
+    value: "general",
+    slot: "general"
   },
   {
-    label: 'Users',
-    value: 'users',
-    slot: 'users'
+    label: "Users",
+    value: "users",
+    slot: "users"
   },
   {
-    label: 'Notifications',
-    value: 'notifications',
-    slot: 'notifications'
+    label: "Notifications",
+    value: "notifications",
+    slot: "notifications"
   },
   {
-    label: 'Security',
-    value: 'security',
-    slot: 'security'
+    label: "Security",
+    value: "security",
+    slot: "security"
   }
-]
+];
 
 const activeTab = computed(() => {
-  if (route.path === '/settings' || route.path === '/settings/') {
-    return 'general'
+  if (route.path === "/settings" || route.path === "/settings/") {
+    return "general";
   }
-  if (route.path === '/settings/users') {
-    return 'users'
+  if (route.path === "/settings/users") {
+    return "users";
   }
-  if (route.path === '/settings/notifications') {
-    return 'notifications'
+  if (route.path === "/settings/notifications") {
+    return "notifications";
   }
-  if (route.path === '/settings/security') {
-    return 'security'
+  if (route.path === "/settings/security") {
+    return "security";
   }
-  return 'general'
-})
+  return "general";
+});
 
 const handleTabChange = (value: string | number) => {
-  const tabValue = String(value)
-  if (tabValue === 'general') {
-    router.push('/settings')
+  const tabValue = String(value);
+  if (tabValue === "general") {
+    router.push("/settings");
   } else {
-    router.push(`/settings/${tabValue}`)
+    router.push(`/settings/${tabValue}`);
   }
-}
+};
 </script>
 

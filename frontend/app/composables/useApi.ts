@@ -3,7 +3,7 @@
  * Uses Nuxt server routes which handle JWT tokens automatically
  */
 export const useApi = () => {
-  const { user } = useUserSession()
+  const { user } = useUserSession();
 
   /**
    * Make an authenticated API call through Nuxt server routes
@@ -13,23 +13,23 @@ export const useApi = () => {
     options: RequestInit = {}
   ): Promise<T> => {
     if (!user.value) {
-      throw new Error('Not authenticated')
+      throw new Error("Not authenticated");
     }
 
     // All API calls go through Nuxt server routes
     // Server routes will handle adding JWT tokens
     const response = await $fetch<T>(`/api${endpoint}`, {
       ...options,
-      credentials: 'include', // Include session cookie
-    })
+      credentials: "include", // Include session cookie
+    });
 
-    return response
-  }
+    return response;
+  };
 
   return {
     apiCall,
-  }
-}
+  };
+};
 
 
 

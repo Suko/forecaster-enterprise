@@ -1,20 +1,20 @@
-import { z } from 'zod'
-import { authenticatedFetch } from '../../utils/api'
+import { z } from "zod";
+import { authenticatedFetch } from "../../utils/api";
 
 const bodySchema = z.object({
   name: z.string().optional(),
-  role: z.enum(['admin', 'user']).optional(),
+  role: z.enum(["admin", "user"]).optional(),
   is_active: z.boolean().optional(),
-})
+});
 
 export default defineEventHandler(async (event) => {
   // Require user session (auto-imported by nuxt-auth-utils)
-  await requireUserSession(event)
-  const id = getRouterParam(event, 'id')
-  const body = await readValidatedBody(event, bodySchema.parse)
+  await requireUserSession(event);
+  const id = getRouterParam(event, "id");
+  const body = await readValidatedBody(event, bodySchema.parse);
   return await authenticatedFetch(event, `/auth/users/${id}`, {
-    method: 'PATCH',
+    method: "PATCH",
     body: JSON.stringify(body),
-  })
-})
+  });
+});
 

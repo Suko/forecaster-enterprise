@@ -5,7 +5,7 @@ from slowapi.errors import RateLimitExceeded
 from config import settings
 
 from models import init_db
-from api import auth, forecast, monitoring, inventory, orders, purchase_orders, etl
+from api import auth, forecast, monitoring, inventory, orders, purchase_orders, etl, suppliers
 from api import settings as settings_api
 
 # Database will be initialized via Alembic migrations
@@ -49,6 +49,7 @@ app.include_router(monitoring.router)
 app.include_router(inventory.router)
 app.include_router(orders.router)
 app.include_router(purchase_orders.router)
+app.include_router(suppliers.router)
 app.include_router(settings_api.router)
 app.include_router(etl.router)
 
@@ -61,4 +62,3 @@ async def root():
 @app.get("/health")
 async def health():
     return {"status": "healthy"}
-

@@ -59,7 +59,7 @@ frontend/
 │   │   ├── dashboard.vue    # Main dashboard layout with sidebar
 │   │   └── default.vue
 │   ├── middleware/          # Route middleware
-│   │   └── auth.ts          # Authentication middleware
+│   │   └── auth.global.ts   # Global authentication middleware (runs on all routes)
 │   └── pages/               # File-based routing
 │       ├── dashboard.vue
 │       ├── login.vue
@@ -96,11 +96,23 @@ The application uses `nuxt-auth-utils` following the [official Nuxt 4.x authenti
 
 **Protected Routes:**
 
+Authentication is handled globally via `auth.global.ts` middleware. All pages are protected by default. No need to specify `middleware: "auth"` on individual pages.
+
 ```vue
 <script setup>
 definePageMeta({
   layout: "dashboard",
-  middleware: "auth",
+});
+</script>
+```
+
+To opt out of authentication for a specific page (e.g., login page), set `auth: false`:
+
+```vue
+<script setup>
+definePageMeta({
+  layout: "default",
+  auth: false,
 });
 </script>
 ```

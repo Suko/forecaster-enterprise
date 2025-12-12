@@ -1,48 +1,48 @@
-import { z } from 'zod'
-import { logSecurityEvent, getClientIP, getUserAgent } from '../utils/security-logger'
+import { z } from "zod";
+import { logSecurityEvent, getClientIP, getUserAgent } from "../utils/security-logger";
 
 const bodySchema = z.object({
   email: z.string().email(),
   password: z.string().min(1),
-})
+});
 
 export default defineEventHandler(async (event) => {
-  const clientIP = getClientIP(event)
-  const userAgent = getUserAgent(event)
+  const clientIP = getClientIP(event);
+  const userAgent = getUserAgent(event);
   
   try {
-    const { email, password } = await readValidatedBody(event, bodySchema.parse)
+    const { email, password } = await readValidatedBody(event, bodySchema.parse);
 
-    const config = useRuntimeConfig()
+    const config = useRuntimeConfig();
     // Use private apiBaseUrl for server-side calls (reaches backend via Docker network)
-    const apiBaseUrl = config.apiBaseUrl
+    const apiBaseUrl = config.apiBaseUrl;
 
     // Forward to FastAPI backend
     // FastAPI expects OAuth2PasswordRequestForm which uses form data
-    const formData = new URLSearchParams()
-    formData.append('username', email) // OAuth2 uses 'username' field for email
-    formData.append('password', password)
+    const formData = new URLSearchParams();
+    formData.append("username", email); // OAuth2 uses 'username' field for email
+    formData.append("password", password);
 
     const response = await $fetch(`${apiBaseUrl}/auth/login`, {
-      method: 'POST',
+      method: "POST",
       headers: {
-        'Content-Type': 'application/x-www-form-urlencoded',
+        "Content-Type": "application/x-www-form-urlencoded",
       },
       body: formData.toString(),
-    })
+    });
 
-    if (response && 'access_token' in response) {
-      const accessToken = (response as any).access_token
+    if (response && "access_token" in response) {
+      const accessToken = (response as any).access_token;
 
       // Fetch user info from backend using the token
-      let userInfo = { email }
+      let userInfo = { email };
       try {
         const userResponse = await $fetch(`${apiBaseUrl}/auth/me`, {
           headers: {
-            'Authorization': `Bearer ${accessToken}`,
+            "Authorization": `Bearer ${accessToken}`,
           },
-        })
-        userInfo = userResponse as any
+        });
+        userInfo = userResponse as any;
       } catch (err) {
         // If /auth/me fails, continue with email only
         // Error logged server-side without exposing details to client
@@ -52,36 +52,36 @@ export default defineEventHandler(async (event) => {
       await setUserSession(event, {
         user: userInfo,
         accessToken: accessToken,
-      })
+      });
 
       // Log successful login
       logSecurityEvent({
-        type: 'login_success',
+        type: "login_success",
         email: email,
         ip: clientIP,
         userAgent: userAgent,
-      })
+      });
 
-      return {}
+      return {};
     }
 
     // Log failed login attempt
     logSecurityEvent({
-      type: 'login_failure',
+      type: "login_failure",
       ip: clientIP,
       userAgent: userAgent,
-      details: { reason: 'Invalid credentials or no token received' },
-    })
+      details: { reason: "Invalid credentials or no token received" },
+    });
 
     throw createError({
       statusCode: 401,
-      statusMessage: 'Authentication failed',
-    })
+      statusMessage: "Authentication failed",
+    });
   } catch (error: any) {
     // Log login failure with error details
     if (error.statusCode === 401 || error.statusCode === 429) {
       logSecurityEvent({
-        type: error.statusCode === 429 ? 'rate_limit' : 'login_failure',
+        type: error.statusCode === 429 ? "rate_limit" : "login_failure",
         email: error.data?.email,
         ip: clientIP,
         userAgent: userAgent,
@@ -89,26 +89,26 @@ export default defineEventHandler(async (event) => {
           statusCode: error.statusCode,
           message: error.data?.detail || error.statusMessage,
         },
-      })
+      });
     }
 
     if (error.statusCode) {
-      throw error
+      throw error;
     }
 
     // Handle FastAPI error responses
     if (error.data) {
       throw createError({
         statusCode: error.statusCode || 401,
-        statusMessage: error.data?.detail || 'Login failed',
+        statusMessage: error.data?.detail || "Login failed",
         data: error.data,
-      })
+      });
     }
 
     throw createError({
       statusCode: 500,
-      statusMessage: 'Internal server error',
-    })
+      statusMessage: "Internal server error",
+    });
   }
-})
+});
 

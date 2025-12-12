@@ -50,25 +50,25 @@
 
 <script setup lang="ts">
 const formState = reactive({
-  companyName: '',
-  timezone: 'UTC',
-  language: 'en'
-})
+  companyName: "",
+  timezone: "UTC",
+  language: "en"
+});
 
 const timezoneOptions = [
-  { label: 'UTC', value: 'UTC' },
-  { label: 'America/New_York', value: 'America/New_York' },
-  { label: 'America/Los_Angeles', value: 'America/Los_Angeles' },
-  { label: 'Europe/London', value: 'Europe/London' },
-  { label: 'Europe/Paris', value: 'Europe/Paris' },
-  { label: 'Asia/Tokyo', value: 'Asia/Tokyo' }
-]
+  { label: "UTC", value: "UTC" },
+  { label: "America/New_York", value: "America/New_York" },
+  { label: "America/Los_Angeles", value: "America/Los_Angeles" },
+  { label: "Europe/London", value: "Europe/London" },
+  { label: "Europe/Paris", value: "Europe/Paris" },
+  { label: "Asia/Tokyo", value: "Asia/Tokyo" }
+];
 
 const languageOptions = [
-  { label: 'English', value: 'en' },
-  { label: 'Spanish', value: 'es' },
-  { label: 'French', value: 'fr' },
-  { label: 'German', value: 'de' }
-]
+  { label: "English", value: "en" },
+  { label: "Spanish", value: "es" },
+  { label: "French", value: "fr" },
+  { label: "German", value: "de" }
+];
 </script>
 

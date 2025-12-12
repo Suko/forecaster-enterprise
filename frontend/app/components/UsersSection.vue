@@ -179,10 +179,10 @@
 </template>
 
 <script setup lang="ts">
-import * as z from 'zod'
-import type { FormSubmitEvent } from '#ui/types'
+import * as z from "zod";
+import type { FormSubmitEvent } from "#ui/types";
 
-const { apiCall } = useApi()
+const { apiCall } = useApi();
 
 interface User {
   id: string
@@ -192,185 +192,185 @@ interface User {
   is_active: boolean
 }
 
-const users = ref<User[]>([])
-const loading = ref(false)
-const submitting = ref(false)
-const deleting = ref(false)
-const showModal = ref(false)
-const showDeleteModal = ref(false)
-const editingUser = ref<User | null>(null)
-const userToDelete = ref<User | null>(null)
+const users = ref<User[]>([]);
+const loading = ref(false);
+const submitting = ref(false);
+const deleting = ref(false);
+const showModal = ref(false);
+const showDeleteModal = ref(false);
+const editingUser = ref<User | null>(null);
+const userToDelete = ref<User | null>(null);
 
 const roleOptions = [
-  { label: 'Admin', value: 'admin' },
-  { label: 'User', value: 'user' }
-]
+  { label: "Admin", value: "admin" },
+  { label: "User", value: "user" }
+];
 
 const formState = reactive({
-  email: '',
-  password: '',
-  name: '',
-  role: 'user',
+  email: "",
+  password: "",
+  name: "",
+  role: "user",
   is_active: true
-})
+});
 
 const schema = computed(() => {
   const baseSchema = {
-    email: z.string().email('Invalid email address'),
+    email: z.string().email("Invalid email address"),
     name: z.string().optional(),
-    role: z.enum(['admin', 'user']),
+    role: z.enum(["admin", "user"]),
     is_active: z.boolean()
-  }
+  };
   
   if (editingUser.value) {
-    return z.object(baseSchema)
+    return z.object(baseSchema);
   } else {
     return z.object({
       ...baseSchema,
       password: z.string()
-        .min(8, 'Password must be at least 8 characters')
-        .max(128, 'Password must be no more than 128 characters')
-    })
+        .min(8, "Password must be at least 8 characters")
+        .max(128, "Password must be no more than 128 characters")
+    });
   }
-})
+});
 
-const searchQuery = ref('')
+const searchQuery = ref("");
 
 const filteredUsers = computed(() => {
-  if (!searchQuery.value) return users.value
-  const query = searchQuery.value.toLowerCase()
+  if (!searchQuery.value) return users.value;
+  const query = searchQuery.value.toLowerCase();
   return users.value.filter(user => 
     user.email.toLowerCase().includes(query) ||
     (user.name && user.name.toLowerCase().includes(query))
-  )
-})
+  );
+});
 
 const getUsername = (user: User) => {
   if (user.email) {
-    return user.email.split('@')[0]
+    return user.email.split("@")[0];
   }
-  return user.email
-}
+  return user.email;
+};
 
 const getUserActions = (user: User) => [
   [{
-    label: 'Edit',
-    icon: 'i-lucide-edit',
+    label: "Edit",
+    icon: "i-lucide-edit",
     click: () => openEditModal(user)
   }],
   [{
-    label: 'Delete',
-    icon: 'i-lucide-trash-2',
+    label: "Delete",
+    icon: "i-lucide-trash-2",
     click: () => confirmDelete(user)
   }]
-]
+];
 
 const updateRole = async (user: User, newRole: string) => {
   try {
     await apiCall(`/users/${user.id}`, {
-      method: 'PATCH',
+      method: "PATCH",
       body: JSON.stringify({ role: newRole })
-    })
-    await fetchUsers()
+    });
+    await fetchUsers();
   } catch (error: any) {
-    console.error('Failed to update role:', error)
+    console.error("Failed to update role:", error);
   }
-}
+};
 
 const fetchUsers = async () => {
-  loading.value = true
+  loading.value = true;
   try {
-    users.value = await apiCall<User[]>('/users')
+    users.value = await apiCall<User[]>("/users");
   } catch (error: any) {
-    console.error('Failed to fetch users:', error)
+    console.error("Failed to fetch users:", error);
   } finally {
-    loading.value = false
+    loading.value = false;
   }
-}
+};
 
 const openCreateModal = () => {
-  editingUser.value = null
-  formState.email = ''
-  formState.password = ''
-  formState.name = ''
-  formState.role = 'user'
-  formState.is_active = true
-  showModal.value = true
-}
+  editingUser.value = null;
+  formState.email = "";
+  formState.password = "";
+  formState.name = "";
+  formState.role = "user";
+  formState.is_active = true;
+  showModal.value = true;
+};
 
 const openEditModal = (user: User) => {
-  editingUser.value = user
-  formState.email = user.email
-  formState.password = ''
-  formState.name = user.name || ''
-  formState.role = user.role
-  formState.is_active = user.is_active
-  showModal.value = true
-}
+  editingUser.value = user;
+  formState.email = user.email;
+  formState.password = "";
+  formState.name = user.name || "";
+  formState.role = user.role;
+  formState.is_active = user.is_active;
+  showModal.value = true;
+};
 
 const closeModal = () => {
-  showModal.value = false
-  editingUser.value = null
-}
+  showModal.value = false;
+  editingUser.value = null;
+};
 
 const handleSubmit = async (event: FormSubmitEvent<any>) => {
-  submitting.value = true
+  submitting.value = true;
   try {
     if (editingUser.value) {
       await apiCall(`/users/${editingUser.value.id}`, {
-        method: 'PATCH',
+        method: "PATCH",
         body: JSON.stringify({
           name: formState.name,
           role: formState.role,
           is_active: formState.is_active
         })
-      })
+      });
     } else {
-      await apiCall('/users', {
-        method: 'POST',
+      await apiCall("/users", {
+        method: "POST",
         body: JSON.stringify({
           email: formState.email,
           password: formState.password,
           name: formState.name,
           role: formState.role
         })
-      })
+      });
     }
-    await fetchUsers()
-    closeModal()
+    await fetchUsers();
+    closeModal();
   } catch (error: any) {
-    console.error('Failed to save user:', error)
+    console.error("Failed to save user:", error);
   } finally {
-    submitting.value = false
+    submitting.value = false;
   }
-}
+};
 
 const confirmDelete = (user: User) => {
-  userToDelete.value = user
-  showDeleteModal.value = true
-}
+  userToDelete.value = user;
+  showDeleteModal.value = true;
+};
 
 const handleDelete = async () => {
-  if (!userToDelete.value) return
+  if (!userToDelete.value) return;
   
-  deleting.value = true
+  deleting.value = true;
   try {
     await apiCall(`/users/${userToDelete.value.id}`, {
-      method: 'DELETE'
-    })
-    await fetchUsers()
-    showDeleteModal.value = false
-    userToDelete.value = null
+      method: "DELETE"
+    });
+    await fetchUsers();
+    showDeleteModal.value = false;
+    userToDelete.value = null;
   } catch (error: any) {
-    console.error('Failed to delete user:', error)
+    console.error("Failed to delete user:", error);
   } finally {
-    deleting.value = false
+    deleting.value = false;
   }
-}
+};
 
 onMounted(() => {
-  fetchUsers()
-})
+  fetchUsers();
+});
 </script>
 
 

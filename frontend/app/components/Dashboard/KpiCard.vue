@@ -25,22 +25,22 @@ interface Props {
 }
 
 const props = withDefaults(defineProps<Props>(), {
-  bgColor: 'bg-blue-100 dark:bg-blue-900',
-  iconColor: 'text-blue-500',
-  valueColor: 'text-blue-600 dark:text-blue-400',
-})
+  bgColor: "bg-blue-100 dark:bg-blue-900",
+  iconColor: "text-blue-500",
+  valueColor: "text-blue-600 dark:text-blue-400",
+});
 
 const formattedValue = computed(() => {
   if (props.value === undefined || props.value === null) {
-    return '0'
+    return "0";
   }
-  if (typeof props.value === 'number') {
-    return props.value.toLocaleString()
+  if (typeof props.value === "number") {
+    return props.value.toLocaleString();
   }
-  if (typeof props.value === 'string' && props.value.startsWith('€')) {
-    return props.value
+  if (typeof props.value === "string" && props.value.startsWith("€")) {
+    return props.value;
   }
-  return props.value
-})
+  return props.value;
+});
 </script>
 

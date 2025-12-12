@@ -58,6 +58,15 @@ class InventoryService:
             
             if filters.category:
                 query = query.where(Product.category == filters.category)
+
+            if filters.supplier_id:
+                query = query.join(
+                    ProductSupplierCondition,
+                    and_(
+                        ProductSupplierCondition.client_id == client_id,
+                        ProductSupplierCondition.item_id == Product.item_id,
+                    ),
+                ).where(ProductSupplierCondition.supplier_id == filters.supplier_id)
         
         # Get total count before pagination
         # Create a subquery for counting
@@ -309,4 +318,3 @@ class InventoryService:
         await self.db.commit()
         
         return True
-

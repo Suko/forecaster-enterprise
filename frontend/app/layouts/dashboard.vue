@@ -1,61 +1,75 @@
 <script setup lang="ts">
-import type { NavigationMenuItem } from '@nuxt/ui'
+import type { NavigationMenuItem } from "@nuxt/ui";
 
-const { user } = useUserSession()
-const route = useRoute()
+const { user } = useUserSession();
+const route = useRoute();
 
 const mainMenuItems = computed<NavigationMenuItem[]>(() => [
   {
-    label: 'Dashboard',
-    icon: 'i-lucide-layout-dashboard',
-    to: '/dashboard',
-    active: route.path === '/dashboard'
+    label: "Dashboard",
+    icon: "i-lucide-layout-dashboard",
+    to: "/dashboard",
+    active: route.path === "/dashboard"
   },
   {
-    label: 'Inventory',
-    icon: 'i-lucide-package',
-    to: '/inventory',
-    active: route.path.startsWith('/inventory')
+    label: "Inventory",
+    icon: "i-lucide-package",
+    to: "/inventory",
+    active: route.path.startsWith("/inventory")
   },
   {
-    label: 'Recommendations',
-    icon: 'i-lucide-lightbulb',
-    to: '/recommendations',
-    active: route.path.startsWith('/recommendations')
+    label: "Recommendations",
+    icon: "i-lucide-lightbulb",
+    to: "/recommendations",
+    active: route.path.startsWith("/recommendations")
+  },
+  {
+    label: "Purchase Orders",
+    icon: "i-lucide-receipt",
+    to: "/purchase-orders/draft",
+    active: route.path.startsWith("/purchase-orders")
   }
-])
+]);
 
 const settingsItem = ref<NavigationMenuItem>({
-  label: 'Settings',
-  icon: 'i-lucide-settings',
+  label: "Settings",
+  icon: "i-lucide-settings",
   active: false,
   defaultOpen: false,
   children: [
     {
-      label: 'Users',
-      icon: 'i-lucide-users',
-      to: '/settings/users',
+      label: "Users",
+      icon: "i-lucide-users",
+      to: "/settings/users",
       active: false
     }
   ]
-})
+});
 
 watch(() => route.path, (path) => {
-  settingsItem.value.active = path.startsWith('/settings')
-  settingsItem.value.defaultOpen = path.startsWith('/settings')
+  settingsItem.value.active = path.startsWith("/settings");
+  settingsItem.value.defaultOpen = path.startsWith("/settings");
   if (settingsItem.value.children) {
-    settingsItem.value.children[0].active = path === '/settings/users'
+    settingsItem.value.children[0].active = path === "/settings/users";
   }
-}, { immediate: true })
+}, { immediate: true });
 
-const otherMenuItems = computed<NavigationMenuItem[]>(() => [settingsItem.value])
+const otherMenuItems = computed<NavigationMenuItem[]>(() => [settingsItem.value]);
 
-const { clear: clearSession } = useUserSession()
+const { clear: clearSession } = useUserSession();
 
 const handleLogout = async () => {
-  await clearSession()
-  await navigateTo('/login')
-}
+  await clearSession();
+  await navigateTo("/login");
+};
+
+const pageTitle = computed(() => {
+  if (route.path.startsWith("/inventory")) return "Inventory";
+  if (route.path.startsWith("/recommendations")) return "Recommendations";
+  if (route.path.startsWith("/purchase-orders")) return "Purchase Orders";
+  if (route.path.startsWith("/settings")) return "Settings";
+  return "Dashboard";
+});
 </script>
 
 <template>
@@ -98,7 +112,7 @@ const handleLogout = async () => {
 
     <UDashboardPanel>
       <template #header>
-        <UDashboardNavbar title="Dashboard">
+        <UDashboardNavbar :title="pageTitle">
           <template #trailing>
             <span class="text-sm text-muted">{{ user?.email || 'Guest' }}</span>
           </template>

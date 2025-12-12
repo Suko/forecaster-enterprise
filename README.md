@@ -66,9 +66,11 @@ This single command:
 
 ```bash
 cd frontend
-npm install
-npm run dev
+bun install
+bun run dev
 ```
+
+**Note:** This project uses [Bun](https://bun.sh) for package management. You can also use npm/pnpm/yarn if preferred.
 
 **Access:**
 - Frontend: http://localhost:3000
@@ -284,6 +286,7 @@ See [docs/forecasting/CURRENT_STATUS.md](docs/forecasting/CURRENT_STATUS.md) for
 | **Forecasting** | Chronos-2 | AI-based time series forecasting (primary) |
 | **Forecasting** | MA7 | Statistical baseline (7-day moving average) |
 | **Frontend** | Nuxt 4 | SSR framework, routing, auth integration |
+| **Frontend Package Manager** | Bun | Fast JavaScript runtime and package manager |
 | **Auth Module** | nuxt-auth-utils | JWT token management, session handling |
 | **UI Framework** | Nuxt UI | Official Nuxt component library |
 | **Styling** | Tailwind CSS 4 | Utility-first CSS framework |

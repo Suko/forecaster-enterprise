@@ -4,13 +4,13 @@
  */
 
 export type RecommendationType = 
-  | 'REORDER' 
-  | 'URGENT' 
-  | 'REDUCE_ORDER' 
-  | 'DEAD_STOCK' 
-  | 'PROMOTE'
+  | "REORDER" 
+  | "URGENT" 
+  | "REDUCE_ORDER" 
+  | "DEAD_STOCK" 
+  | "PROMOTE"
 
-export type RecommendationPriority = 'high' | 'medium' | 'low'
+export type RecommendationPriority = "high" | "medium" | "low"
 
 export interface Recommendation {
   type: RecommendationType
@@ -25,7 +25,7 @@ export interface Recommendation {
 
 export interface RecommendationFilters {
   recommendation_type?: RecommendationType
-  role?: 'CEO' | 'PROCUREMENT' | 'MARKETING'
+  role?: "CEO" | "PROCUREMENT" | "MARKETING"
   priority?: RecommendationPriority
 }
 

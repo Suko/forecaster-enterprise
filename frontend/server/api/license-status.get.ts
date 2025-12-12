@@ -23,9 +23,27 @@ const MAX_STATUS_AGE_MS = GRACE_PERIOD_SECONDS * 1000;
  *
  * Security: If file doesn't exist or is stale, assume invalid.
  * This prevents bypassing license check by disabling license-watcher.
+ *
+ * Development mode: Bypass license check when running locally (not in Docker).
  */
 export default defineEventHandler(async (): Promise<LicenseStatus> => {
+  // Bypass license check in development/local mode
+  const isDevelopment = process.env.NODE_ENV === "development" || 
+                        process.env.ENVIRONMENT === "development" ||
+                        process.env.ENVIRONMENT === "dev" ||
+                        process.env.ENVIRONMENT === "local";
+  
+  // If running locally (not in Docker), the license file won't exist
+  // Check if we're in Docker by checking if the path exists or if we're in dev mode
   const statusFilePath = "/license-data/license-status.json";
+  
+  // In development, if file doesn't exist, assume valid (local development)
+  if (isDevelopment && !existsSync(statusFilePath)) {
+    return {
+      valid: true,
+      checkedAt: new Date().toISOString(),
+    };
+  }
 
   // Check if file exists
   if (!existsSync(statusFilePath)) {

@@ -14,7 +14,10 @@
 
     <!-- Loading State -->
     <div v-if="loading" class="flex items-center justify-center py-12">
-      <UIcon name="i-lucide-loader-2" class="w-8 h-8 animate-spin text-primary" />
+      <UIcon
+        name="i-lucide-loader-2"
+        class="w-8 h-8 animate-spin text-primary"
+      />
     </div>
 
     <!-- Error State -->
@@ -29,16 +32,18 @@
     <!-- Dashboard Content -->
     <div v-else-if="dashboardData" class="space-y-6">
       <!-- KPI Cards -->
-    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         <DashboardKpiCard
           label="Total Inventory Value"
-          :value="`€${formatCurrency(parseFloat(dashboardData.metrics.total_inventory_value || '0'))}`"
+          :value="`€${formatCurrency(
+            parseFloat(dashboardData.metrics.total_inventory_value || '0')
+          )}`"
           icon="i-lucide-euro"
           bg-color="bg-blue-100 dark:bg-blue-900"
           icon-color="text-blue-500"
           value-color="text-blue-600 dark:text-blue-400"
         />
-        
+
         <DashboardKpiCard
           label="Total SKUs"
           :value="dashboardData.metrics.total_skus || 0"
@@ -47,7 +52,7 @@
           icon-color="text-primary-500"
           value-color="text-primary-600 dark:text-primary-400"
         />
-        
+
         <DashboardKpiCard
           label="Understocked"
           :value="dashboardData.metrics.understocked_count || 0"
@@ -56,7 +61,7 @@
           icon-color="text-red-500"
           value-color="text-red-600 dark:text-red-400"
         />
-        
+
         <DashboardKpiCard
           label="Overstocked"
           :value="dashboardData.metrics.overstocked_count || 0"
@@ -70,12 +75,15 @@
       <!-- Charts Section -->
       <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <!-- Top Understocked Products -->
-      <UCard>
+        <UCard>
           <template #header>
             <h3 class="text-lg font-semibold">Top 5 Understocked Products</h3>
           </template>
           <div class="p-4">
-            <div v-if="dashboardData.top_understocked.length === 0" class="text-center text-gray-400 py-8">
+            <div
+              v-if="dashboardData.top_understocked.length === 0"
+              class="text-center text-gray-400 py-8"
+            >
               No understocked items
             </div>
             <div v-else class="space-y-2">
@@ -88,28 +96,39 @@
                 <div class="flex-1">
                   <p class="font-medium">{{ item.product_name }}</p>
                   <p class="text-sm text-gray-500">{{ item.item_id }}</p>
-          </div>
+                </div>
                 <div class="text-right">
                   <UBadge
-                    :color="(Number(item.stockout_risk) || 0) > 70 ? 'red' : (Number(item.stockout_risk) || 0) > 40 ? 'orange' : 'yellow'"
+                    :color="
+                      (Number(item.stockout_risk) || 0) > 70
+                        ? 'red'
+                        : (Number(item.stockout_risk) || 0) > 40
+                        ? 'orange'
+                        : 'yellow'
+                    "
                     variant="soft"
                   >
                     {{ (Number(item.stockout_risk) || 0).toFixed(1) }}% risk
                   </UBadge>
-                  <p class="text-xs text-gray-400 mt-1">{{ (Number(item.dir) || 0).toFixed(1) }} days</p>
+                  <p class="text-xs text-gray-400 mt-1">
+                    {{ (Number(item.dir) || 0).toFixed(1) }} days
+                  </p>
+                </div>
+              </div>
+            </div>
           </div>
-        </div>
-          </div>
-        </div>
-      </UCard>
-      
+        </UCard>
+
         <!-- Top Overstocked Products -->
-      <UCard>
+        <UCard>
           <template #header>
             <h3 class="text-lg font-semibold">Top 5 Overstocked Products</h3>
           </template>
           <div class="p-4">
-            <div v-if="dashboardData.top_overstocked.length === 0" class="text-center text-gray-400 py-8">
+            <div
+              v-if="dashboardData.top_overstocked.length === 0"
+              class="text-center text-gray-400 py-8"
+            >
               No overstocked items
             </div>
             <div v-else class="space-y-2">
@@ -122,16 +141,18 @@
                 <div class="flex-1">
                   <p class="font-medium">{{ item.product_name }}</p>
                   <p class="text-sm text-gray-500">{{ item.item_id }}</p>
-          </div>
+                </div>
                 <div class="text-right">
-                  <p class="text-sm font-medium">{{ (Number(item.dir) || 0).toFixed(1) }} days</p>
+                  <p class="text-sm font-medium">
+                    {{ (Number(item.dir) || 0).toFixed(1) }} days
+                  </p>
                   <p class="text-xs text-gray-400">Overstocked</p>
-          </div>
-        </div>
-          </div>
+                </div>
+              </div>
+            </div>
           </div>
         </UCard>
-        </div>
+      </div>
 
       <!-- Trend Charts (Placeholder for future implementation) -->
       <!-- <div class="grid grid-cols-1 gap-6">
@@ -146,47 +167,49 @@
 </template>
 
 <script setup lang="ts">
-import type { DashboardResponse } from '~/types/dashboard'
+import type { DashboardResponse } from "~/types/dashboard";
 
 definePageMeta({
-  layout: 'dashboard',
-})
+  layout: "dashboard",
+});
 
-const { user, fetch } = useUserSession()
-const dashboardData = ref<DashboardResponse | null>(null)
-const loading = ref(false)
-const error = ref<string | null>(null)
+const { user, fetch } = useUserSession();
+const dashboardData = ref<DashboardResponse | null>(null);
+const loading = ref(false);
+const error = ref<string | null>(null);
 
 const formatCurrency = (value: number): string => {
-  return Math.round(value).toLocaleString('de-DE', { maximumFractionDigits: 0 })
-}
+  return Math.round(value).toLocaleString("de-DE", {
+    maximumFractionDigits: 0,
+  });
+};
 
-const { handleAuthError } = useAuthError()
+const { handleAuthError } = useAuthError();
 
 const loadDashboard = async () => {
-  loading.value = true
-  error.value = null
+  loading.value = true;
+  error.value = null;
 
   try {
-    const data = await $fetch<DashboardResponse>('/api/dashboard')
-    dashboardData.value = data
+    const data = await $fetch<DashboardResponse>("/api/dashboard");
+    dashboardData.value = data;
   } catch (err: any) {
     // Handle 401 errors - redirect to login
-    const wasAuthError = await handleAuthError(err)
+    const wasAuthError = await handleAuthError(err);
     if (wasAuthError) {
       // Redirect is handled, just return
-      return
+      return;
     }
-    error.value = err.message || 'Failed to load dashboard data'
-    console.error('Dashboard error:', err)
+    error.value = err.message || "Failed to load dashboard data";
+    console.error("Dashboard error:", err);
   } finally {
-    loading.value = false
+    loading.value = false;
   }
-}
+};
 
 // Load dashboard on mount
 onMounted(async () => {
-  await fetch()
-  await loadDashboard()
-})
+  await fetch();
+  await loadDashboard();
+});
 </script>

@@ -47,14 +47,18 @@
           </template>
         </UInput>
         <p class="text-xs text-gray-500 mt-2">
-          💡 Example queries: "Show understocked products", "Sort by inventory value", "Filter by category"
+          💡 Example queries: "Show understocked products", "Sort by inventory
+          value", "Filter by category"
         </p>
       </div>
     </UCard>
 
     <!-- Loading State -->
     <div v-if="loading" class="flex items-center justify-center py-12">
-      <UIcon name="i-lucide-loader-2" class="w-8 h-8 animate-spin text-primary" />
+      <UIcon
+        name="i-lucide-loader-2"
+        class="w-8 h-8 animate-spin text-primary"
+      />
     </div>
 
     <!-- Error State -->
@@ -88,101 +92,107 @@
 </template>
 
 <script setup lang="ts">
-import { AgGridVue } from 'ag-grid-vue3'
-import { ModuleRegistry, AllCommunityModule } from 'ag-grid-community'
-import 'ag-grid-community/styles/ag-grid.css'
-import 'ag-grid-community/styles/ag-theme-alpine.css'
-import type { ColDef, GridReadyEvent } from 'ag-grid-community'
-import type { Recommendation, RecommendationType } from '~/types/recommendation'
+import { AgGridVue } from "ag-grid-vue3";
+import { ModuleRegistry, AllCommunityModule } from "ag-grid-community";
+import "ag-grid-community/styles/ag-grid.css";
+import "ag-grid-community/styles/ag-theme-alpine.css";
+import type { ColDef, GridReadyEvent } from "ag-grid-community";
+import type {
+  Recommendation,
+  RecommendationType,
+} from "~/types/recommendation";
 
 // Register AG Grid modules
-ModuleRegistry.registerModules([AllCommunityModule])
+ModuleRegistry.registerModules([AllCommunityModule]);
 
 definePageMeta({
-  layout: 'dashboard',
-})
+  layout: "dashboard",
+});
 
-const { fetchRecommendations, addToCart } = useRecommendations()
-const { handleAuthError } = useAuthError()
+const { fetchRecommendations, addToCart } = useRecommendations();
+const { handleAuthError } = useAuthError();
 
-const rowData = ref<Recommendation[]>([])
-const loading = ref(false)
-const error = ref<string | null>(null)
-const aiQuery = ref('')
-const aiLoading = ref(false)
-const selectedType = ref<RecommendationType | null>(null)
-const gridApi = ref<any>(null)
-const gridInitialized = ref(false)
+const rowData = ref<Recommendation[]>([]);
+const loading = ref(false);
+const error = ref<string | null>(null);
+const aiQuery = ref("");
+const aiLoading = ref(false);
+const selectedType = ref<RecommendationType | null>(null);
+const gridApi = ref<any>(null);
+const gridInitialized = ref(false);
 
-const recommendationTypes: Array<{ label: string; value: RecommendationType | null }> = [
-  { label: 'All Types', value: null },
-  { label: 'Reorder', value: 'REORDER' },
-  { label: 'Urgent', value: 'URGENT' },
-  { label: 'Reduce Order', value: 'REDUCE_ORDER' },
-  { label: 'Dead Stock', value: 'DEAD_STOCK' },
-  { label: 'Promote', value: 'PROMOTE' },
-]
+const recommendationTypes: Array<{
+  label: string;
+  value: RecommendationType | null;
+}> = [
+  { label: "All Types", value: null },
+  { label: "Reorder", value: "REORDER" },
+  { label: "Urgent", value: "URGENT" },
+  { label: "Reduce Order", value: "REDUCE_ORDER" },
+  { label: "Dead Stock", value: "DEAD_STOCK" },
+  { label: "Promote", value: "PROMOTE" },
+];
 
 // Column Definitions
 const columnDefs = ref<ColDef[]>([
   {
-    field: 'type',
-    headerName: 'Type',
-    filter: 'agTextColumnFilter',
+    field: "type",
+    headerName: "Type",
+    filter: "agTextColumnFilter",
     sortable: true,
     resizable: true,
     width: 140,
     cellRenderer: (params: any) => {
-      const type = params.value
+      const type = params.value;
       const colors: Record<string, string> = {
-        REORDER: 'blue',
-        URGENT: 'red',
-        REDUCE_ORDER: 'orange',
-        DEAD_STOCK: 'gray',
-        PROMOTE: 'green',
-      }
-      const color = colors[type] || 'gray'
-      return `<span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-${color}-100 text-${color}-800">${type}</span>`
+        REORDER: "blue",
+        URGENT: "red",
+        REDUCE_ORDER: "orange",
+        DEAD_STOCK: "gray",
+        PROMOTE: "green",
+      };
+      const color = colors[type] || "gray";
+      return `<span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-${color}-100 text-${color}-800">${type}</span>`;
     },
   },
   {
-    field: 'priority',
-    headerName: 'Priority',
-    filter: 'agTextColumnFilter',
+    field: "priority",
+    headerName: "Priority",
+    filter: "agTextColumnFilter",
     sortable: true,
     resizable: true,
     width: 120,
     cellRenderer: (params: any) => {
-      const priority = params.value
+      const priority = params.value;
       const colors: Record<string, string> = {
-        high: 'red',
-        medium: 'yellow',
-        low: 'green',
-      }
-      const color = colors[priority] || 'gray'
-      return `<span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-${color}-100 text-${color}-800">${priority}</span>`
+        high: "red",
+        medium: "yellow",
+        low: "green",
+      };
+      const color = colors[priority] || "gray";
+      return `<span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-${color}-100 text-${color}-800">${priority}</span>`;
     },
   },
   {
-    field: 'item_id',
-    headerName: 'SKU',
-    filter: 'agTextColumnFilter',
+    field: "item_id",
+    headerName: "SKU",
+    filter: "agTextColumnFilter",
     sortable: true,
     resizable: true,
     width: 120,
   },
   {
-    field: 'product_name',
-    headerName: 'Product Name',
-    filter: 'agTextColumnFilter',
+    field: "product_name",
+    headerName: "Product Name",
+    filter: "agTextColumnFilter",
     sortable: true,
     resizable: true,
     flex: 1,
   },
   {
-    field: 'reason',
-    headerName: 'Reason',
-    filter: 'agTextColumnFilter',
+    field: "reason",
+    headerName: "Reason",
+    filter: "agTextColumnFilter",
     sortable: true,
     resizable: true,
     flex: 1,
@@ -190,28 +200,28 @@ const columnDefs = ref<ColDef[]>([
     autoHeight: true,
   },
   {
-    field: 'suggested_quantity',
-    headerName: 'Suggested Qty',
-    filter: 'agNumberColumnFilter',
+    field: "suggested_quantity",
+    headerName: "Suggested Qty",
+    filter: "agNumberColumnFilter",
     sortable: true,
     resizable: true,
     width: 140,
-    type: 'numericColumn',
+    type: "numericColumn",
   },
   {
-    field: 'supplier_name',
-    headerName: 'Supplier',
-    filter: 'agTextColumnFilter',
+    field: "supplier_name",
+    headerName: "Supplier",
+    filter: "agTextColumnFilter",
     sortable: true,
     resizable: true,
     width: 150,
   },
   {
-    headerName: 'Actions',
-    field: 'actions',
+    headerName: "Actions",
+    field: "actions",
     width: 120,
     cellRenderer: (params: any) => {
-      const buttonId = `add-cart-${params.node.id}`
+      const buttonId = `add-cart-${params.node.id}`;
       return `
         <button 
           id="${buttonId}"
@@ -219,114 +229,116 @@ const columnDefs = ref<ColDef[]>([
         >
           Add to Cart
         </button>
-      `
+      `;
     },
   },
-])
+]);
 
 const defaultColDef: ColDef = {
   resizable: true,
   sortable: true,
   filter: true,
-}
+};
 
 const onGridReady = (params: GridReadyEvent) => {
   // Only set API reference, don't load data here
   // Data loading happens in onMounted to prevent loops
   if (!gridInitialized.value) {
-    gridApi.value = params.api
-    gridInitialized.value = true
+    gridApi.value = params.api;
+    gridInitialized.value = true;
   } else {
     // Grid was recreated, just update the API reference
-    gridApi.value = params.api
+    gridApi.value = params.api;
   }
-}
+};
 
 const onCellClicked = async (params: any) => {
-  if (params.column.colId === 'actions') {
+  if (params.column.colId === "actions") {
     try {
       await addToCart(
         params.data.item_id,
         params.data.supplier_id,
         params.data.suggested_quantity
-      )
+      );
       // Show success notification
-      const toast = useToast()
+      const toast = useToast();
       toast.add({
-        title: 'Added to cart',
+        title: "Added to cart",
         description: `${params.data.product_name} added to order planning cart`,
-        color: 'green',
-      })
+        color: "green",
+      });
     } catch (err: any) {
       // Handle 401 errors - redirect to login
-      const wasAuthError = await handleAuthError(err)
+      const wasAuthError = await handleAuthError(err);
       if (wasAuthError) {
         // Redirect is handled, just return
-        return
+        return;
       }
-      console.error('Failed to add to cart:', err)
-      const toast = useToast()
+      console.error("Failed to add to cart:", err);
+      const toast = useToast();
       toast.add({
-        title: 'Error',
-        description: 'Failed to add item to cart',
-        color: 'red',
-      })
+        title: "Error",
+        description: "Failed to add item to cart",
+        color: "red",
+      });
     }
   }
-}
+};
 
 const loadRecommendations = async () => {
   // Prevent concurrent calls
   if (loading.value) {
-    return
+    return;
   }
-  
-  loading.value = true
-  error.value = null
+
+  loading.value = true;
+  error.value = null;
 
   try {
     const recommendations = await fetchRecommendations({
       recommendation_type: selectedType.value || undefined,
-    })
-    rowData.value = recommendations
+    });
+    rowData.value = recommendations;
   } catch (err: any) {
     // Handle 401 errors - redirect to login
-    const wasAuthError = await handleAuthError(err)
+    const wasAuthError = await handleAuthError(err);
     if (wasAuthError) {
       // Redirect is handled, just return
-      return
+      return;
     }
-    error.value = err.message || 'Failed to load recommendations'
-    console.error('Recommendations error:', err)
+    error.value = err.message || "Failed to load recommendations";
+    console.error("Recommendations error:", err);
   } finally {
-    loading.value = false
+    loading.value = false;
   }
-}
+};
 
 // Load data on mount, not on grid ready
 onMounted(() => {
-  loadRecommendations()
-})
+  loadRecommendations();
+});
 
 onUnmounted(() => {
   // Reset grid initialized flag when component unmounts
-  gridInitialized.value = false
-})
+  gridInitialized.value = false;
+});
 
 const handleAIQuery = async () => {
-  if (!aiQuery.value.trim()) return
+  if (!aiQuery.value.trim()) return;
 
-  aiLoading.value = true
+  aiLoading.value = true;
   try {
     // TODO: Implement AG Grid AI Toolkit integration
     // For now, just show a message
-    console.log('AI Query:', aiQuery.value)
+    console.log("AI Query:", aiQuery.value);
     // In the future, this will use gridApi.getStructuredSchema() and send to LLM
-    alert('AI Toolkit integration coming soon! This will use AG Grid AI Toolkit to process natural language queries.')
+    alert(
+      "AI Toolkit integration coming soon! This will use AG Grid AI Toolkit to process natural language queries."
+    );
   } catch (err) {
-    console.error('AI Query error:', err)
+    console.error("AI Query error:", err);
   } finally {
-    aiLoading.value = false
+    aiLoading.value = false;
   }
-}
+};
 </script>

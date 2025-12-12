@@ -21,6 +21,7 @@ docs/
 ├── QUICK_START.md            # One-command setup
 ├── SETUP_SCRIPT_GUIDE.md     # Detailed setup options
 ├── DATA_MODEL.md             # Database schema
+├── M5_DATA_MAPPING.md        # M5 dataset mapping to daily records
 │
 ├── backend/
 │   ├── ARCHITECTURE.md       # Backend architecture
@@ -83,6 +84,7 @@ See [QUICK_START.md](QUICK_START.md) for manual setup steps.
 
 ### Data
 - [Data Model](DATA_MODEL.md) - Schema and relationships
+- [M5 Data Mapping](M5_DATA_MAPPING.md) - How M5 dataset is mapped to daily records
 - [System Contracts](system/CONTRACTS.md) - Naming conventions (`item_id`, not `sku`)
 
 ---

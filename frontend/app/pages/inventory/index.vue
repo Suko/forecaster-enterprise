@@ -44,10 +44,12 @@
           :defaultColDef="defaultColDef"
           :pagination="true"
           :paginationPageSize="50"
+          :paginationPageSizeSelector="[50, 100, 200, 500, 1000]"
           :rowSelection="{ mode: 'multiRow' }"
           theme="legacy"
           class="ag-theme-alpine w-full h-full"
           @grid-ready="onGridReady"
+          @pagination-changed="onPaginationChanged"
         />
         <template #fallback>
           <div class="flex items-center justify-center h-full">
@@ -227,12 +229,19 @@ const loadProducts = async () => {
   error.value = null
 
   try {
+    // Fetch all products (up to 1000, which is the API max)
+    // AG Grid will handle client-side pagination
     const result = await fetchProducts({
       page: 1,
-      pageSize: 50, // Use default page size
+      pageSize: 1000, // Fetch all products
       search: searchQuery.value || undefined,
     })
     rowData.value = result.rowData
+    
+    // Reset to first page after loading
+    if (gridApi.value) {
+      gridApi.value.paginationGoToPage(0)
+    }
   } catch (err: any) {
     // Handle 401 errors - redirect to login
     const wasAuthError = await handleAuthError(err)
@@ -247,6 +256,10 @@ const loadProducts = async () => {
   }
 }
 
+const onPaginationChanged = () => {
+  // Client-side pagination - no action needed
+}
+
 // Load data on mount, not on grid ready
 onMounted(() => {
   loadProducts()
@@ -258,7 +271,7 @@ const onSearch = () => {
     clearTimeout(searchTimeout.value)
   }
   searchTimeout.value = setTimeout(() => {
-    loadProducts()
+    loadProducts() // Reload all products with search filter
   }, 500)
 }
 

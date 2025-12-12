@@ -24,7 +24,7 @@ import pandas as pd
 import numpy as np
 from pathlib import Path
 from datetime import datetime, date
-from typing import List, Dict
+from typing import List, Dict, Optional
 import asyncio
 from sqlalchemy import text
 from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession, async_sessionmaker
@@ -294,7 +294,8 @@ def select_diverse_skus(analysis_df: pd.DataFrame, n_skus: int = 20) -> List[Dic
 async def import_m5_skus_to_database(
     data_dir: Path,
     selected_skus: List[Dict],
-    client_id: str
+    client_id: str,
+    history_days: Optional[int] = None
 ) -> None:
     """
     Import selected M5 SKUs to ts_demand_daily table.
@@ -306,13 +307,25 @@ async def import_m5_skus_to_database(
     """
     print(f"\n📥 Importing {len(selected_skus)} SKUs to database...")
     
-    # Get database URL
-    database_url = os.getenv("DATABASE_URL", settings.database_url)
+    # Get database URL (allow async override for ssl=require)
+    database_url = os.getenv("ASYNC_DATABASE_URL", os.getenv("DATABASE_URL", settings.database_url))
     
     if database_url.startswith("postgres://"):
         database_url = database_url.replace("postgres://", "postgresql+asyncpg://", 1)
     elif database_url.startswith("postgresql://") and "+asyncpg" not in database_url:
         database_url = database_url.replace("postgresql://", "postgresql+asyncpg://", 1)
+    # Strip sslmode (asyncpg uses ssl) and ensure ssl=require for Supabase hosts
+    from urllib.parse import urlparse, parse_qs, urlencode, urlunparse
+    parsed = urlparse(database_url)
+    query_params = parse_qs(parsed.query)
+    if 'sslmode' in query_params:
+        del query_params['sslmode']
+    if 'ssl' not in query_params and parsed.hostname and parsed.hostname.endswith(".supabase.co"):
+        query_params['ssl'] = 'require'
+    database_url = urlunparse(parsed._replace(query=urlencode(query_params, doseq=True)))
+
+    # Fallback hard strip if sslmode lingered in the URL string
+    database_url = database_url.replace("sslmode=require", "")
     
     engine = create_async_engine(database_url, echo=False)
     async_session = async_sessionmaker(engine, class_=AsyncSession, expire_on_commit=False)
@@ -338,6 +351,11 @@ async def import_m5_skus_to_database(
         
         imported_count = 0
         
+        # If history_days is set, only import the most recent window from M5
+        start_day_idx = 0
+        if history_days is not None and history_days > 0:
+            start_day_idx = max(0, len(dates) - history_days)
+
         for sku_info in selected_skus:
             sku_id = sku_info['id']
             
@@ -346,32 +364,35 @@ async def import_m5_skus_to_database(
                 continue
             
             row = sales_dict[sku_id]
+            base_item_id = row['item_id']  # e.g., HOBBIES_1_001
+            location_id = row['store_id']  # e.g., CA_1
             sales_cols = [col for col in row.index if col.startswith('d_')]
             sales_values = row[sales_cols].values.astype(float)
             
-            # Insert daily records
-            for day_idx, sales_qty in enumerate(sales_values):
+            # Insert daily records (optionally truncated to last history_days)
+            for day_idx, sales_qty in enumerate(sales_values[start_day_idx:], start=start_day_idx):
                 if day_idx >= len(dates):
                     break
-                
+
                 sale_date = dates[day_idx].date()
                 
-                # Insert into ts_demand_daily (no location_id in current schema)
+                # Insert into ts_demand_daily with location_id
                 await db.execute(
                     text("""
                         INSERT INTO ts_demand_daily (
-                            client_id, item_id, date_local,
+                            client_id, item_id, location_id, date_local,
                             units_sold
                         ) VALUES (
-                            :client_id, :item_id, :date_local,
+                            :client_id, :item_id, :location_id, :date_local,
                             :units_sold
                         )
-                        ON CONFLICT (client_id, item_id, date_local)
+                        ON CONFLICT (client_id, item_id, location_id, date_local)
                         DO UPDATE SET units_sold = EXCLUDED.units_sold
                     """),
                     {
                         "client_id": client_id,
-                        "item_id": f"M5_{sku_id}",
+                        "item_id": f"M5_{base_item_id}",
+                        "location_id": location_id,
                         "date_local": sale_date,
                         "units_sold": int(sales_qty) if not np.isnan(sales_qty) else 0,
                     }
@@ -408,6 +429,12 @@ async def main():
         default=20,
         help="Number of diverse SKUs to import (default: 20)"
     )
+    parser.add_argument(
+        "--history-days",
+        type=int,
+        default=None,
+        help="If set, import only the most recent N days from M5 (e.g., 1095 for 3 years)"
+    )
     
     args = parser.parse_args()
     
@@ -434,12 +461,22 @@ async def main():
     # Step 3: Select diverse SKUs
     selected_skus = select_diverse_skus(analysis_df, n_skus=args.n_skus)
     
-    # Step 4: Get or create client
-    database_url = os.getenv("DATABASE_URL", settings.database_url)
+    # Step 4: Get or create client (use the SAME async DB URL as import)
+    database_url = os.getenv("ASYNC_DATABASE_URL", os.getenv("DATABASE_URL", settings.database_url))
     if database_url.startswith("postgres://"):
         database_url = database_url.replace("postgres://", "postgresql+asyncpg://", 1)
     elif database_url.startswith("postgresql://") and "+asyncpg" not in database_url:
         database_url = database_url.replace("postgresql://", "postgresql+asyncpg://", 1)
+    # Strip sslmode (asyncpg doesn't support it) and ensure ssl=require for Supabase hosts
+    from urllib.parse import urlparse, parse_qs, urlencode, urlunparse
+    parsed = urlparse(database_url)
+    query_params = parse_qs(parsed.query)
+    if "sslmode" in query_params:
+        del query_params["sslmode"]
+    if "ssl" not in query_params and parsed.hostname and parsed.hostname.endswith(".supabase.co"):
+        query_params["ssl"] = "require"
+    database_url = urlunparse(parsed._replace(query=urlencode(query_params, doseq=True)))
+    database_url = database_url.replace("sslmode=require", "")
     
     engine = create_async_engine(database_url, echo=False)
     async_session = async_sessionmaker(engine, class_=AsyncSession, expire_on_commit=False)
@@ -499,7 +536,12 @@ async def main():
                 return
     
     # Step 5: Import to database
-    await import_m5_skus_to_database(data_dir, selected_skus, client_id)
+    await import_m5_skus_to_database(
+        data_dir,
+        selected_skus,
+        client_id,
+        history_days=args.history_days
+    )
     
     print("\n" + "=" * 80)
     print("✅ M5 Dataset Import Complete!")
@@ -514,4 +556,3 @@ async def main():
 
 if __name__ == "__main__":
     asyncio.run(main())
-

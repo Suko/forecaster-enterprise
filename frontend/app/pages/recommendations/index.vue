@@ -75,6 +75,7 @@
           :defaultColDef="defaultColDef"
           :pagination="true"
           :paginationPageSize="50"
+          :paginationPageSizeSelector="[50, 100, 200, 500, 1000]"
           :rowSelection="{ mode: 'multiRow' }"
           theme="legacy"
           class="ag-theme-alpine w-full h-full"

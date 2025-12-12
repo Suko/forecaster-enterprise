@@ -129,6 +129,7 @@ async def shift_dates_to_recent(
                 USING ts_demand_daily t2
                 WHERE t1.client_id = :client_id
                   AND t2.client_id = :client_id
+                  AND t1.location_id = t2.location_id
                   AND t1.date_local_new = t2.date_local
                   AND t1.item_id = t2.item_id
                   AND t1.date_local < t2.date_local

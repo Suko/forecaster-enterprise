@@ -13,7 +13,10 @@
     </div>
 
     <!-- Loading State -->
-    <div v-if="loading" class="flex items-center justify-center py-12">
+    <div
+      v-if="loading"
+      class="flex items-center justify-center py-12"
+    >
       <UIcon
         name="i-lucide-loader-2"
         class="w-8 h-8 animate-spin text-primary"
@@ -30,7 +33,10 @@
     />
 
     <!-- Dashboard Content -->
-    <div v-else-if="dashboardData" class="space-y-6">
+    <div
+      v-else-if="dashboardData"
+      class="space-y-6"
+    >
       <!-- KPI Cards -->
       <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         <DashboardKpiCard
@@ -86,7 +92,10 @@
             >
               No understocked items
             </div>
-            <div v-else class="space-y-2">
+            <div
+              v-else
+              class="space-y-2"
+            >
               <div
                 v-for="item in dashboardData.top_understocked"
                 :key="item.item_id"
@@ -103,8 +112,8 @@
                       (Number(item.stockout_risk) || 0) > 70
                         ? 'error'
                         : (Number(item.stockout_risk) || 0) > 40
-                        ? 'warning'
-                        : 'info'
+                          ? 'warning'
+                          : 'info'
                     "
                     variant="soft"
                   >
@@ -131,7 +140,10 @@
             >
               No overstocked items
             </div>
-            <div v-else class="space-y-2">
+            <div
+              v-else
+              class="space-y-2"
+            >
               <div
                 v-for="item in dashboardData.top_overstocked"
                 :key="item.item_id"
@@ -143,9 +155,7 @@
                   <p class="text-sm text-gray-500">{{ item.item_id }}</p>
                 </div>
                 <div class="text-right">
-                  <p class="text-sm font-medium">
-                    {{ (Number(item.dir) || 0).toFixed(1) }} days
-                  </p>
+                  <p class="text-sm font-medium">{{ (Number(item.dir) || 0).toFixed(1) }} days</p>
                   <p class="text-xs text-gray-400">Overstocked</p>
                 </div>
               </div>

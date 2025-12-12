@@ -6,6 +6,6 @@
   "useTabs": false,
   "printWidth": 100,
   "arrowParens": "always",
-  "endOfLine": "lf"
+  "endOfLine": "lf",
+  "singleAttributePerLine": true
 }
-

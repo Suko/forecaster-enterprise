@@ -25,89 +25,89 @@
 </template>
 
 <script setup lang="ts">
-import * as z from 'zod'
-import type { FormSubmitEvent, AuthFormField } from '@nuxt/ui'
+import * as z from "zod";
+import type { FormSubmitEvent, AuthFormField } from "@nuxt/ui";
 
 definePageMeta({
   layout: false,
   auth: false,
-})
+});
 
-const { loggedIn, fetch: refreshSession } = useUserSession()
-const route = useRoute()
-const isSubmitting = ref(false)
-const error = ref<string | null>(null)
+const { loggedIn, fetch: refreshSession } = useUserSession();
+const route = useRoute();
+const isSubmitting = ref(false);
+const error = ref<string | null>(null);
 
 // Get returnTo from query params
 const returnTo = computed(() => {
-  const returnToParam = route.query.returnTo
-  if (typeof returnToParam === 'string' && returnToParam.startsWith('/')) {
-    return returnToParam
+  const returnToParam = route.query.returnTo;
+  if (typeof returnToParam === "string" && returnToParam.startsWith("/")) {
+    return returnToParam;
   }
-  return '/dashboard'
-})
+  return "/dashboard";
+});
 
 // Redirect if already logged in
 if (loggedIn.value) {
-  await navigateTo(returnTo.value)
+  await navigateTo(returnTo.value);
 }
 
 const fields: AuthFormField[] = [
   {
-    name: 'email',
-    type: 'email',
-    label: 'Email',
-    placeholder: 'Enter your email',
+    name: "email",
+    type: "email",
+    label: "Email",
+    placeholder: "Enter your email",
     required: true,
-    autocomplete: 'email'
+    autocomplete: "email",
   },
   {
-    name: 'password',
-    label: 'Password',
-    type: 'password',
-    placeholder: 'Enter your password',
+    name: "password",
+    label: "Password",
+    type: "password",
+    placeholder: "Enter your password",
     required: true,
-    autocomplete: 'current-password'
-  }
-]
+    autocomplete: "current-password",
+  },
+];
 
 const schema = z.object({
-  email: z.string().email('Invalid email address'),
-  password: z.string().min(1, 'Password is required')
-})
+  email: z.string().email("Invalid email address"),
+  password: z.string().min(1, "Password is required"),
+});
 
-type Schema = z.output<typeof schema>
+type Schema = z.output<typeof schema>;
 
 async function handleLogin(payload: FormSubmitEvent<Schema>) {
-  if (isSubmitting.value) return
-  
-  error.value = null
-  isSubmitting.value = true
-  
+  if (isSubmitting.value) return;
+
+  error.value = null;
+  isSubmitting.value = true;
+
   try {
-    await $fetch('/api/login', {
-      method: 'POST',
+    await $fetch("/api/login", {
+      method: "POST",
       body: {
         email: payload.data.email,
         password: payload.data.password,
       },
-    })
+    });
 
     // Refresh the session on client-side and redirect to returnTo or dashboard
-    await refreshSession()
-    await navigateTo(returnTo.value)
+    await refreshSession();
+    await navigateTo(returnTo.value);
   } catch (err: any) {
     // Extract error message from various possible error structures
-    const errorMessage = 
-      err.data?.detail ||           // FastAPI error detail
-      err.data?.statusMessage ||   // Nuxt error statusMessage
-      err.data?.message ||         // Generic error message
-      err.message ||                // Error object message
-      'Login failed. Please check your credentials and try again.'
-    
-    error.value = errorMessage
+    const errorMessage =
+      err.data?.detail || // FastAPI error detail
+      err.data?.statusMessage || // Nuxt error statusMessage
+      err.data?.message || // Generic error message
+      err.message || // Error object message
+      "Login failed. Please check your credentials and try again.";
+
+    error.value = errorMessage;
   } finally {
-    isSubmitting.value = false
+    isSubmitting.value = false;
   }
 }
 </script>

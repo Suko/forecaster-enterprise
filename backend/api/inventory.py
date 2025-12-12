@@ -34,7 +34,7 @@ async def get_products(
     client: Client = Depends(get_current_client),
     db: AsyncSession = Depends(get_db),
     page: int = Query(1, ge=1),
-    page_size: int = Query(50, ge=1, le=100),
+    page_size: int = Query(50, ge=1, le=1000),
     search: Optional[str] = None,
     category: Optional[str] = None,
     supplier_id: Optional[UUID] = None,

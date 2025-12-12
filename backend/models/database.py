@@ -1,3 +1,4 @@
+import os
 from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession, async_sessionmaker, AsyncEngine
 from sqlalchemy.ext.declarative import declarative_base
 from config import settings
@@ -14,9 +15,10 @@ _AsyncSessionLocal: Optional[async_sessionmaker] = None
 
 def _get_database_url() -> str:
     """Get database URL, converting to async format if needed.
-    Also strips 'sslmode' parameter as asyncpg doesn't support it.
+    Prefers ASYNC_DATABASE_URL env if set (for asyncpg-specific params).
+    Strips 'sslmode' (asyncpg uses 'ssl') and ensures ssl=require when host is Supabase.
     """
-    database_url = settings.database_url
+    database_url = os.getenv("ASYNC_DATABASE_URL", settings.database_url)
     
     # Convert to asyncpg driver
     if database_url.startswith("postgres://"):
@@ -24,14 +26,19 @@ def _get_database_url() -> str:
     elif database_url.startswith("postgresql://") and "+asyncpg" not in database_url:
         database_url = database_url.replace("postgresql://", "postgresql+asyncpg://", 1)
     
-    # Remove sslmode parameter (asyncpg uses 'ssl' instead)
+    # Remove sslmode parameter (asyncpg uses 'ssl' instead) and optionally add ssl=require
     parsed = urlparse(database_url)
     query_params = parse_qs(parsed.query)
     if 'sslmode' in query_params:
         del query_params['sslmode']
-        new_query = urlencode(query_params, doseq=True)
-        parsed = parsed._replace(query=new_query)
-        database_url = urlunparse(parsed)
+    # For Supabase or if ASYNC_DATABASE_URL not provided with ssl, add ssl=require
+    if 'ssl' not in query_params and parsed.hostname and parsed.hostname.endswith(".supabase.co"):
+        query_params['ssl'] = 'require'
+    new_query = urlencode(query_params, doseq=True)
+    parsed = parsed._replace(query=new_query)
+    database_url = urlunparse(parsed)
+    # Hard strip any lingering sslmode fragment
+    database_url = database_url.replace("sslmode=require", "")
     
     return database_url
 
@@ -40,11 +47,17 @@ def get_engine() -> AsyncEngine:
     """Get or create async engine (lazy initialization)"""
     global _engine
     if _engine is None:
+        # Increase pool size for Supabase to reduce connection latency
+        # Supabase can handle higher connection counts
+        pool_size = 10
+        max_overflow = 20
+        
         _engine = create_async_engine(
             _get_database_url(),
             pool_pre_ping=True,  # Verify connections before using
-            pool_size=5,
-            max_overflow=10,
+            pool_size=pool_size,
+            max_overflow=max_overflow,
+            pool_recycle=3600,  # Recycle connections after 1 hour
             echo=False,  # Set to True for SQL query logging
         )
     return _engine

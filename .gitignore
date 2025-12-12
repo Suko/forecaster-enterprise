@@ -75,6 +75,8 @@ Thumbs.db
 # Data files (too large for git - keep scripts/docs, ignore large data files)
 # Exclude large CSV/JSON files but keep small demo data
 data/m5/
+data/seed/
+data/export/
 data/minibambini/
 data/minibambini/*.csv
 data/minibambini/*.json

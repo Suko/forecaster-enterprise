@@ -19,7 +19,7 @@ async def get_metrics(
 ) -> Dict[str, Any]:
     """
     Get performance metrics summary.
-    
+
     Requires authentication.
     """
     monitor = get_monitor()

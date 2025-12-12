@@ -3,6 +3,20 @@
  * Based on backend API reference
  */
 
+export interface SupplierSummary {
+  supplier_id: string;
+  supplier_name: string;
+  moq: number;
+  lead_time_days: number;
+  is_primary: boolean;
+}
+
+export interface LocationStockSummary {
+  location_id: string;
+  location_name: string;
+  current_stock: number;
+}
+
 export interface Product {
   item_id: string;
   product_name: string;
@@ -10,11 +24,20 @@ export interface Product {
   description?: string;
   current_stock: number;
   unit_cost: string;
+  safety_buffer_days?: number | null;
   dir: number;
   stockout_risk: number;
   status: "understocked" | "normal" | "overstocked";
   inventory_value: string;
   forecasted_demand_30d?: string;
+  // All suppliers for this product
+  suppliers?: SupplierSummary[] | null;
+  // Stock per location
+  locations?: LocationStockSummary[];
+  // Legacy fields (deprecated, kept for backward compatibility)
+  primary_supplier_name?: string | null;
+  primary_supplier_moq?: number | null;
+  primary_supplier_lead_time_days?: number | null;
 }
 
 export interface ProductDetail extends Product {

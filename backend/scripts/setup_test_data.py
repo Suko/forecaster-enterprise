@@ -56,17 +56,17 @@ async def get_or_create_client(client_id: Optional[str] = None, client_name: str
                 return str(client.client_id)
             else:
                 raise ValueError(f"Client with ID {client_id} not found")
-        
+
         # Check if client with this name exists
         result = await session.execute(
             select(Client).where(Client.name == client_name)
         )
         existing_client = result.scalar_one_or_none()
-        
+
         if existing_client:
             print(f"Using existing client: {existing_client.name} ({existing_client.client_id})")
             return str(existing_client.client_id)
-        
+
         # Create new client
         new_client = Client(
             name=client_name,
@@ -77,7 +77,7 @@ async def get_or_create_client(client_id: Optional[str] = None, client_name: str
         session.add(new_client)
         await session.commit()
         await session.refresh(new_client)
-        
+
         print(f"Created new client: {new_client.name} ({new_client.client_id})")
         return str(new_client.client_id)
 
@@ -88,8 +88,8 @@ async def get_existing_item_ids(client_id: str) -> List[str]:
     async with AsyncSessionLocal() as session:
         result = await session.execute(
             text("""
-                SELECT DISTINCT item_id 
-                FROM ts_demand_daily 
+                SELECT DISTINCT item_id
+                FROM ts_demand_daily
                 WHERE client_id = :client_id
                 ORDER BY item_id
             """),
@@ -129,10 +129,10 @@ async def create_products(client_id: str, item_ids: List[str], clear_existing: b
                 {"client_id": client_id}
             )
             await session.commit()
-        
+
         created = 0
         categories = ["Electronics", "Clothing", "Home & Garden", "Sports", "Books", "Toys", "Food", "Health"]
-        
+
         for idx, item_id in enumerate(item_ids):
             # Check if product already exists
             result = await session.execute(
@@ -143,7 +143,7 @@ async def create_products(client_id: str, item_ids: List[str], clear_existing: b
             )
             if result.scalar_one_or_none():
                 continue
-            
+
             product = Product(
                 client_id=uuid.UUID(client_id),
                 item_id=item_id,
@@ -154,7 +154,7 @@ async def create_products(client_id: str, item_ids: List[str], clear_existing: b
             )
             session.add(product)
             created += 1
-        
+
         await session.commit()
         print(f"Created {created} products")
         return created
@@ -174,7 +174,7 @@ async def create_locations(
                 {"client_id": client_id}
             )
             await session.commit()
-        
+
         locations_data = (
             [
                 {"location_id": "CA_1", "name": "CA Store 1", "city": "California", "country": "USA"},
@@ -195,7 +195,7 @@ async def create_locations(
                 {"location_id": "STORE-001", "name": "Retail Store 1", "city": "Ljubljana", "country": "Slovenia"},
             ]
         )
-        
+
         created = 0
         for loc_data in locations_data:
             result = await session.execute(
@@ -206,7 +206,7 @@ async def create_locations(
             )
             if result.scalar_one_or_none():
                 continue
-            
+
             location = Location(
                 client_id=uuid.UUID(client_id),
                 location_id=loc_data["location_id"],
@@ -217,7 +217,7 @@ async def create_locations(
             )
             session.add(location)
             created += 1
-        
+
         await session.commit()
         print(f"Created {created} locations")
         return created
@@ -233,17 +233,17 @@ async def create_suppliers(client_id: str, clear_existing: bool = False) -> int:
                 {"client_id": client_id}
             )
             await session.commit()
-        
+
         suppliers_data = [
             {"name": "Supplier A", "contact_email": "contact@supplier-a.com", "supplier_type": "PO"},
             {"name": "Supplier B", "contact_email": "info@supplier-b.com", "supplier_type": "PO"},
             {"name": "Supplier C", "contact_email": "sales@supplier-c.com", "supplier_type": "PO"},
             {"name": "Manufacturing Partner", "contact_email": "prod@manufacturing.com", "supplier_type": "WO"},
         ]
-        
+
         created = 0
         supplier_ids = {}
-        
+
         for supp_data in suppliers_data:
             result = await session.execute(
                 select(Supplier).where(
@@ -255,7 +255,7 @@ async def create_suppliers(client_id: str, clear_existing: bool = False) -> int:
             if existing:
                 supplier_ids[supp_data["name"]] = existing.id
                 continue
-            
+
             supplier = Supplier(
                 client_id=uuid.UUID(client_id),
                 name=supp_data["name"],
@@ -267,15 +267,15 @@ async def create_suppliers(client_id: str, clear_existing: bool = False) -> int:
             await session.flush()
             supplier_ids[supp_data["name"]] = supplier.id
             created += 1
-        
+
         await session.commit()
         print(f"Created {created} suppliers")
         return supplier_ids
 
 
 async def create_product_supplier_conditions(
-    client_id: str, 
-    item_ids: List[str], 
+    client_id: str,
+    item_ids: List[str],
     supplier_ids: dict,
     clear_existing: bool = False
 ) -> int:
@@ -288,18 +288,18 @@ async def create_product_supplier_conditions(
                 {"client_id": client_id}
             )
             await session.commit()
-        
+
         created = 0
         supplier_names = list(supplier_ids.keys())
-        
+
         for idx, item_id in enumerate(item_ids):
             # Assign each product to 1-2 suppliers
             num_suppliers = 1 if idx % 3 == 0 else 2
             selected_suppliers = supplier_names[:num_suppliers]
-            
+
             for supp_idx, supp_name in enumerate(selected_suppliers):
                 supplier_id = supplier_ids[supp_name]
-                
+
                 # Check if condition already exists
                 result = await session.execute(
                     select(ProductSupplierCondition).where(
@@ -310,7 +310,7 @@ async def create_product_supplier_conditions(
                 )
                 if result.scalar_one_or_none():
                     continue
-                
+
                 condition = ProductSupplierCondition(
                     client_id=uuid.UUID(client_id),
                     item_id=item_id,
@@ -324,15 +324,15 @@ async def create_product_supplier_conditions(
                 )
                 session.add(condition)
                 created += 1
-        
+
         await session.commit()
         print(f"Created {created} product-supplier conditions")
         return created
 
 
 async def create_stock_levels(
-    client_id: str, 
-    item_ids: List[str], 
+    client_id: str,
+    item_ids: List[str],
     location_ids: List[str],
     clear_existing: bool = False,
     item_location_map: Optional[dict] = None
@@ -346,9 +346,9 @@ async def create_stock_levels(
                 {"client_id": client_id}
             )
             await session.commit()
-        
+
         created = 0
-        
+
         for item_id in item_ids:
             # Use per-item location mapping when available; otherwise use all locations
             candidate_locations = item_location_map.get(item_id, location_ids) if item_location_map else location_ids
@@ -363,10 +363,10 @@ async def create_stock_levels(
                 )
                 if result.scalar_one_or_none():
                     continue
-                
+
                 # Random stock between 0 and 500
                 stock = (hash(f"{item_id}{location_id}") % 500)
-                
+
                 stock_level = StockLevel(
                     client_id=uuid.UUID(client_id),
                     item_id=item_id,
@@ -375,7 +375,7 @@ async def create_stock_levels(
                 )
                 session.add(stock_level)
                 created += 1
-        
+
         await session.commit()
         print(f"Created {created} stock level records")
         return created
@@ -389,7 +389,7 @@ async def create_client_settings(client_id: str, clear_existing: bool = False) -
             select(ClientSettings).where(ClientSettings.client_id == uuid.UUID(client_id))
         )
         existing = result.scalar_one_or_none()
-        
+
         if existing:
             if not clear_existing:
                 print("Client settings already exist, skipping")
@@ -429,7 +429,7 @@ async def create_client_settings(client_id: str, clear_existing: bool = False) -
                 }
             )
             session.add(settings)
-        
+
         await session.commit()
         print("Created/updated client settings")
         return True
@@ -448,11 +448,11 @@ async def setup_test_data(
     print("="*60)
     print("Setting up Test Data for Inventory Management")
     print("="*60)
-    
+
     # Step 1: Get or create client
     print(f"\n1. Getting/creating client...")
     client_id = await get_or_create_client(client_id, client_name)
-    
+
     # Step 2: Get existing item_ids from ts_demand_daily
     print(f"\n2. Getting item_ids from ts_demand_daily...")
     item_ids = await get_existing_item_ids(client_id)
@@ -461,13 +461,13 @@ async def setup_test_data(
         print("⚠️  WARNING: No item_ids found in ts_demand_daily. Please import sales data first.")
         print("   Run: python backend/scripts/import_csv_to_ts_demand_daily.py")
         return {"error": "No item_ids found"}
-    
+
     print(f"   Found {len(item_ids)} item_ids")
-    
+
     # Step 3: Create products
     print(f"\n3. Creating products...")
     products_created = await create_products(client_id, item_ids, clear_existing)
-    
+
     # Step 4: Create locations
     print(f"\n4. Creating locations...")
     locations_created = await create_locations(
@@ -475,7 +475,7 @@ async def setup_test_data(
         clear_existing,
         use_m5_locations=use_m5_locations
     )
-    
+
     # Get location_ids
     AsyncSessionLocal = get_async_session_local()
     async with AsyncSessionLocal() as session:
@@ -483,17 +483,17 @@ async def setup_test_data(
             select(Location.location_id).where(Location.client_id == uuid.UUID(client_id))
         )
         location_ids = [row[0] for row in result.fetchall()]
-    
+
     # Step 5: Create suppliers
     print(f"\n5. Creating suppliers...")
     supplier_ids = await create_suppliers(client_id, clear_existing)
-    
+
     # Step 6: Create product-supplier conditions
     print(f"\n6. Creating product-supplier conditions...")
     conditions_created = await create_product_supplier_conditions(
         client_id, item_ids, supplier_ids, clear_existing
     )
-    
+
     # Step 7: Create stock levels
     print(f"\n7. Creating stock levels...")
     stock_created = await create_stock_levels(
@@ -503,11 +503,11 @@ async def setup_test_data(
         clear_existing,
         item_location_map=item_location_map
     )
-    
+
     # Step 8: Create client settings
     print(f"\n8. Creating client settings...")
     await create_client_settings(client_id, clear_existing)
-    
+
     # Step 9: Ensure recent sales data (shifts dates to make data recent)
     # This makes all sales data "recent" relative to today so DIR calculations work
     sales_result = {"records_updated": 0}
@@ -516,13 +516,13 @@ async def setup_test_data(
         print(f"   This preserves all sales data (M5, synthetic) but makes dates recent")
         try:
             from scripts.shift_dates_to_recent import shift_dates_to_recent
-            
+
             sales_result = await shift_dates_to_recent(
                 client_id=client_id,
                 target_max_date=None,  # Use today
                 days_back_from_target=0  # Max date = today
             )
-            
+
             if "error" not in sales_result:
                 if "message" in sales_result:
                     print(f"   ℹ️  {sales_result['message']}")
@@ -539,19 +539,19 @@ async def setup_test_data(
             print(f"   ⚠️  Warning: Could not shift dates: {e}")
             import traceback
             traceback.print_exc()
-    
+
     # Step 10: Populate historical stock data (stock_on_date)
     print(f"\n10. Populating historical stock data...")
     try:
         from scripts.populate_historical_stock import populate_historical_stock
-        
+
         stock_result = await populate_historical_stock(
             client_id=client_id,
             item_ids=item_ids,
             days_back=stock_history_days,
             reference_date=None  # Use today
         )
-        
+
         if "error" not in stock_result:
             print(f"   Populated {stock_result['records_updated']} historical stock records")
             print(f"   Date range: {stock_result['start_date']} to {stock_result['end_date']}")
@@ -562,7 +562,7 @@ async def setup_test_data(
         import traceback
         traceback.print_exc()
         stock_result = {"records_updated": 0}
-    
+
     print("\n" + "="*60)
     print("Test Data Setup Complete!")
     print("="*60)
@@ -574,7 +574,7 @@ async def setup_test_data(
     print(f"Stock Levels: {stock_created}")
     print(f"Sales Records Updated: {sales_result.get('records_updated', 0)}")
     print(f"Historical Stock Records: {stock_result.get('records_updated', 0)}")
-    
+
     return {
         "client_id": client_id,
         "products": products_created,
@@ -596,9 +596,9 @@ async def main():
     parser.add_argument("--skip-recent-sales", action="store_true", help="Skip generating recent sales data")
     parser.add_argument("--use-m5-locations", action="store_true", help="Seed M5 store locations (CA/TX/WI stores)")
     parser.add_argument("--stock-history-days", type=int, default=1095, help="Days of stock_on_date history to populate (default: 3 years)")
-    
+
     args = parser.parse_args()
-    
+
     try:
         result = await setup_test_data(
             client_id=args.client_id,
@@ -609,12 +609,12 @@ async def main():
             use_m5_locations=args.use_m5_locations,
             stock_history_days=args.stock_history_days
         )
-        
+
         if "error" in result:
             sys.exit(1)
-        
+
         print("\n✅ Setup completed successfully!")
-        
+
     except Exception as e:
         print(f"\n❌ Error: {e}")
         import traceback

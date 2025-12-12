@@ -21,6 +21,7 @@ class ProductBase(BaseModel):
     product_name: str
     category: str = "Uncategorized"
     unit_cost: Decimal = Decimal("0.00")
+    safety_buffer_days: Optional[int] = Field(None, ge=0, description="Product-level safety buffer override (NULL = use client default)")
 
 
 class ProductCreate(ProductBase):
@@ -34,6 +35,29 @@ class ProductUpdate(BaseModel):
     category: Optional[str] = None
     unit_cost: Optional[Decimal] = None
     sku: Optional[str] = None
+    safety_buffer_days: Optional[int] = Field(None, ge=0, description="Product-level safety buffer override (NULL = use client default)")
+
+
+class SupplierSummary(BaseModel):
+    """Summary of supplier info for product list view"""
+    supplier_id: UUID
+    supplier_name: str
+    moq: int
+    lead_time_days: int
+    is_primary: bool
+
+    class Config:
+        from_attributes = True
+
+
+class LocationStockSummary(BaseModel):
+    """Summary of stock per location"""
+    location_id: str
+    location_name: str
+    current_stock: int
+
+    class Config:
+        from_attributes = True
 
 
 class ProductResponse(ProductBase):
@@ -48,7 +72,15 @@ class ProductResponse(ProductBase):
     stockout_risk: Optional[Decimal] = None
     inventory_value: Optional[Decimal] = None
     status: Optional[str] = None
-    
+    # All suppliers for this product (for list views)
+    suppliers: Optional[List[SupplierSummary]] = None
+    # Stock per location
+    locations: Optional[List[LocationStockSummary]] = None
+    # Legacy fields (deprecated, kept for backward compatibility)
+    primary_supplier_name: Optional[str] = None
+    primary_supplier_moq: Optional[int] = None
+    primary_supplier_lead_time_days: Optional[int] = None
+
     class Config:
         from_attributes = True
 
@@ -135,8 +167,8 @@ class DashboardResponse(BaseModel):
 
 class ProductSupplierBase(BaseModel):
     """Base product-supplier condition schema"""
-    moq: int = Field(..., ge=0, description="Minimum Order Quantity")
-    lead_time_days: int = Field(..., ge=0, description="Lead time in days")
+    moq: Optional[int] = Field(None, ge=0, description="Minimum Order Quantity (auto-populated from supplier default if not provided)")
+    lead_time_days: Optional[int] = Field(None, ge=0, description="Lead time in days (auto-populated from supplier default if not provided)")
     supplier_cost: Optional[Decimal] = None
     packaging_unit: Optional[str] = None
     packaging_qty: Optional[int] = None
@@ -165,7 +197,7 @@ class SupplierInfo(BaseModel):
     id: UUID
     name: str
     contact_email: Optional[str] = None
-    
+
     class Config:
         from_attributes = True
 
@@ -178,7 +210,7 @@ class ProductSupplierResponse(ProductSupplierBase):
     supplier: SupplierInfo
     created_at: datetime
     updated_at: datetime
-    
+
     class Config:
         from_attributes = True
 

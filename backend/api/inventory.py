@@ -51,14 +51,14 @@ async def get_products(
 ):
     """
     Get paginated list of products with filtering and sorting.
-    
+
     Supports data table requirements:
     - Filterable columns (text, numeric, categorical)
     - Sortable columns
     - Pagination
     """
     service = InventoryService(db)
-    
+
     # Build filters
     filters = ProductFilters(
         search=search,
@@ -73,7 +73,7 @@ async def get_products(
         min_stock=min_stock,
         max_stock=max_stock,
     )
-    
+
     result = await service.get_products(
         client_id=client.client_id,
         filters=filters,
@@ -82,7 +82,7 @@ async def get_products(
         sort=sort,
         order=order
     )
-    
+
     return ProductListResponse(**result)
 
 
@@ -94,16 +94,16 @@ async def get_product(
 ):
     """
     Get product details by item_id.
-    
+
     Includes product information and computed metrics (DIR, risk, etc.).
     """
     service = InventoryService(db)
-    
+
     product = await service.get_product(client.client_id, item_id)
-    
+
     if not product:
         raise HTTPException(status_code=404, detail=f"Product with item_id {item_id} not found")
-    
+
     return product
 
 
@@ -116,23 +116,23 @@ async def get_product_metrics(
 ):
     """
     Get product metrics (DIR, stockout risk, forecasted demand, inventory value).
-    
+
     Computed on-the-fly or from inventory_metrics table.
     """
     service = InventoryService(db)
-    
+
     metrics = await service.get_product_metrics(
         client_id=client.client_id,
         item_id=item_id,
         location_id=location_id
     )
-    
+
     if not metrics:
         raise HTTPException(
             status_code=404,
             detail=f"Metrics not found for product {item_id}"
         )
-    
+
     return metrics
 
 
@@ -146,14 +146,14 @@ async def get_product_suppliers(
     Get all suppliers for a product with conditions (MOQ, lead time, etc.).
     """
     service = InventoryService(db)
-    
+
     conditions = await service.get_product_suppliers(client.client_id, item_id)
-    
+
     # Convert to response format (need to load supplier info)
     from sqlalchemy import select
     from models.supplier import Supplier
     from schemas.inventory import SupplierInfo
-    
+
     result_list = []
     for condition in conditions:
         # Get supplier info
@@ -161,10 +161,10 @@ async def get_product_suppliers(
             select(Supplier).where(Supplier.id == condition.supplier_id)
         )
         supplier = supplier_result.scalar_one()
-        
+
         # Build response
         supplier_info = SupplierInfo.model_validate(supplier)
-        
+
         # Build response dict with supplier info
         response_dict = {
             "id": condition.id,
@@ -183,9 +183,9 @@ async def get_product_suppliers(
             "updated_at": condition.updated_at,
         }
         response = ProductSupplierResponse.model_validate(response_dict)
-        
+
         result_list.append(response)
-    
+
     return result_list
 
 
@@ -200,35 +200,35 @@ async def add_product_supplier(
     Link product to supplier with conditions (MOQ, lead time, packaging).
     """
     service = InventoryService(db)
-    
+
     try:
         condition = await service.add_product_supplier(
             client_id=client.client_id,
             item_id=item_id,
             supplier_id=data.supplier_id,
-            moq=data.moq,
-            lead_time_days=data.lead_time_days,
+            moq=data.moq,  # Optional - auto-populated from supplier default if None
+            lead_time_days=data.lead_time_days,  # Optional - auto-populated from supplier default if None
             supplier_cost=data.supplier_cost,
             packaging_unit=data.packaging_unit,
             packaging_qty=data.packaging_qty,
             is_primary=data.is_primary,
             notes=data.notes
         )
-        
+
         # Refresh to get updated timestamps
         await db.refresh(condition)
-        
+
         # Get supplier info for response
         from sqlalchemy import select
         from models.supplier import Supplier
         from schemas.inventory import SupplierInfo
-        
+
         supplier_result = await db.execute(
             select(Supplier).where(Supplier.id == condition.supplier_id)
         )
         supplier = supplier_result.scalar_one()
         supplier_info = SupplierInfo.model_validate(supplier)
-        
+
         # Build response with supplier info
         response_dict = {
             "id": condition.id,
@@ -247,9 +247,9 @@ async def add_product_supplier(
             "updated_at": condition.updated_at,
         }
         response = ProductSupplierResponse.model_validate(response_dict)
-        
+
         return response
-        
+
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
 
@@ -266,7 +266,7 @@ async def update_product_supplier(
     Update product-supplier conditions (MOQ, lead time, packaging).
     """
     service = InventoryService(db)
-    
+
     condition = await service.update_product_supplier(
         client_id=client.client_id,
         item_id=item_id,
@@ -279,27 +279,27 @@ async def update_product_supplier(
         is_primary=data.is_primary,
         notes=data.notes
     )
-    
+
     if not condition:
         raise HTTPException(
             status_code=404,
             detail=f"Product-supplier condition not found"
         )
-    
+
     # Get supplier info for response
     from sqlalchemy import select
     from models.supplier import Supplier
     from schemas.inventory import SupplierInfo
-    
+
     supplier_result = await db.execute(
         select(Supplier).where(Supplier.id == condition.supplier_id)
     )
     supplier = supplier_result.scalar_one()
     supplier_info = SupplierInfo.model_validate(supplier)
-    
+
     response = ProductSupplierResponse.model_validate(condition)
     response.supplier = supplier_info
-    
+
     return response
 
 
@@ -314,19 +314,19 @@ async def remove_product_supplier(
     Remove product-supplier link.
     """
     service = InventoryService(db)
-    
+
     success = await service.remove_product_supplier(
         client_id=client.client_id,
         item_id=item_id,
         supplier_id=supplier_id
     )
-    
+
     if not success:
         raise HTTPException(
             status_code=404,
             detail=f"Product-supplier condition not found"
         )
-    
+
     return {"message": "Product-supplier condition removed successfully"}
 
 
@@ -342,7 +342,7 @@ async def get_dashboard(
     - Top overstocked products (by value)
     """
     service = DashboardService(db)
-    
+
     dashboard_data = await service.get_dashboard_data(client.client_id)
-    
+
     return dashboard_data

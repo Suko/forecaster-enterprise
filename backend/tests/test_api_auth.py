@@ -16,7 +16,7 @@ async def test_register_endpoint(test_client: AsyncClient):
             "name": "Register User"
         }
     )
-    
+
     assert response.status_code == 201
     data = response.json()
     assert data["email"] == "register@example.com"
@@ -35,7 +35,7 @@ async def test_register_endpoint_duplicate(test_client: AsyncClient, test_user: 
             "name": "Duplicate"
         }
     )
-    
+
     assert response.status_code == 400
 
 
@@ -49,7 +49,7 @@ async def test_login_endpoint(test_client: AsyncClient, test_user: User):
             "password": "testpass123"
         }
     )
-    
+
     assert response.status_code == 200
     data = response.json()
     assert "access_token" in data
@@ -66,7 +66,7 @@ async def test_login_endpoint_invalid(test_client: AsyncClient, test_user: User)
             "password": "wrongpassword"
         }
     )
-    
+
     assert response.status_code == 401
 
 
@@ -74,14 +74,14 @@ async def test_login_endpoint_invalid(test_client: AsyncClient, test_user: User)
 async def test_get_me_endpoint(test_client: AsyncClient, test_user: User):
     """Test /auth/me endpoint."""
     from auth import create_access_token
-    
+
     token = create_access_token(data={"sub": test_user.email})
-    
+
     response = await test_client.get(
         "/auth/me",
         headers={"Authorization": f"Bearer {token}"}
     )
-    
+
     assert response.status_code == 200
     data = response.json()
     assert data["email"] == test_user.email
@@ -99,14 +99,14 @@ async def test_get_me_endpoint_unauthorized(test_client: AsyncClient):
 async def test_list_users_endpoint(test_client: AsyncClient, test_admin_user: User):
     """Test /auth/users endpoint (admin only)."""
     from auth import create_access_token
-    
+
     token = create_access_token(data={"sub": test_admin_user.email})
-    
+
     response = await test_client.get(
         "/auth/users",
         headers={"Authorization": f"Bearer {token}"}
     )
-    
+
     assert response.status_code == 200
     data = response.json()
     assert isinstance(data, list)
@@ -117,14 +117,14 @@ async def test_list_users_endpoint(test_client: AsyncClient, test_admin_user: Us
 async def test_list_users_endpoint_non_admin(test_client: AsyncClient, test_user: User):
     """Test /auth/users endpoint with non-admin user."""
     from auth import create_access_token
-    
+
     token = create_access_token(data={"sub": test_user.email})
-    
+
     response = await test_client.get(
         "/auth/users",
         headers={"Authorization": f"Bearer {token}"}
     )
-    
+
     assert response.status_code == 403
 
 
@@ -132,9 +132,9 @@ async def test_list_users_endpoint_non_admin(test_client: AsyncClient, test_user
 async def test_create_user_endpoint(test_client: AsyncClient, test_admin_user: User):
     """Test POST /auth/users endpoint (admin only)."""
     from auth import create_access_token
-    
+
     token = create_access_token(data={"sub": test_admin_user.email})
-    
+
     response = await test_client.post(
         "/auth/users",
         headers={"Authorization": f"Bearer {token}"},
@@ -144,7 +144,7 @@ async def test_create_user_endpoint(test_client: AsyncClient, test_admin_user: U
             "name": "Admin Created"
         }
     )
-    
+
     assert response.status_code == 201
     data = response.json()
     assert data["email"] == "admincreated@example.com"
@@ -154,9 +154,9 @@ async def test_create_user_endpoint(test_client: AsyncClient, test_admin_user: U
 async def test_update_user_endpoint(test_client: AsyncClient, test_user: User, test_admin_user: User):
     """Test PATCH /auth/users/{user_id} endpoint."""
     from auth import create_access_token
-    
+
     token = create_access_token(data={"sub": test_admin_user.email})
-    
+
     response = await test_client.patch(
         f"/auth/users/{test_user.id}",
         headers={"Authorization": f"Bearer {token}"},
@@ -165,7 +165,7 @@ async def test_update_user_endpoint(test_client: AsyncClient, test_user: User, t
             "role": "admin"
         }
     )
-    
+
     assert response.status_code == 200
     data = response.json()
     assert data["name"] == "Updated Name"
@@ -176,16 +176,16 @@ async def test_update_user_endpoint(test_client: AsyncClient, test_user: User, t
 async def test_delete_user_endpoint(test_client: AsyncClient, test_user: User, test_admin_user: User):
     """Test DELETE /auth/users/{user_id} endpoint."""
     from auth import create_access_token
-    
+
     token = create_access_token(data={"sub": test_admin_user.email})
-    
+
     response = await test_client.delete(
         f"/auth/users/{test_user.id}",
         headers={"Authorization": f"Bearer {token}"}
     )
-    
+
     assert response.status_code == 204
-    
+
     # Verify user is deleted by checking the list
     response = await test_client.get(
         "/auth/users",

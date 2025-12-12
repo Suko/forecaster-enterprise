@@ -27,17 +27,17 @@ async def list_users(test_only: bool = False):
             )
         else:
             result = await db.execute(select(User).order_by(User.email))
-        
+
         users = result.scalars().all()
-        
+
         if not users:
             print("No users found" + (" matching test criteria" if test_only else ""))
             return
-        
+
         print(f"\nFound {len(users)} user(s):\n")
         print(f"{'Email':<40} {'Name':<30} {'Role':<10} {'Active':<8} {'Client ID':<40}")
         print("-" * 130)
-        
+
         for user in users:
             print(f"{user.email:<40} {str(user.name or 'N/A'):<30} {user.role:<10} {str(user.is_active):<8} {str(user.client_id):<40}")
 
@@ -45,7 +45,7 @@ async def list_users(test_only: bool = False):
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="List users in the database")
     parser.add_argument("--test-only", action="store_true", help="Only show test users (emails with 'test' or 'example.com')")
-    
+
     args = parser.parse_args()
     asyncio.run(list_users(test_only=args.test_only))
 

@@ -37,7 +37,7 @@ class UserCreate(BaseModel):
     email: EmailStr
     password: str
     name: str | None = None
-    
+
     @field_validator("password")
     @classmethod
     def validate_password(cls, v: str) -> str:
@@ -50,4 +50,14 @@ class UserUpdate(BaseModel):
     name: str | None = None
     role: str | None = None
     is_active: bool | None = None
+
+
+class UserPreferencesResponse(BaseModel):
+    """User preferences response"""
+    preferences: dict
+
+
+class UserPreferencesUpdate(BaseModel):
+    """User preferences update"""
+    preferences: dict
 

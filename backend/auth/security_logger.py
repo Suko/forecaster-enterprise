@@ -28,14 +28,14 @@ def get_client_ip(request: Request) -> str:
     if forwarded_for:
         # Take first IP if multiple
         return forwarded_for.split(",")[0].strip()
-    
+
     real_ip = request.headers.get("X-Real-IP")
     if real_ip:
         return real_ip
-    
+
     if request.client:
         return request.client.host
-    
+
     return "unknown"
 
 
@@ -53,7 +53,7 @@ def log_security_event(
 ) -> None:
     """
     Log a security event
-    
+
     Args:
         event_type: Type of event (login_success, login_failure, rate_limit, etc.)
         request: FastAPI Request object
@@ -70,10 +70,10 @@ def log_security_event(
         "success": success,
         "details": details or {},
     }
-    
+
     # Log as structured JSON for easy parsing
     security_logger.info(f"SECURITY_EVENT: {event_data}")
-    
+
     # In production, you might want to send to:
     # - CloudWatch Logs
     # - Elasticsearch

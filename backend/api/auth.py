@@ -7,7 +7,7 @@ from slowapi.errors import RateLimitExceeded
 from models import get_db, User
 from auth import get_current_user, require_admin
 from auth.security_logger import log_rate_limit
-from schemas.auth import Token, UserResponse, UserCreate, UserUpdate
+from schemas.auth import Token, UserResponse, UserCreate, UserUpdate, UserPreferencesResponse, UserPreferencesUpdate
 from services.auth_service import login_user, register_user
 from services.user_service import (
     get_all_users,
@@ -37,7 +37,7 @@ async def login(
         # Log rate limit violation
         log_rate_limit(request, email=form_data.username)
         raise
-    
+
     # OAuth2PasswordRequestForm uses 'username' field for email
     return await login_user(request, db, form_data.username, form_data.password)
 
@@ -55,7 +55,7 @@ async def register(
     """
     # Check rate limits
     check_rate_limit(request)
-    
+
     return await register_user(request, db, user_data)
 
 
@@ -117,4 +117,40 @@ async def delete_user_endpoint(
     Delete user (admin only)
     """
     await delete_user(db, user_id, current_user.id)
+
+
+@router.get("/me/preferences", response_model=UserPreferencesResponse)
+async def get_user_preferences(
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db)
+):
+    """
+    Get current user's preferences
+    """
+    return UserPreferencesResponse(preferences=current_user.preferences or {})
+
+
+@router.put("/me/preferences", response_model=UserPreferencesResponse)
+async def update_user_preferences(
+    data: UserPreferencesUpdate,
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db)
+):
+    """
+    Update current user's preferences
+    """
+    from sqlalchemy import select
+    
+    # Get fresh user from database
+    result = await db.execute(
+        select(User).where(User.id == current_user.id)
+    )
+    user = result.scalar_one()
+    
+    # Update preferences
+    user.preferences = data.preferences or {}
+    await db.commit()
+    await db.refresh(user)
+    
+    return UserPreferencesResponse(preferences=user.preferences or {})
     return None

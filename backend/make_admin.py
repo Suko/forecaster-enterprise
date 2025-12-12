@@ -17,19 +17,19 @@ async def make_admin(email: str):
     async with AsyncSessionLocal() as db:
         result = await db.execute(select(User).filter(User.email == email))
         user = result.scalar_one_or_none()
-        
+
         if not user:
             print(f"Error: User with email '{email}' not found")
             return False
-        
+
         if user.role == UserRole.ADMIN.value:
             print(f"User '{email}' is already an admin")
             return True
-        
+
         user.role = UserRole.ADMIN.value
         await db.commit()
         await db.refresh(user)
-        
+
         print(f"Successfully updated user '{email}' to admin role")
         return True
 
@@ -39,6 +39,6 @@ if __name__ == "__main__":
         print("Usage: python make_admin.py <email>")
         print("Example: python make_admin.py test@example.com")
         sys.exit(1)
-    
+
     email = sys.argv[1]
     asyncio.run(make_admin(email))

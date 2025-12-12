@@ -30,7 +30,7 @@ async def test_add_to_cart(test_client, test_jwt_token, test_client_obj, db_sess
     db_session.add_all([product, supplier])
     await db_session.commit()
     await db_session.refresh(supplier)
-    
+
     condition = create_test_product_supplier_condition(
         client_id=test_client_obj.client_id,
         item_id=product.item_id,
@@ -39,7 +39,7 @@ async def test_add_to_cart(test_client, test_jwt_token, test_client_obj, db_sess
     )
     db_session.add(condition)
     await db_session.commit()
-    
+
     # Add to cart
     response = await test_client.post(
         "/api/v1/order-planning/cart/add",
@@ -50,7 +50,7 @@ async def test_add_to_cart(test_client, test_jwt_token, test_client_obj, db_sess
             "quantity": 20
         }
     )
-    
+
     assert response.status_code == 200
     data = response.json()
     assert data["item_id"] == product.item_id
@@ -72,7 +72,7 @@ async def test_add_to_cart_below_moq(test_client, test_jwt_token, test_client_ob
     db_session.add_all([product, supplier])
     await db_session.commit()
     await db_session.refresh(supplier)
-    
+
     condition = create_test_product_supplier_condition(
         client_id=test_client_obj.client_id,
         item_id=product.item_id,
@@ -81,7 +81,7 @@ async def test_add_to_cart_below_moq(test_client, test_jwt_token, test_client_ob
     )
     db_session.add(condition)
     await db_session.commit()
-    
+
     # Try to add below MOQ
     response = await test_client.post(
         "/api/v1/order-planning/cart/add",
@@ -92,7 +92,7 @@ async def test_add_to_cart_below_moq(test_client, test_jwt_token, test_client_ob
             "quantity": 5  # Below MOQ
         }
     )
-    
+
     assert response.status_code == 400
 
 
@@ -117,7 +117,7 @@ async def test_get_cart(test_client, test_jwt_token, test_client_obj, db_session
         db.add_all([product1, product2, supplier])
         await db.commit()
         await db.refresh(supplier)
-        
+
         condition1 = create_test_product_supplier_condition(
             client_id=test_client_obj.client_id,
             item_id=product1.item_id,
@@ -130,9 +130,9 @@ async def test_get_cart(test_client, test_jwt_token, test_client_obj, db_session
         )
         db.add_all([condition1, condition2])
         await db.commit()
-    
+
     # Use JWT token
-    
+
     # Add items to cart
     await test_client.post(
         "/api/v1/order-planning/cart/add",
@@ -152,13 +152,13 @@ async def test_get_cart(test_client, test_jwt_token, test_client_obj, db_session
             "quantity": 20
         }
     )
-    
+
     # Get cart
     response = await test_client.get(
         "/api/v1/order-planning/cart",
         headers={"Authorization": f"Bearer {token}", "X-Session-ID": "test-session"}
     )
-    
+
     assert response.status_code == 200
     data = response.json()
     assert len(data["items"]) == 2
@@ -181,7 +181,7 @@ async def test_update_cart_item(test_client, test_jwt_token, test_client_obj, db
         db.add_all([product, supplier])
         await db.commit()
         await db.refresh(supplier)
-        
+
         condition = create_test_product_supplier_condition(
             client_id=test_client_obj.client_id,
             item_id=product.item_id,
@@ -190,9 +190,9 @@ async def test_update_cart_item(test_client, test_jwt_token, test_client_obj, db
         )
         db.add(condition)
         await db.commit()
-    
+
     # Use JWT token
-    
+
     # Add to cart
     await test_client.post(
         "/api/v1/order-planning/cart/add",
@@ -203,14 +203,14 @@ async def test_update_cart_item(test_client, test_jwt_token, test_client_obj, db
             "quantity": 10
         }
     )
-    
+
     # Update quantity
     response = await test_client.put(
         f"/api/v1/order-planning/cart/{product.item_id}",
         headers={"Authorization": f"Bearer {test_jwt_token}", "X-Session-ID": "test-session"},
         json={"quantity": 30}
     )
-    
+
     assert response.status_code == 200
     data = response.json()
     assert data["quantity"] == 30
@@ -233,7 +233,7 @@ async def test_remove_from_cart(test_client, test_jwt_token, test_client_obj, db
         db.add_all([product, supplier])
         await db.commit()
         await db.refresh(supplier)
-        
+
         condition = create_test_product_supplier_condition(
             client_id=test_client_obj.client_id,
             item_id=product.item_id,
@@ -241,9 +241,9 @@ async def test_remove_from_cart(test_client, test_jwt_token, test_client_obj, db
         )
         db.add(condition)
         await db.commit()
-    
+
     # Use JWT token
-    
+
     # Add to cart
     await test_client.post(
         "/api/v1/order-planning/cart/add",
@@ -254,15 +254,15 @@ async def test_remove_from_cart(test_client, test_jwt_token, test_client_obj, db
             "quantity": 10
         }
     )
-    
+
     # Remove from cart
     response = await test_client.delete(
         f"/api/v1/order-planning/cart/{product.item_id}",
         headers={"Authorization": f"Bearer {token}", "X-Session-ID": "test-session"}
     )
-    
+
     assert response.status_code == 200
-    
+
     # Verify removed
     cart_response = await test_client.get(
         "/api/v1/order-planning/cart",
@@ -289,15 +289,15 @@ async def test_get_order_suggestions(test_client, test_jwt_token, test_client_ob
     async with get_async_session_local()() as db:
         db.add_all([product, stock])
         await db.commit()
-    
+
     # Use JWT token
-    
+
     # Get suggestions
     response = await test_client.get(
         "/api/v1/order-planning/suggestions",
         headers={"Authorization": f"Bearer {test_jwt_token}"}
     )
-    
+
     assert response.status_code == 200
     data = response.json()
     assert isinstance(data["suggestions"], list)
@@ -307,13 +307,13 @@ async def test_get_order_suggestions(test_client, test_jwt_token, test_client_ob
 async def test_get_recommendations(test_client, test_jwt_token, test_client_obj, populate_test_data):
     """Test getting recommendations"""
     # Use JWT token
-    
+
     # Get recommendations
     response = await test_client.get(
         "/api/v1/order-planning/recommendations",
         headers={"Authorization": f"Bearer {test_jwt_token}"}
     )
-    
+
     assert response.status_code == 200
     data = response.json()
     assert isinstance(data, list)
@@ -323,13 +323,13 @@ async def test_get_recommendations(test_client, test_jwt_token, test_client_obj,
 async def test_get_recommendations_by_type(test_client, test_jwt_token, test_client_obj, populate_test_data):
     """Test filtering recommendations by type"""
     # Use JWT token
-    
+
     # Get REORDER recommendations
     response = await test_client.get(
         "/api/v1/order-planning/recommendations?recommendation_type=REORDER",
         headers={"Authorization": f"Bearer {test_jwt_token}"}
     )
-    
+
     assert response.status_code == 200
     data = response.json()
     assert isinstance(data, list)

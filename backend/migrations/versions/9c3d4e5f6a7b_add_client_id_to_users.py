@@ -21,10 +21,10 @@ def upgrade():
     # Note: For existing users, this will be nullable initially
     # You'll need to backfill client_id for existing users
     op.add_column('users', sa.Column('client_id', postgresql.UUID(as_uuid=True), nullable=True))
-    
+
     # Create index for client_id
     op.create_index('idx_users_client_id', 'users', ['client_id'])
-    
+
     # Add foreign key constraint
     op.create_foreign_key(
         'fk_users_client_id',
@@ -32,7 +32,7 @@ def upgrade():
         ['client_id'], ['client_id'],
         ondelete='RESTRICT'
     )
-    
+
     # Note: For production, you should backfill client_id for existing users
     # before making it NOT NULL. For now, we keep it nullable for migration safety.
 

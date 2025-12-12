@@ -16,12 +16,12 @@ logger = logging.getLogger(__name__)
 
 class DataAuditLogger:
     """Log data transformations for audit and debugging"""
-    
+
     def __init__(self, db: AsyncSession, forecast_run_id: Optional[str] = None):
         self.db = db
         self.forecast_run_id = forecast_run_id
         self.audit_trail: List[Dict[str, Any]] = []
-    
+
     def log_data_input(
         self,
         item_id: str,
@@ -51,10 +51,10 @@ class DataAuditLogger:
             },
             "validation": validation_report,
         }
-        
+
         self.audit_trail.append(audit_entry)
         logger.info(f"Data INPUT logged for {item_id} ({method}): {len(context_df)} rows")
-    
+
     def log_model_output(
         self,
         item_id: str,
@@ -82,10 +82,10 @@ class DataAuditLogger:
             },
             "validation": validation_report,
         }
-        
+
         self.audit_trail.append(audit_entry)
         logger.info(f"Model OUTPUT logged for {item_id} ({method}): {len(predictions_df)} predictions")
-    
+
     def log_comparison(
         self,
         item_id: str,
@@ -108,21 +108,21 @@ class DataAuditLogger:
                 "metrics": metrics,
             },
         }
-        
+
         self.audit_trail.append(audit_entry)
         logger.info(f"COMPARISON logged for {item_id}: MAPE={metrics.get('mape', 'N/A')}%")
-    
+
     def get_audit_trail(self) -> List[Dict[str, Any]]:
         """Get complete audit trail"""
         return self.audit_trail
-    
+
     def save_audit_trail(self, filepath: Optional[str] = None) -> str:
         """Save audit trail to JSON file"""
         if filepath is None:
             filepath = f"audit_trail_{self.forecast_run_id or 'unknown'}.json"
-        
+
         with open(filepath, 'w') as f:
             json.dump(self.audit_trail, f, indent=2, default=str)
-        
+
         return filepath
 

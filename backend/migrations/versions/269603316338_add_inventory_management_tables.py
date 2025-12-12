@@ -161,7 +161,7 @@ def upgrade():
         sa.Column('computed_at', sa.DateTime(timezone=True), server_default=sa.func.now()),
         sa.ForeignKeyConstraint(['client_id'], ['clients.client_id'], ondelete='CASCADE'),
     )
-    op.create_index('idx_inventory_metrics_client_item_location_date', 'inventory_metrics', 
+    op.create_index('idx_inventory_metrics_client_item_location_date', 'inventory_metrics',
                     ['client_id', 'item_id', 'location_id', 'date'])
     op.create_index('idx_inventory_metrics_status', 'inventory_metrics', ['status'])
     op.create_index('idx_inventory_metrics_client_item', 'inventory_metrics', ['client_id', 'item_id'])

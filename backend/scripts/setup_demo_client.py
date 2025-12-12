@@ -38,7 +38,7 @@ import_csv_to_ts_demand_daily = import_csv_module.import_csv_to_ts_demand_daily
 async def create_demo_client(name: str = "Demo Client") -> str:
     """
     Create a demo client in the database
-    
+
     Returns:
         client_id (UUID string)
     """
@@ -49,11 +49,11 @@ async def create_demo_client(name: str = "Demo Client") -> str:
             select(Client).where(Client.name == name)
         )
         existing_client = result.scalar_one_or_none()
-        
+
         if existing_client:
             print(f"Client '{name}' already exists with ID: {existing_client.client_id}")
             return str(existing_client.client_id)
-        
+
         # Create new client
         new_client = Client(
             name=name,
@@ -64,7 +64,7 @@ async def create_demo_client(name: str = "Demo Client") -> str:
         session.add(new_client)
         await session.commit()
         await session.refresh(new_client)
-        
+
         print(f"Created client '{name}' with ID: {new_client.client_id}")
         return str(new_client.client_id)
 
@@ -76,7 +76,7 @@ async def setup_demo(
 ) -> dict:
     """
     Complete demo setup: create client + import test data
-    
+
     Returns:
         dict with setup results
     """
@@ -84,18 +84,18 @@ async def setup_demo(
     if csv_path is None:
         base_path = Path(__file__).parent.parent.parent
         csv_path = base_path / "data" / "synthetic_data" / "synthetic_ecom_chronos2_demo.csv"
-    
+
     if not csv_path.exists():
         raise FileNotFoundError(f"CSV file not found: {csv_path}")
-    
+
     print("="*60)
     print("Setting up Demo Client")
     print("="*60)
-    
+
     # Step 1: Create client
     print(f"\n1. Creating client: {client_name}")
     client_id = await create_demo_client(client_name)
-    
+
     # Step 2: Import test data
     print(f"\n2. Importing test data from: {csv_path}")
     import_result = await import_csv_to_ts_demand_daily(
@@ -103,7 +103,7 @@ async def setup_demo(
         client_id=client_id,
         clear_existing=clear_existing
     )
-    
+
     return {
         'client_id': client_id,
         'client_name': client_name,
@@ -131,18 +131,18 @@ async def main():
         action='store_true',
         help='Clear existing data if client already exists'
     )
-    
+
     args = parser.parse_args()
-    
+
     csv_path = Path(args.csv) if args.csv else None
-    
+
     try:
         result = await setup_demo(
             client_name=args.name,
             csv_path=csv_path,
             clear_existing=args.clear_existing
         )
-        
+
         print("\n" + "="*60)
         print("Demo Setup Complete!")
         print("="*60)
@@ -155,7 +155,7 @@ async def main():
             print(f"  Date range: {result['import_result']['date_range'][0]} to {result['import_result']['date_range'][1]}")
         print("\nYou can now use this client_id to test forecasts!")
         print("="*60)
-        
+
     except Exception as e:
         print(f"\nError: {e}", file=sys.stderr)
         sys.exit(1)

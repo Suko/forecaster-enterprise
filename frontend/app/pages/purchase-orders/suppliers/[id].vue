@@ -9,12 +9,28 @@ definePageMeta({
 const route = useRoute();
 const supplierId = computed(() => String(route.params.id || ""));
 
-const { fetchSupplier } = useSuppliers();
+const { fetchSupplier, updateSupplier } = useSuppliers();
 const { handleAuthError } = useAuthError();
 
 const loading = ref(false);
 const error = ref<string | null>(null);
 const supplier = ref<Supplier | null>(null);
+
+const isEditing = ref(false);
+const editForm = ref({
+  name: "",
+  contact_email: "",
+  contact_phone: "",
+  address: "",
+  supplier_type: "PO",
+  default_moq: 0,
+  default_lead_time_days: 14,
+  notes: "",
+});
+const saving = ref(false);
+const showApplyDialog = ref(false);
+const applyToExisting = ref(false);
+const pendingChanges = ref<{ default_moq?: number; default_lead_time_days?: number } | null>(null);
 
 const productsLoading = ref(false);
 const productsError = ref<string | null>(null);
@@ -63,7 +79,107 @@ const loadProducts = async () => {
   }
 };
 
+const startEditing = () => {
+  if (!supplier.value) return;
+  editForm.value = {
+    name: supplier.value.name || "",
+    contact_email: supplier.value.contact_email || "",
+    contact_phone: supplier.value.contact_phone || "",
+    address: supplier.value.address || "",
+    supplier_type: supplier.value.supplier_type || "PO",
+    default_moq: supplier.value.default_moq || 0,
+    default_lead_time_days: supplier.value.default_lead_time_days || 14,
+    notes: supplier.value.notes || "",
+  };
+  isEditing.value = true;
+};
+
+const cancelEditing = () => {
+  isEditing.value = false;
+  applyToExisting.value = false;
+  pendingChanges.value = null;
+  showApplyDialog.value = false;  // Ensure dialog is closed when canceling
+};
+
+const checkForDefaultChanges = (): { default_moq?: number; default_lead_time_days?: number } | null => {
+  if (!supplier.value) return null;
+  const changes: { default_moq?: number; default_lead_time_days?: number } = {};
+  if (editForm.value.default_moq !== (supplier.value.default_moq || 0)) {
+    changes.default_moq = editForm.value.default_moq;
+  }
+  if (editForm.value.default_lead_time_days !== (supplier.value.default_lead_time_days || 14)) {
+    changes.default_lead_time_days = editForm.value.default_lead_time_days;
+  }
+  return Object.keys(changes).length > 0 ? changes : null;
+};
+
+const saveSupplier = async () => {
+  if (!supplier.value || saving.value) return;
+
+  // Check if defaults changed
+  const defaultChanges = checkForDefaultChanges();
+  if (defaultChanges) {
+    pendingChanges.value = defaultChanges;
+    showApplyDialog.value = true;
+    return;
+  }
+
+  // No default changes, save directly
+  await performSave(false);
+};
+
+const performSave = async (applyToExistingProducts: boolean) => {
+  if (!supplier.value || saving.value) return;
+
+  saving.value = true;
+  error.value = null;
+
+  try {
+    const updated = await updateSupplier(supplier.value.id, {
+      name: editForm.value.name,
+      contact_email: editForm.value.contact_email || undefined,
+      contact_phone: editForm.value.contact_phone || undefined,
+      address: editForm.value.address || undefined,
+      supplier_type: editForm.value.supplier_type,
+      default_moq: editForm.value.default_moq,
+      default_lead_time_days: editForm.value.default_lead_time_days,
+      notes: editForm.value.notes || undefined,
+      apply_to_existing: applyToExistingProducts,
+    });
+
+    supplier.value = updated;
+    isEditing.value = false;
+    applyToExisting.value = false;
+    pendingChanges.value = null;
+    showApplyDialog.value = false;
+
+    // Reload products to show updated values
+    await loadProducts();
+  } catch (err: any) {
+    const wasAuthError = await handleAuthError(err);
+    if (wasAuthError) return;
+    error.value = err.message || "Failed to update supplier";
+  } finally {
+    saving.value = false;
+  }
+};
+
+const confirmApplyToExisting = () => {
+  showApplyDialog.value = false;
+  performSave(true);
+};
+
+const skipApplyToExisting = () => {
+  showApplyDialog.value = false;
+  performSave(false);
+};
+
 onMounted(async () => {
+  // Reset dialog state on mount
+  showApplyDialog.value = false;
+  pendingChanges.value = null;
+  isEditing.value = false;
+  
   await loadSupplier();
   await loadProducts();
 });
@@ -143,6 +259,33 @@ onMounted(async () => {
             </div>
             <div class="flex items-center gap-2">
               <UButton
+                v-if="!isEditing"
+                icon="i-lucide-edit"
+                variant="soft"
+                @click="startEditing"
+              >
+                Edit
+              </UButton>
+              <UButton
+                v-if="isEditing"
+                icon="i-lucide-x"
+                variant="soft"
+                color="gray"
+                @click="cancelEditing"
+              >
+                Cancel
+              </UButton>
+              <UButton
+                v-if="isEditing"
+                icon="i-lucide-check"
+                variant="soft"
+                color="primary"
+                :loading="saving"
+                @click="saveSupplier"
+              >
+                Save
+              </UButton>
+              <UButton
                 icon="i-lucide-receipt"
                 variant="soft"
                 @click="
@@ -162,7 +305,10 @@ onMounted(async () => {
           </div>
         </template>
 
-        <div class="p-4 grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div
+          v-if="!isEditing"
+          class="p-4 grid grid-cols-1 md:grid-cols-2 gap-4"
+        >
           <div>
             <div class="text-xs text-muted">Contact</div>
             <div class="text-sm mt-1">
@@ -174,6 +320,24 @@ onMounted(async () => {
             <div class="text-xs text-muted">External ID</div>
             <div class="text-sm mt-1">{{ supplier.external_id || "—" }}</div>
           </div>
+          <div>
+            <div class="text-xs text-muted">Default MOQ</div>
+            <div class="text-sm mt-1 font-medium">
+              {{ supplier.default_moq || 0 }} units
+            </div>
+            <div class="text-xs text-muted mt-1">
+              Used when linking products to this supplier
+            </div>
+          </div>
+          <div>
+            <div class="text-xs text-muted">Default Lead Time</div>
+            <div class="text-sm mt-1 font-medium">
+              {{ supplier.default_lead_time_days || 14 }} days
+            </div>
+            <div class="text-xs text-muted mt-1">
+              Used when linking products to this supplier
+            </div>
+          </div>
           <div class="md:col-span-2">
             <div class="text-xs text-muted">Address</div>
             <div class="text-sm mt-1 whitespace-pre-line">{{ supplier.address || "—" }}</div>
@@ -181,6 +345,84 @@ onMounted(async () => {
           <div class="md:col-span-2">
             <div class="text-xs text-muted">Notes</div>
             <div class="text-sm mt-1 whitespace-pre-line">{{ supplier.notes || "—" }}</div>
+          </div>
+        </div>
+
+        <div
+          v-else
+          class="p-4 space-y-4"
+        >
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <UFormGroup
+              label="Name"
+              required
+            >
+              <UInput
+                v-model="editForm.name"
+                placeholder="Supplier name"
+              />
+            </UFormGroup>
+            <UFormGroup label="Supplier Type">
+              <USelectMenu
+                v-model="editForm.supplier_type"
+                :options="['PO', 'WO']"
+              />
+            </UFormGroup>
+            <UFormGroup label="Contact Email">
+              <UInput
+                v-model="editForm.contact_email"
+                type="email"
+                placeholder="email@example.com"
+              />
+            </UFormGroup>
+            <UFormGroup label="Contact Phone">
+              <UInput
+                v-model="editForm.contact_phone"
+                placeholder="+1 234 567 8900"
+              />
+            </UFormGroup>
+            <UFormGroup label="Default MOQ">
+              <UInput
+                v-model.number="editForm.default_moq"
+                type="number"
+                min="0"
+                placeholder="0"
+              />
+              <template #hint>
+                Used when linking products to this supplier
+              </template>
+            </UFormGroup>
+            <UFormGroup label="Default Lead Time (Days)">
+              <UInput
+                v-model.number="editForm.default_lead_time_days"
+                type="number"
+                min="0"
+                placeholder="14"
+              />
+              <template #hint>
+                Used when linking products to this supplier
+              </template>
+            </UFormGroup>
+            <UFormGroup
+              label="Address"
+              class="md:col-span-2"
+            >
+              <UTextarea
+                v-model="editForm.address"
+                placeholder="Street address, City, State, ZIP"
+                :rows="3"
+              />
+            </UFormGroup>
+            <UFormGroup
+              label="Notes"
+              class="md:col-span-2"
+            >
+              <UTextarea
+                v-model="editForm.notes"
+                placeholder="Additional notes..."
+                :rows="3"
+              />
+            </UFormGroup>
           </div>
         </div>
       </UCard>
@@ -248,5 +490,72 @@ onMounted(async () => {
         </div>
       </UCard>
     </div>
+
+    <!-- Apply to Existing Products Dialog -->
+    <UModal
+      v-if="showApplyDialog"
+      v-model="showApplyDialog"
+      :prevent-close="saving"
+      :ui="{ width: 'sm:max-w-md' }"
+      @close="showApplyDialog = false"
+    >
+      <UCard>
+        <template #header>
+          <h3 class="text-lg font-semibold">Apply Default Changes to Existing Products?</h3>
+        </template>
+
+        <div class="space-y-4">
+          <p class="text-sm text-muted">
+            You've changed the supplier defaults. Would you like to apply these changes to existing products?
+          </p>
+
+          <div
+            v-if="pendingChanges"
+            class="p-3 bg-muted rounded-lg space-y-2"
+          >
+            <div
+              v-if="pendingChanges.default_moq !== undefined"
+              class="text-sm"
+            >
+              <span class="font-medium">MOQ:</span>
+              {{ supplier?.default_moq || 0 }} → {{ pendingChanges.default_moq }}
+            </div>
+            <div
+              v-if="pendingChanges.default_lead_time_days !== undefined"
+              class="text-sm"
+            >
+              <span class="font-medium">Lead Time:</span>
+              {{ supplier?.default_lead_time_days || 14 }} → {{ pendingChanges.default_lead_time_days }} days
+            </div>
+          </div>
+
+          <UAlert
+            color="amber"
+            variant="soft"
+            title="Note"
+            description="This will only update products that are currently using the supplier defaults. Products with explicit overrides will remain unchanged."
+          />
+        </div>
+
+        <template #footer>
+          <div class="flex items-center justify-end gap-2">
+            <UButton
+              variant="ghost"
+              :disabled="saving"
+              @click="skipApplyToExisting"
+            >
+              Skip
+            </UButton>
+            <UButton
+              color="primary"
+              :loading="saving"
+              @click="confirmApplyToExisting"
+            >
+              Apply to Existing Products
+            </UButton>
+          </div>
+        </template>
+      </UCard>
+    </UModal>
   </div>
 </template>

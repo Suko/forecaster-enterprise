@@ -53,13 +53,13 @@ async def sync_sales_history(
 ):
     """
     Sync sales history from external source to ts_demand_daily table
-    
+
     Requires authentication and client context.
     """
     try:
         connector = get_connector(request.connector_type, request.connector_config)
         service = ETLService(db)
-        
+
         result = await service.sync_sales_history(
             client_id=client.client_id,
             connector=connector,
@@ -67,7 +67,7 @@ async def sync_sales_history(
             end_date=request.end_date,
             replace=request.replace
         )
-        
+
         return SyncResponse(
             success=result["success"],
             rows_fetched=result["rows_fetched"],
@@ -91,18 +91,18 @@ async def sync_products(
 ):
     """
     Sync products from external source
-    
+
     Requires authentication and client context.
     """
     try:
         connector = get_connector(request.connector_type, request.connector_config)
         service = ETLService(db)
-        
+
         result = await service.sync_products(
             client_id=client.client_id,
             connector=connector
         )
-        
+
         return SyncResponse(
             success=result["success"],
             rows_fetched=result["rows_fetched"],
@@ -126,19 +126,19 @@ async def sync_stock_levels(
 ):
     """
     Sync stock levels from external source
-    
+
     Requires authentication and client context.
     """
     try:
         connector = get_connector(request.connector_type, request.connector_config)
         service = ETLService(db)
-        
+
         result = await service.sync_stock_levels(
             client_id=client.client_id,
             connector=connector,
             replace=request.replace
         )
-        
+
         return SyncResponse(
             success=result["success"],
             rows_fetched=result["rows_fetched"],
@@ -162,19 +162,19 @@ async def sync_locations(
 ):
     """
     Sync locations from external source
-    
+
     Requires authentication and client context.
     Preserves app-managed locations (is_synced = false).
     """
     try:
         connector = get_connector(request.connector_type, request.connector_config)
         service = ETLService(db)
-        
+
         result = await service.sync_locations(
             client_id=client.client_id,
             connector=connector
         )
-        
+
         return SyncResponse(
             success=result["success"],
             rows_fetched=result["rows_fetched"],

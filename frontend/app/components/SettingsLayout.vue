@@ -27,6 +27,18 @@
         </slot>
       </template>
 
+      <template #inventory>
+        <slot name="inventory">
+          <InventorySection />
+        </slot>
+      </template>
+
+      <template #locations>
+        <slot name="locations">
+          <LocationsSection />
+        </slot>
+      </template>
+
       <template #users>
         <slot name="users">
           <UsersSection />
@@ -65,6 +77,16 @@ const tabs: TabsItem[] = [
     slot: "general",
   },
   {
+    label: "Inventory",
+    value: "inventory",
+    slot: "inventory",
+  },
+  {
+    label: "Locations",
+    value: "locations",
+    slot: "locations",
+  },
+  {
     label: "Users",
     value: "users",
     slot: "users",
@@ -84,6 +106,12 @@ const tabs: TabsItem[] = [
 const activeTab = computed(() => {
   if (route.path === "/settings" || route.path === "/settings/") {
     return "general";
+  }
+  if (route.path === "/settings/inventory") {
+    return "inventory";
+  }
+  if (route.path === "/settings/locations") {
+    return "locations";
   }
   if (route.path === "/settings/users") {
     return "users";

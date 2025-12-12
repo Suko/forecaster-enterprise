@@ -51,16 +51,16 @@ async def add_to_cart(
 ):
     """
     Add item to order planning cart.
-    
+
     Validates:
     - Product exists
     - Supplier exists and is linked to product
     - Quantity >= MOQ
     """
     service = CartService(db)
-    
+
     session_id = get_session_id(user_id=str(user.id) if user else None, x_session_id=x_session_id)
-    
+
     try:
         cart_item = await service.add_to_cart(
             client_id=client.client_id,
@@ -70,22 +70,22 @@ async def add_to_cart(
             quantity=item.quantity,
             notes=item.notes
         )
-        
+
         # Get product and supplier info for response
         from sqlalchemy import select
         from models.product import Product
         from models.supplier import Supplier
-        
+
         product_result = await db.execute(
             select(Product).where(Product.item_id == cart_item.item_id)
         )
         product = product_result.scalar_one()
-        
+
         supplier_result = await db.execute(
             select(Supplier).where(Supplier.id == cart_item.supplier_id)
         )
         supplier = supplier_result.scalar_one()
-        
+
         return CartItemResponse(
             id=cart_item.id,
             session_id=cart_item.session_id,
@@ -102,7 +102,7 @@ async def add_to_cart(
             created_at=cart_item.created_at.date(),
             updated_at=cart_item.updated_at.date()
         )
-        
+
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
 
@@ -116,31 +116,31 @@ async def get_cart(
 ):
     """Get current cart items grouped by supplier"""
     service = CartService(db)
-    
+
     session_id = get_session_id(user_id=str(user.id) if user else None, x_session_id=x_session_id)
-    
+
     cart_items = await service.get_cart(client.client_id, session_id)
-    
+
     # Get product and supplier info
     from sqlalchemy import select
     from models.product import Product
     from models.supplier import Supplier
-    
+
     items_response = []
     suppliers_dict = {}
     total_value = Decimal("0.00")
-    
+
     for item in cart_items:
         product_result = await db.execute(
             select(Product).where(Product.item_id == item.item_id)
         )
         product = product_result.scalar_one()
-        
+
         supplier_result = await db.execute(
             select(Supplier).where(Supplier.id == item.supplier_id)
         )
         supplier = supplier_result.scalar_one()
-        
+
         items_response.append(CartItemResponse(
             id=item.id,
             session_id=item.session_id,
@@ -157,9 +157,9 @@ async def get_cart(
             created_at=item.created_at.date(),
             updated_at=item.updated_at.date()
         ))
-        
+
         total_value += item.total_price
-        
+
         # Group by supplier
         if str(supplier.id) not in suppliers_dict:
             suppliers_dict[str(supplier.id)] = {
@@ -168,7 +168,7 @@ async def get_cart(
                 "items": []
             }
         suppliers_dict[str(supplier.id)]["items"].append(item.item_id)
-    
+
     return CartResponse(
         items=items_response,
         total_items=len(items_response),
@@ -189,9 +189,9 @@ async def update_cart_item(
 ):
     """Update cart item quantity or notes"""
     service = CartService(db)
-    
+
     session_id = get_session_id(user_id=str(user.id) if user else None, x_session_id=x_session_id)
-    
+
     try:
         cart_item = await service.update_cart_item(
             client_id=client.client_id,
@@ -201,25 +201,25 @@ async def update_cart_item(
             quantity=update.quantity,
             notes=update.notes
         )
-        
+
         if not cart_item:
             raise HTTPException(status_code=404, detail="Cart item not found")
-        
+
         # Get product and supplier info
         from sqlalchemy import select
         from models.product import Product
         from models.supplier import Supplier
-        
+
         product_result = await db.execute(
             select(Product).where(Product.item_id == cart_item.item_id)
         )
         product = product_result.scalar_one()
-        
+
         supplier_result = await db.execute(
             select(Supplier).where(Supplier.id == cart_item.supplier_id)
         )
         supplier = supplier_result.scalar_one()
-        
+
         return CartItemResponse(
             id=cart_item.id,
             session_id=cart_item.session_id,
@@ -236,7 +236,7 @@ async def update_cart_item(
             created_at=cart_item.created_at.date(),
             updated_at=cart_item.updated_at.date()
         )
-        
+
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
 
@@ -252,19 +252,19 @@ async def remove_from_cart(
 ):
     """Remove item from cart"""
     service = CartService(db)
-    
+
     session_id = get_session_id(user_id=str(user.id) if user else None, x_session_id=x_session_id)
-    
+
     success = await service.remove_from_cart(
         client_id=client.client_id,
         session_id=session_id,
         item_id=item_id,
         supplier_id=supplier_id
     )
-    
+
     if not success:
         raise HTTPException(status_code=404, detail="Cart item not found")
-    
+
     return {"message": "Item removed from cart"}
 
 
@@ -277,11 +277,11 @@ async def clear_cart(
 ):
     """Clear entire cart"""
     service = CartService(db)
-    
+
     session_id = get_session_id(user_id=str(user.id) if user else None, x_session_id=x_session_id)
-    
+
     count = await service.clear_cart(client.client_id, session_id)
-    
+
     return {"message": f"Cart cleared ({count} items removed)"}
 
 
@@ -297,30 +297,30 @@ async def get_order_suggestions(
 ):
     """
     Get order suggestions based on forecasted demand, current stock, and lead time.
-    
+
     Suggests products that need reordering based on:
     - Forecasted demand
     - Current stock
     - Lead time + safety buffer
     """
     metrics_service = MetricsService(db)
-    
+
     # Get all active products
     from sqlalchemy import select
     from models.product import Product
     from models.product_supplier import ProductSupplierCondition
     from models.supplier import Supplier
-    
+
     products_result = await db.execute(
         select(Product).where(
             Product.client_id == client.client_id
         )
     )
     products = products_result.scalars().all()
-    
+
     suggestions = []
     total_value = Decimal("0.00")
-    
+
     for product in products:
         # Get metrics
         metrics = await metrics_service.compute_product_metrics(
@@ -328,7 +328,7 @@ async def get_order_suggestions(
             item_id=product.item_id,
             location_id=location_id
         )
-        
+
         # Get primary supplier
         supplier_result = await db.execute(
             select(ProductSupplierCondition, Supplier).join(
@@ -340,25 +340,25 @@ async def get_order_suggestions(
             ).limit(1)
         )
         supplier_data = supplier_result.first()
-        
+
         if not supplier_data:
             continue
-        
+
         condition, supplier = supplier_data
-        
+
         # Calculate suggested quantity
         suggested_qty = condition.moq
         if metrics.get("forecasted_demand_30d") and metrics.get("dir"):
             forecasted = metrics["forecasted_demand_30d"]
             required_stock = forecasted + (Decimal("30") * forecasted / Decimal("30"))  # Simplified
             suggested_qty = max(condition.moq, int(required_stock - Decimal(metrics["current_stock"])))
-        
+
         # Only suggest if stockout risk is high
         if metrics.get("stockout_risk") and metrics["stockout_risk"] > 50:
             unit_cost = condition.supplier_cost or product.unit_cost
             total_cost = Decimal(suggested_qty) * unit_cost
             total_value += total_cost
-            
+
             suggestions.append(OrderSuggestion(
                 item_id=product.item_id,
                 product_name=product.product_name,
@@ -375,7 +375,7 @@ async def get_order_suggestions(
                 total_cost=total_cost,
                 reason=f"Stockout risk: {metrics.get('stockout_risk', 0):.1f}%"
             ))
-    
+
     return OrderSuggestionsResponse(
         suggestions=suggestions,
         total_suggestions=len(suggestions),
@@ -396,18 +396,18 @@ async def get_recommendations(
 ):
     """
     Get AI-powered recommendations.
-    
+
     Types: REORDER, URGENT, REDUCE_ORDER, DEAD_STOCK, PROMOTE
     Role: CEO, PROCUREMENT, MARKETING (filters by role-based rules)
     """
     service = RecommendationsService(db)
-    
+
     recommendations = await service.get_recommendations(
         client_id=client.client_id,
         recommendation_type=type,
         role=role
     )
-    
+
     return {"recommendations": recommendations, "total": len(recommendations)}
 
 
@@ -419,7 +419,7 @@ async def dismiss_recommendation(
 ):
     """
     Dismiss a recommendation (don't show again).
-    
+
     Note: This is a placeholder - in production, you'd store dismissed recommendations
     in a database table.
     """

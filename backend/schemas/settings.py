@@ -16,7 +16,7 @@ class ClientSettingsResponse(BaseModel):
     overstocked_threshold: int
     dead_stock_days: int
     recommendation_rules: Dict
-    
+
     class Config:
         from_attributes = True
 

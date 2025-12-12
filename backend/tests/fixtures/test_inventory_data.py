@@ -21,7 +21,8 @@ def create_test_product(
     item_id: str,
     product_name: Optional[str] = None,
     category: str = "Test Category",
-    unit_cost: Decimal = Decimal("10.00")
+    unit_cost: Decimal = Decimal("10.00"),
+    safety_buffer_days: Optional[int] = None
 ) -> Product:
     """Factory function to create a test product"""
     return Product(
@@ -30,7 +31,8 @@ def create_test_product(
         sku=item_id,
         product_name=product_name or f"Test Product {item_id}",
         category=category,
-        unit_cost=unit_cost
+        unit_cost=unit_cost,
+        safety_buffer_days=safety_buffer_days
     )
 
 
@@ -56,7 +58,9 @@ def create_test_supplier(
     client_id: uuid.UUID,
     name: str = "Test Supplier",
     contact_email: str = "test@supplier.com",
-    supplier_type: str = "PO"
+    supplier_type: str = "PO",
+    default_moq: int = 0,
+    default_lead_time_days: int = 14
 ) -> Supplier:
     """Factory function to create a test supplier"""
     return Supplier(
@@ -64,6 +68,8 @@ def create_test_supplier(
         name=name,
         contact_email=contact_email,
         supplier_type=supplier_type,
+        default_moq=default_moq,
+        default_lead_time_days=default_lead_time_days,
         is_synced=False
     )
 
@@ -141,7 +147,7 @@ def create_test_inventory_data_batch(
 ) -> dict:
     """
     Create a batch of test inventory data for integration tests.
-    
+
     Returns:
         dict with:
             - products: List[Product]
@@ -156,7 +162,7 @@ def create_test_inventory_data_batch(
     suppliers = []
     stock_levels = []
     conditions = []
-    
+
     # Create products
     for i in range(num_products):
         item_id = f"TEST-ITEM-{i+1:03d}"
@@ -166,7 +172,7 @@ def create_test_inventory_data_batch(
             category=f"Category {i % 3 + 1}",
             unit_cost=Decimal(f"{(i * 10) + 10}.00")
         ))
-    
+
     # Create locations
     for i in range(num_locations):
         locations.append(create_test_location(
@@ -174,7 +180,7 @@ def create_test_inventory_data_batch(
             location_id=f"TEST-LOC-{i+1:03d}",
             name=f"Test Location {i+1}"
         ))
-    
+
     # Create suppliers
     for i in range(num_suppliers):
         suppliers.append(create_test_supplier(
@@ -182,7 +188,7 @@ def create_test_inventory_data_batch(
             name=f"Test Supplier {i+1}",
             contact_email=f"supplier{i+1}@test.com"
         ))
-    
+
     # Create stock levels (one per product per location)
     for product in products:
         for location in locations:
@@ -192,7 +198,7 @@ def create_test_inventory_data_batch(
                 location_id=location.location_id,
                 current_stock=(hash(f"{product.item_id}{location.location_id}") % 500)
             ))
-    
+
     # Create product-supplier conditions (link each product to first supplier)
     if suppliers:
         for product in products:
@@ -204,10 +210,10 @@ def create_test_inventory_data_batch(
                 lead_time_days=14,
                 is_primary=True
             ))
-    
+
     # Create settings
     settings = create_test_client_settings(client_id=client_id)
-    
+
     return {
         "products": products,
         "locations": locations,

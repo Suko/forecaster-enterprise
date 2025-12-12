@@ -15,16 +15,16 @@ def check_rate_limit(request: Request) -> None:
     """Check if request exceeds rate limits"""
     if not settings.rate_limit_enabled:
         return
-    
+
     client_id = get_remote_address(request)
     now = datetime.utcnow()
-    
+
     # Clean old entries (older than 1 hour)
     _rate_limit_storage[client_id] = [
         ts for ts in _rate_limit_storage[client_id]
         if now - ts < timedelta(hours=1)
     ]
-    
+
     # Check per-minute limit
     minute_ago = now - timedelta(minutes=1)
     recent_minute = [ts for ts in _rate_limit_storage[client_id] if ts > minute_ago]
@@ -32,7 +32,7 @@ def check_rate_limit(request: Request) -> None:
         raise RateLimitExceeded(
             detail=f"Rate limit exceeded: {settings.rate_limit_per_minute} requests per minute"
         )
-    
+
     # Check per-hour limit
     hour_ago = now - timedelta(hours=1)
     recent_hour = [ts for ts in _rate_limit_storage[client_id] if ts > hour_ago]
@@ -40,7 +40,7 @@ def check_rate_limit(request: Request) -> None:
         raise RateLimitExceeded(
             detail=f"Rate limit exceeded: {settings.rate_limit_per_hour} requests per hour"
         )
-    
+
     # Record this request
     _rate_limit_storage[client_id].append(now)
 

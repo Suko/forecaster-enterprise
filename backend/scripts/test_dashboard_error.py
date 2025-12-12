@@ -22,7 +22,7 @@ async def test_dashboard():
         if not client:
             print("No client found")
             return
-    
+
     # Login
     async with httpx.AsyncClient() as http_client:
         login_resp = await http_client.post(
@@ -33,10 +33,10 @@ async def test_dashboard():
         if login_resp.status_code != 200:
             print(f"Login failed: {login_resp.status_code} - {login_resp.text}")
             return
-        
+
         token = login_resp.json()["access_token"]
         headers = {"Authorization": f"Bearer {token}"}
-        
+
         # Test dashboard
         resp = await http_client.get(f"{BASE_URL}/api/v1/dashboard", headers=headers)
         print(f"Status: {resp.status_code}")

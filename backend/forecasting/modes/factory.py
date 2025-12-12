@@ -14,7 +14,7 @@ from .statistical.min_max import MinMaxModel
 
 class ModelFactory:
     """Factory for creating forecasting model instances"""
-    
+
     _models: Dict[str, type] = {
         "chronos-2": Chronos2Model,
         "statistical_ma7": MovingAverageModel,
@@ -22,19 +22,19 @@ class ModelFactory:
         "croston": CrostonModel,
         "min_max": MinMaxModel,
     }
-    
+
     @classmethod
     def create_model(cls, model_id: str, **kwargs) -> BaseForecastModel:
         """
         Create model instance based on model_id.
-        
+
         Args:
             model_id: Model identifier ("chronos-2", "statistical_ma7", etc.)
             **kwargs: Additional arguments passed to model constructor
-        
+
         Returns:
             BaseForecastModel instance
-        
+
         Raises:
             ValueError: If model_id is not supported
         """
@@ -44,20 +44,20 @@ class ModelFactory:
                 f"Unknown model_id: {model_id}. "
                 f"Available models: {available}"
             )
-        
+
         model_class = cls._models[model_id]
         return model_class(**kwargs)
-    
+
     @classmethod
     def list_models(cls) -> list[str]:
         """List all available model identifiers"""
         return list(cls._models.keys())
-    
+
     @classmethod
     def register_model(cls, model_id: str, model_class: type) -> None:
         """
         Register a new model class.
-        
+
         Args:
             model_id: Model identifier
             model_class: Model class (must inherit from BaseForecastModel)

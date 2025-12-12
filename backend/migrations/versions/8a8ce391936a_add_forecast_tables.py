@@ -38,7 +38,7 @@ def upgrade() -> None:
     op.create_index('idx_forecast_runs_client', 'forecast_runs', ['client_id'])
     op.create_index('idx_forecast_runs_status', 'forecast_runs', ['status'])
     op.create_index('idx_forecast_runs_created', 'forecast_runs', ['created_at'])
-    
+
     # Create forecast_results table
     op.create_table(
         'forecast_results',

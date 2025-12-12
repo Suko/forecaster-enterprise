@@ -185,6 +185,10 @@ onMounted(async () => {
             >
               {{ supplier.contact_phone }}
             </div>
+            <div class="flex items-center gap-4 mt-2 text-xs text-muted">
+              <span>MOQ: {{ supplier.default_moq || 0 }}</span>
+              <span>Lead: {{ supplier.default_lead_time_days || 14 }}d</span>
+            </div>
           </div>
           <UIcon
             name="i-lucide-chevron-right"

@@ -16,15 +16,17 @@ from models.product import Product
 from models.supplier import Supplier
 from models.product_supplier import ProductSupplierCondition
 from models.order_cart import OrderCartItem
+from services.inventory_service import InventoryService
 from schemas.order import PurchaseOrderCreate
 
 
 class PurchaseOrderService:
     """Service for purchase order management"""
-    
+
     def __init__(self, db: AsyncSession):
+        self.inventory_service = InventoryService(db)
         self.db = db
-    
+
     async def create_purchase_order(
         self,
         client_id: UUID,
@@ -42,14 +44,14 @@ class PurchaseOrderService:
         supplier = supplier_result.scalar_one_or_none()
         if not supplier:
             raise ValueError(f"Supplier with id {data.supplier_id} not found")
-        
+
         # Generate PO number
         po_number = await self._generate_po_number(client_id)
-        
+
         # Calculate total amount
         total_amount = Decimal("0.00")
         items_list = []
-        
+
         for item_data in data.items:
             # Verify product exists
             product_result = await self.db.execute(
@@ -61,7 +63,7 @@ class PurchaseOrderService:
             product = product_result.scalar_one_or_none()
             if not product:
                 raise ValueError(f"Product with item_id {item_data.item_id} not found")
-            
+
             # Get product-supplier condition for validation
             condition_result = await self.db.execute(
                 select(ProductSupplierCondition).where(
@@ -73,15 +75,20 @@ class PurchaseOrderService:
             condition = condition_result.scalar_one_or_none()
             if not condition:
                 raise ValueError(f"Product-supplier condition not found for item_id {item_data.item_id}")
-            
-            # Validate quantity >= MOQ
-            if item_data.quantity < condition.moq:
-                raise ValueError(f"Quantity {item_data.quantity} is less than MOQ {condition.moq}")
-            
+
+            # Get effective MOQ for validation
+            effective_moq = await self.inventory_service.get_effective_moq(
+                client_id, item_data.item_id, data.supplier_id
+            )
+
+            # Validate quantity >= effective MOQ
+            if item_data.quantity < effective_moq:
+                raise ValueError(f"Quantity {item_data.quantity} is less than MOQ {effective_moq}")
+
             # Calculate item total
             item_total = Decimal(item_data.quantity) * item_data.unit_cost
             total_amount += item_total
-            
+
             # Create PO item
             po_item = PurchaseOrderItem(
                 item_id=item_data.item_id,
@@ -92,7 +99,7 @@ class PurchaseOrderService:
                 packaging_qty=item_data.packaging_qty or condition.packaging_qty
             )
             items_list.append(po_item)
-        
+
         # Create purchase order
         po = PurchaseOrder(
             client_id=client_id,
@@ -107,20 +114,20 @@ class PurchaseOrderService:
             notes=data.notes,
             created_by=created_by
         )
-        
+
         self.db.add(po)
         await self.db.flush()  # Get PO ID
-        
+
         # Add items
         for item in items_list:
             item.po_id = po.id
             self.db.add(item)
-        
+
         await self.db.commit()
         await self.db.refresh(po)
-        
+
         return po
-    
+
     async def _generate_po_number(self, client_id: UUID) -> str:
         """Generate unique PO number"""
         # Get count of POs for this client
@@ -130,11 +137,11 @@ class PurchaseOrderService:
             )
         )
         count = result.scalar() or 0
-        
+
         # Format: PO-{client_id_short}-{count+1}
         client_short = str(client_id)[:8].upper()
         po_number = f"PO-{client_short}-{count + 1:06d}"
-        
+
         # Ensure uniqueness
         existing_result = await self.db.execute(
             select(PurchaseOrder).where(PurchaseOrder.po_number == po_number)
@@ -143,9 +150,9 @@ class PurchaseOrderService:
             # If exists, append timestamp
             import time
             po_number = f"{po_number}-{int(time.time())}"
-        
+
         return po_number
-    
+
     async def get_purchase_orders(
         self,
         client_id: UUID,
@@ -156,26 +163,26 @@ class PurchaseOrderService:
     ) -> Dict:
         """Get paginated list of purchase orders"""
         query = select(PurchaseOrder).where(PurchaseOrder.client_id == client_id)
-        
+
         if status:
             query = query.where(PurchaseOrder.status == status)
         if supplier_id:
             query = query.where(PurchaseOrder.supplier_id == supplier_id)
-        
+
         # Get total count
         count_query = select(func.count()).select_from(query.subquery())
         total_result = await self.db.execute(count_query)
         total = total_result.scalar() or 0
-        
+
         # Apply pagination
         offset = (page - 1) * page_size
         query = query.order_by(PurchaseOrder.created_at.desc()).offset(offset).limit(page_size)
-        
+
         result = await self.db.execute(query)
         orders = result.scalars().all()
-        
+
         total_pages = (total + page_size - 1) // page_size if total > 0 else 0
-        
+
         return {
             "items": orders,
             "total": total,
@@ -183,7 +190,7 @@ class PurchaseOrderService:
             "page_size": page_size,
             "total_pages": total_pages
         }
-    
+
     async def get_purchase_order(
         self,
         client_id: UUID,
@@ -197,7 +204,7 @@ class PurchaseOrderService:
             )
         )
         return result.scalar_one_or_none()
-    
+
     async def update_purchase_order_status(
         self,
         client_id: UUID,
@@ -212,20 +219,20 @@ class PurchaseOrderService:
             )
         )
         po = result.scalar_one_or_none()
-        
+
         if not po:
             return None
-        
+
         valid_statuses = ["pending", "confirmed", "shipped", "received", "cancelled"]
         if status not in valid_statuses:
             raise ValueError(f"Invalid status. Must be one of: {', '.join(valid_statuses)}")
-        
+
         po.status = status
         await self.db.commit()
         await self.db.refresh(po)
-        
+
         return po
-    
+
     async def create_po_from_cart(
         self,
         client_id: UUID,
@@ -246,13 +253,13 @@ class PurchaseOrderService:
             )
         )
         cart_items = cart_result.scalars().all()
-        
+
         if not cart_items:
             raise ValueError("No items in cart for this supplier")
-        
+
         # Convert cart items to PO items
         from schemas.order import PurchaseOrderItemCreate
-        
+
         po_items = []
         for cart_item in cart_items:
             po_items.append(PurchaseOrderItemCreate(
@@ -262,7 +269,7 @@ class PurchaseOrderService:
                 packaging_unit=cart_item.packaging_unit,
                 packaging_qty=cart_item.packaging_qty
             ))
-        
+
         # Create PO
         po_data = PurchaseOrderCreate(
             supplier_id=supplier_id,
@@ -271,18 +278,18 @@ class PurchaseOrderService:
             shipping_unit=shipping_unit,
             notes=notes
         )
-        
+
         po = await self.create_purchase_order(
             client_id=client_id,
             data=po_data,
             created_by=created_by
         )
-        
+
         # Remove items from cart
         for cart_item in cart_items:
             await self.db.delete(cart_item)
-        
+
         await self.db.commit()
-        
+
         return po
 

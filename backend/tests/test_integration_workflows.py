@@ -32,7 +32,7 @@ async def test_workflow_order_planning_to_po(test_client, test_jwt_token, test_c
     db_session.add_all([product, supplier])
     await db_session.commit()
     await db_session.refresh(supplier)
-    
+
     condition = create_test_product_supplier_condition(
         client_id=test_client_obj.client_id,
         item_id=product.item_id,
@@ -42,7 +42,7 @@ async def test_workflow_order_planning_to_po(test_client, test_jwt_token, test_c
     )
     db_session.add(condition)
     await db_session.commit()
-    
+
     # Step 1: Add product to cart
     cart_response = await test_client.post(
         "/api/v1/order-planning/cart/add",
@@ -54,7 +54,7 @@ async def test_workflow_order_planning_to_po(test_client, test_jwt_token, test_c
         }
     )
     assert cart_response.status_code == 200
-    
+
     # Step 2: Get cart to verify
     get_cart_response = await test_client.get(
         "/api/v1/order-planning/cart",
@@ -63,7 +63,7 @@ async def test_workflow_order_planning_to_po(test_client, test_jwt_token, test_c
     assert get_cart_response.status_code == 200
     cart_data = get_cart_response.json()
     assert len(cart_data["items"]) == 1
-    
+
     # Step 3: Create purchase order from cart
     po_response = await test_client.post(
         "/api/v1/purchase-orders/from-cart",
@@ -74,7 +74,7 @@ async def test_workflow_order_planning_to_po(test_client, test_jwt_token, test_c
     po_data = po_response.json()
     assert po_data["status"] == "pending"
     assert len(po_data["items"]) == 1
-    
+
     # Step 4: Verify cart is cleared after PO creation
     cart_after_po = await test_client.get(
         "/api/v1/order-planning/cart",
@@ -106,7 +106,7 @@ async def test_workflow_product_metrics_to_recommendations(test_client, test_jwt
         db.add_all([product, stock, supplier])
         await db.commit()
         await db.refresh(supplier)
-        
+
         condition = create_test_product_supplier_condition(
             client_id=test_client_obj.client_id,
             item_id=product.item_id,
@@ -115,9 +115,9 @@ async def test_workflow_product_metrics_to_recommendations(test_client, test_jwt
         )
         db.add(condition)
         await db.commit()
-    
+
     token = test_user.token
-    
+
     # Step 1: Get product metrics
     metrics_response = await test_client.get(
         f"/api/v1/products/{product.item_id}/metrics",
@@ -128,7 +128,7 @@ async def test_workflow_product_metrics_to_recommendations(test_client, test_jwt
     assert "dir" in metrics
     assert "stockout_risk" in metrics
     assert "status" in metrics
-    
+
     # Step 2: Get recommendations (should include this product)
     recommendations_response = await test_client.get(
         "/api/v1/order-planning/recommendations",
@@ -137,7 +137,7 @@ async def test_workflow_product_metrics_to_recommendations(test_client, test_jwt
     assert recommendations_response.status_code == 200
     recommendations = recommendations_response.json()
     assert isinstance(recommendations, list)
-    
+
     # Step 3: Verify recommendation includes our product (if risk is high enough)
     if metrics.get("stockout_risk", 0) > 0.5:
         product_recommendations = [
@@ -165,9 +165,9 @@ async def test_workflow_settings_update_affects_recommendations(test_client, tes
     async with get_async_session_local()() as db:
         db.add_all([product, stock])
         await db.commit()
-    
+
     token = test_user.token
-    
+
     # Step 1: Get initial recommendations
     initial_response = await test_client.get(
         "/api/v1/order-planning/recommendations",
@@ -175,7 +175,7 @@ async def test_workflow_settings_update_affects_recommendations(test_client, tes
     )
     initial_recommendations = initial_response.json()
     initial_count = len(initial_recommendations)
-    
+
     # Step 2: Update settings to be more restrictive
     await test_client.put(
         "/api/v1/settings",
@@ -185,14 +185,14 @@ async def test_workflow_settings_update_affects_recommendations(test_client, tes
             "understocked_threshold": 60
         }
     )
-    
+
     # Step 3: Get recommendations again
     updated_response = await test_client.get(
         "/api/v1/order-planning/recommendations",
         headers={"Authorization": f"Bearer {token}"}
     )
     updated_recommendations = updated_response.json()
-    
+
     # Recommendations may change based on new thresholds
     assert isinstance(updated_recommendations, list)
 
@@ -201,7 +201,7 @@ async def test_workflow_settings_update_affects_recommendations(test_client, tes
 async def test_workflow_dashboard_to_product_detail(test_client, test_jwt_token, test_client_obj, populate_test_data):
     """Test workflow: dashboard -> product detail -> metrics"""
     token = test_user.token
-    
+
     # Step 1: Get dashboard
     dashboard_response = await test_client.get(
         "/api/v1/dashboard",
@@ -211,24 +211,24 @@ async def test_workflow_dashboard_to_product_detail(test_client, test_jwt_token,
     dashboard = dashboard_response.json()
     assert "total_products" in dashboard
     assert "total_value" in dashboard
-    
+
     # Step 2: If there are products, get first product detail
     products_response = await test_client.get(
         "/api/v1/products?page_size=1",
         headers={"Authorization": f"Bearer {token}"}
     )
     products = products_response.json()
-    
+
     if products["total"] > 0:
         item_id = products["items"][0]["item_id"]
-        
+
         # Step 3: Get product detail
         detail_response = await test_client.get(
             f"/api/v1/products/{item_id}",
             headers={"Authorization": f"Bearer {token}"}
         )
         assert detail_response.status_code == 200
-        
+
         # Step 4: Get product metrics
         metrics_response = await test_client.get(
             f"/api/v1/products/{item_id}/metrics",

@@ -39,20 +39,13 @@
           </div>
         </div>
         <div class="flex items-center gap-2">
-          <USelectMenu
-            :model-value="user.role"
-            :items="roleOptions"
-            value-key="value"
+          <UBadge
+            :color="user.role === 'admin' ? 'primary' : 'neutral'"
+            variant="soft"
             size="sm"
-            variant="ghost"
-            @update:model-value="
-              (value) => updateRole(user, typeof value === 'string' ? value : value?.value || value)
-            "
           >
-            <template #default>
-              <span class="text-sm lowercase">{{ user.role }}</span>
-            </template>
-          </USelectMenu>
+            {{ user.role }}
+          </UBadge>
           <UDropdownMenu :items="getUserActions(user)">
             <UButton
               icon="i-lucide-more-vertical"
@@ -85,72 +78,76 @@
     </div>
 
     <UModal
-      v-model="showModal"
+      v-model:open="showModal"
       :ui="{ width: 'sm:max-w-md' }"
     >
-      <UCard>
-        <template #header>
-          <h3 class="text-lg font-semibold">
-            {{ editingUser ? "Edit User" : "Add User" }}
-          </h3>
-        </template>
+      <template #content>
+        <UCard>
+          <template #header>
+            <h3 class="text-lg font-semibold">
+              {{ editingUser ? "Edit User" : "Add User" }}
+            </h3>
+          </template>
 
-        <UForm
-          :schema="schema.value"
-          :state="formState"
-          @submit="handleSubmit"
-        >
-          <UFormField
-            label="Email"
-            name="email"
-            required
+          <UForm
+            ref="formRef"
+            :schema="schema.value"
+            :state="formState"
+            @submit="handleSubmit"
           >
-            <UInput
-              v-model="formState.email"
-              type="email"
-              :disabled="!!editingUser"
-            />
-          </UFormField>
+            <UFormField
+              label="Email"
+              name="email"
+              required
+            >
+              <UInput
+                v-model="formState.email"
+                type="email"
+                :disabled="!!editingUser"
+              />
+            </UFormField>
 
-          <UFormField
-            v-if="!editingUser"
-            label="Password"
-            name="password"
-            required
-          >
-            <UInput
-              v-model="formState.password"
-              type="password"
-            />
-          </UFormField>
+            <UFormField
+              v-if="!editingUser"
+              label="Password"
+              name="password"
+              required
+            >
+              <UInput
+                v-model="formState.password"
+                type="password"
+              />
+            </UFormField>
 
-          <UFormField
-            label="Name"
-            name="name"
-          >
-            <UInput v-model="formState.name" />
-          </UFormField>
+            <UFormField
+              label="Name"
+              name="name"
+            >
+              <UInput v-model="formState.name" />
+            </UFormField>
 
-          <UFormField
-            label="Role"
-            name="role"
-            required
-          >
-            <USelect
-              v-model="formState.role"
-              :options="roleOptions"
-            />
-          </UFormField>
+            <UFormField
+              label="Role"
+              name="role"
+              required
+            >
+              <USelect
+                v-model="formState.role"
+                :items="roleOptions"
+                value-key="value"
+              />
+            </UFormField>
 
-          <UFormField
-            label="Status"
-            name="is_active"
-          >
-            <USwitch
-              v-model="formState.is_active"
-              label="Active"
-            />
-          </UFormField>
+            <UFormField
+              label="Status"
+              name="is_active"
+            >
+              <USwitch
+                v-model="formState.is_active"
+                label="Active"
+              />
+            </UFormField>
+          </UForm>
 
           <template #footer>
             <div class="flex justify-end gap-2">
@@ -162,50 +159,52 @@
                 Cancel
               </UButton>
               <UButton
-                type="submit"
                 :loading="submitting"
+                @click="submitForm"
               >
                 {{ editingUser ? "Update" : "Create" }}
               </UButton>
             </div>
           </template>
-        </UForm>
-      </UCard>
+        </UCard>
+      </template>
     </UModal>
 
     <UModal
-      v-model="showDeleteModal"
+      v-model:open="showDeleteModal"
       :ui="{ width: 'sm:max-w-md' }"
     >
-      <UCard>
-        <template #header>
-          <h3 class="text-lg font-semibold text-red-600">Delete User</h3>
-        </template>
+      <template #content>
+        <UCard>
+          <template #header>
+            <h3 class="text-lg font-semibold text-red-600">Delete User</h3>
+          </template>
 
-        <p class="text-gray-600 mb-4">
-          Are you sure you want to delete <strong>{{ userToDelete?.email }}</strong
-          >? This action cannot be undone.
-        </p>
+          <p class="text-gray-600 mb-4">
+            Are you sure you want to delete <strong>{{ userToDelete?.email }}</strong
+            >? This action cannot be undone.
+          </p>
 
-        <template #footer>
-          <div class="flex justify-end gap-2">
-            <UButton
-              color="gray"
-              variant="ghost"
-              @click="showDeleteModal = false"
-            >
-              Cancel
-            </UButton>
-            <UButton
-              color="red"
-              :loading="deleting"
-              @click="handleDelete"
-            >
-              Delete
-            </UButton>
-          </div>
-        </template>
-      </UCard>
+          <template #footer>
+            <div class="flex justify-end gap-2">
+              <UButton
+                color="gray"
+                variant="ghost"
+                @click="showDeleteModal = false"
+              >
+                Cancel
+              </UButton>
+              <UButton
+                color="red"
+                :loading="deleting"
+                @click="handleDelete"
+              >
+                Delete
+              </UButton>
+            </div>
+          </template>
+        </UCard>
+      </template>
     </UModal>
   </div>
 </template>
@@ -232,6 +231,7 @@ const showModal = ref(false);
 const showDeleteModal = ref(false);
 const editingUser = ref<User | null>(null);
 const userToDelete = ref<User | null>(null);
+const formRef = ref<HTMLFormElement | null>(null);
 
 const roleOptions = [
   { label: "Admin", value: "admin" },
@@ -291,29 +291,17 @@ const getUserActions = (user: User) => [
     {
       label: "Edit",
       icon: "i-lucide-edit",
-      click: () => openEditModal(user),
+      onSelect: () => openEditModal(user),
     },
   ],
   [
     {
       label: "Delete",
       icon: "i-lucide-trash-2",
-      click: () => confirmDelete(user),
+      onSelect: () => confirmDelete(user),
     },
   ],
 ];
-
-const updateRole = async (user: User, newRole: string) => {
-  try {
-    await apiCall(`/users/${user.id}`, {
-      method: "PATCH",
-      body: JSON.stringify({ role: newRole }),
-    });
-    await fetchUsers();
-  } catch (error: any) {
-    console.error("Failed to update role:", error);
-  }
-};
 
 const fetchUsers = async () => {
   loading.value = true;
@@ -349,6 +337,15 @@ const openEditModal = (user: User) => {
 const closeModal = () => {
   showModal.value = false;
   editingUser.value = null;
+};
+
+const submitForm = async () => {
+  // Create a synthetic submit event and call handleSubmit directly
+  const syntheticEvent = {
+    data: formState,
+    preventDefault: () => {},
+  } as FormSubmitEvent<any>;
+  await handleSubmit(syntheticEvent);
 };
 
 const handleSubmit = async (event: FormSubmitEvent<any>) => {
@@ -407,6 +404,12 @@ const handleDelete = async () => {
 };
 
 onMounted(() => {
+  // Reset modal states on mount
+  showModal.value = false;
+  showDeleteModal.value = false;
+  editingUser.value = null;
+  userToDelete.value = null;
+  
   fetchUsers();
 });
 </script>

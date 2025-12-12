@@ -57,13 +57,13 @@ def calculate_daily_sales(
 ) -> Decimal:
     """
     Calculate units sold for a specific day based on pattern and historical data.
-    
+
     Args:
         item_id: Product identifier
         sale_date: Date for calculation
         historical_avg: Average daily sales from historical data (if available)
         pattern: Sales pattern type (normal, high_volume, low_volume, dead_stock)
-    
+
     Returns:
         Units sold for this day
     """
@@ -85,33 +85,33 @@ def calculate_daily_sales(
                 return Decimal(str(random.randint(0, 5)))
         else:  # normal
             base = random.randint(10, 50)
-    
+
     # Weekend effect (-30%)
     if is_weekend(sale_date):
         base = int(base * 0.7)
-    
+
     # Holiday effect (+20%)
     if is_holiday(sale_date):
         base = int(base * 1.2)
-    
+
     # Weekly pattern (higher mid-week)
     day_of_week = sale_date.weekday()
     if day_of_week in [1, 2, 3]:  # Tue, Wed, Thu
         base = int(base * 1.1)
     elif day_of_week == 0:  # Monday
         base = int(base * 0.9)
-    
+
     # Promotion effect (random 1-2 per month)
     # Use item_id hash to make promotions consistent per SKU
     item_hash = hash(f"{item_id}{sale_date.year}{sale_date.month}") % 100
     is_promotion = item_hash < 5  # ~5% chance = ~1-2 per month
     if is_promotion:
         base = int(base * 1.5)  # +50% during promotions
-    
+
     # Add small random variation (-10% to +10%)
     variation = random.randint(-int(base * 0.1), int(base * 0.1))
     units = max(0, base + variation)
-    
+
     return Decimal(str(units))
 
 
@@ -165,13 +165,13 @@ async def classify_product_pattern(
         {"client_id": client_id, "item_id": item_id}
     )
     row = result.fetchone()
-    
+
     if not row or not row[0]:
         return "normal"  # Default if no historical data
-    
+
     avg_sales = float(row[0]) if row[0] else 0
     days_with_sales = int(row[1]) if row[1] else 0
-    
+
     # Classify based on average sales
     if avg_sales > 50:
         return "high_volume"
@@ -192,28 +192,28 @@ async def generate_recent_sales_data(
 ) -> dict:
     """
     Generate synthetic sales data from reference_date backwards.
-    
+
     Strategy:
     - Keep all historical data (M5 2015-2024, etc.)
     - Only generate data for dates >= reference_date - days_back
     - Only fill dates that don't already have data
     - Use historical patterns to maintain realism
-    
+
     Args:
         client_id: Client UUID string
         item_ids: List of item_ids (if None, uses all products for client)
         days_back: Number of days to generate from reference_date backwards
         reference_date: Reference date (default: today)
         clear_existing_recent: If True, clear existing recent data first
-    
+
     Returns:
         dict with counts of records created
     """
     if reference_date is None:
         reference_date = date.today()
-    
+
     start_date = reference_date - timedelta(days=days_back)
-    
+
     AsyncSessionLocal = get_async_session_local()
     async with AsyncSessionLocal() as session:
         # Get item_ids if not provided
@@ -224,10 +224,10 @@ async def generate_recent_sales_data(
                 )
             )
             item_ids = [row[0] for row in result.fetchall()]
-        
+
         if not item_ids:
             return {"error": "No products found", "records_created": 0}
-        
+
         # Clear existing recent data if requested
         if clear_existing_recent:
             await session.execute(
@@ -245,24 +245,24 @@ async def generate_recent_sales_data(
             )
             await session.commit()
             print(f"   Cleared existing data from {start_date} to {reference_date}")
-        
+
         records_created = 0
         records_skipped = 0
-        
+
         # Generate data for each product
         for item_id in item_ids:
             # Get historical average for this product
             historical_avg = await get_historical_average_daily_sales(
                 client_id, item_id, session
             )
-            
+
             # Classify product pattern
             pattern = await classify_product_pattern(client_id, item_id, session)
-            
+
             # Generate daily sales
             for day_offset in range(days_back):
                 sale_date = reference_date - timedelta(days=day_offset)
-                
+
                 # Skip if data already exists
                 existing = await session.execute(
                     text("""
@@ -280,27 +280,27 @@ async def generate_recent_sales_data(
                 if existing.fetchone():
                     records_skipped += 1
                     continue
-                
+
                 # Calculate units sold
                 units_sold = calculate_daily_sales(
                     item_id, sale_date, historical_avg, pattern
                 )
-                
+
                 # Determine flags
                 is_weekend_flag = is_weekend(sale_date)
                 is_holiday_flag = is_holiday(sale_date)
-                
+
                 # Promotion flag (consistent per SKU per month)
                 item_hash = hash(f"{item_id}{sale_date.year}{sale_date.month}") % 100
                 is_promotion = item_hash < 5
-                
+
                 # Marketing spend (higher during promotions)
                 marketing_spend = Decimal("0.00")
                 if is_promotion:
                     marketing_spend = Decimal(str(random.randint(50, 200)))
                 elif random.random() < 0.1:  # 10% chance of marketing on non-promo days
                     marketing_spend = Decimal(str(random.randint(10, 50)))
-                
+
                 # Insert record
                 await session.execute(
                     text("""
@@ -323,9 +323,9 @@ async def generate_recent_sales_data(
                     }
                 )
                 records_created += 1
-        
+
         await session.commit()
-        
+
         return {
             "records_created": records_created,
             "records_skipped": records_skipped,
@@ -339,7 +339,7 @@ async def generate_recent_sales_data(
 async def main():
     """CLI entry point"""
     import argparse
-    
+
     parser = argparse.ArgumentParser(
         description="Generate recent sales data from today backwards"
     )
@@ -360,25 +360,25 @@ async def main():
         action="store_true",
         help="Clear existing recent data before generating"
     )
-    
+
     args = parser.parse_args()
-    
+
     try:
         result = await generate_recent_sales_data(
             client_id=args.client_id,
             days_back=args.days_back,
             clear_existing_recent=args.clear_existing
         )
-        
+
         if "error" in result:
             print(f"❌ Error: {result['error']}")
             sys.exit(1)
-        
+
         print(f"\n✅ Generated {result['records_created']} sales records")
         print(f"   Skipped {result['records_skipped']} existing records")
         print(f"   Products: {result['products']}")
         print(f"   Date range: {result['start_date']} to {result['end_date']}")
-        
+
     except Exception as e:
         print(f"\n❌ Error: {e}")
         import traceback

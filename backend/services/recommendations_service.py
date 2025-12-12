@@ -16,15 +16,17 @@ from models.settings import ClientSettings
 from models.product_supplier import ProductSupplierCondition
 from models.supplier import Supplier
 from services.metrics_service import MetricsService
+from services.inventory_service import InventoryService
 
 
 class RecommendationsService:
     """Service for generating recommendations"""
-    
+
     def __init__(self, db: AsyncSession):
         self.db = db
         self.metrics_service = MetricsService(db)
-    
+        self.inventory_service = InventoryService(db)
+
     async def get_recommendations(
         self,
         client_id: UUID,
@@ -33,7 +35,7 @@ class RecommendationsService:
     ) -> List[Dict]:
         """
         Get recommendations based on inventory metrics and rules.
-        
+
         Types:
         - REORDER: DIR < (lead_time + buffer)
         - URGENT: Stockout risk > 70%
@@ -46,26 +48,26 @@ class RecommendationsService:
             select(ClientSettings).where(ClientSettings.client_id == client_id)
         )
         settings = settings_result.scalar_one_or_none()
-        
+
         if not settings:
             return []
-        
+
         # Get recommendation rules
         rules = settings.recommendation_rules or {}
         enabled_types = rules.get("enabled_types", [])
         role_rules = rules.get("role_rules", {})
-        
+
         # Filter by role if provided
         if role and role in role_rules:
             enabled_types = [t for t in enabled_types if t in role_rules[role]]
-        
+
         # Filter by type if provided
         if recommendation_type:
             enabled_types = [t for t in enabled_types if t == recommendation_type]
-        
+
         if not enabled_types:
             return []
-        
+
         # Get all active products
         products_result = await self.db.execute(
             select(Product).where(
@@ -73,16 +75,16 @@ class RecommendationsService:
             )
         )
         products = products_result.scalars().all()
-        
+
         recommendations = []
-        
+
         for product in products:
             # Get metrics
             metrics = await self.metrics_service.compute_product_metrics(
                 client_id=client_id,
                 item_id=product.item_id
             )
-            
+
             # Get primary supplier
             supplier_result = await self.db.execute(
                 select(ProductSupplierCondition, Supplier).join(
@@ -94,12 +96,12 @@ class RecommendationsService:
                 ).limit(1)
             )
             supplier_data = supplier_result.first()
-            
+
             if not supplier_data:
                 continue
-            
+
             condition, supplier = supplier_data
-            
+
             # Generate recommendations based on type
             for rec_type in enabled_types:
                 rec = await self._generate_recommendation(
@@ -111,16 +113,16 @@ class RecommendationsService:
                     rec_type=rec_type,
                     settings=settings
                 )
-                
+
                 if rec:
                     recommendations.append(rec)
-        
+
         # Sort by priority (URGENT > REORDER > others)
         priority_order = {"URGENT": 0, "REORDER": 1, "REDUCE_ORDER": 2, "DEAD_STOCK": 3, "PROMOTE": 4}
         recommendations.sort(key=lambda x: priority_order.get(x["type"], 99))
-        
+
         return recommendations
-    
+
     async def _generate_recommendation(
         self,
         client_id: UUID,
@@ -134,22 +136,33 @@ class RecommendationsService:
         """Generate a specific recommendation"""
         if not metrics.get("dir") or not metrics.get("stockout_risk"):
             return None
-        
+
         dir_value = metrics["dir"]
         stockout_risk = metrics["stockout_risk"]
         current_stock = metrics["current_stock"]
-        
+
+        # Get effective values (always use primary supplier for calculations)
+        effective_moq = await self.inventory_service.get_effective_moq(
+            client_id, product.item_id, None  # None = use primary supplier
+        )
+        effective_lead_time = await self.inventory_service.get_effective_lead_time(
+            client_id, product.item_id, None  # None = use primary supplier
+        )
+        effective_buffer = await self.inventory_service.get_effective_buffer(
+            client_id, product.item_id
+        )
+
         # Calculate suggested quantity
-        suggested_qty = condition.moq
+        suggested_qty = effective_moq
         if metrics.get("forecasted_demand_30d"):
             forecasted = metrics["forecasted_demand_30d"]
-            required_stock = forecasted + (Decimal(str(settings.safety_buffer_days)) * forecasted / Decimal("30"))
-            suggested_qty = max(condition.moq, int(required_stock - Decimal(current_stock)))
-        
+            required_stock = forecasted + (Decimal(str(effective_buffer)) * forecasted / Decimal("30"))
+            suggested_qty = max(effective_moq, int(required_stock - Decimal(current_stock)))
+
         reason = ""
-        
+
         if rec_type == "REORDER":
-            required_days = condition.lead_time_days + settings.safety_buffer_days
+            required_days = effective_lead_time + effective_buffer
             if dir_value < required_days:
                 reason = f"DIR ({dir_value:.1f} days) < lead time + buffer ({required_days} days)"
                 return {
@@ -163,13 +176,13 @@ class RecommendationsService:
                     "supplier_id": str(supplier.id),
                     "supplier_name": supplier.name,
                     "suggested_quantity": suggested_qty,
-                    "moq": condition.moq,
-                    "lead_time_days": condition.lead_time_days,
+                    "moq": effective_moq,
+                    "lead_time_days": effective_lead_time,
                     "unit_cost": float(condition.supplier_cost or product.unit_cost),
                     "reason": reason,
                     "priority": "high"
                 }
-        
+
         elif rec_type == "URGENT":
             if stockout_risk > 70:
                 reason = f"Stockout risk ({stockout_risk:.1f}%) > 70%"
@@ -184,13 +197,13 @@ class RecommendationsService:
                     "supplier_id": str(supplier.id),
                     "supplier_name": supplier.name,
                     "suggested_quantity": suggested_qty,
-                    "moq": condition.moq,
-                    "lead_time_days": condition.lead_time_days,
+                    "moq": effective_moq,
+                    "lead_time_days": effective_lead_time,
                     "unit_cost": float(condition.supplier_cost or product.unit_cost),
                     "reason": reason,
                     "priority": "high"  # URGENT maps to high priority
                 }
-        
+
         elif rec_type == "REDUCE_ORDER":
             if dir_value > settings.overstocked_threshold:
                 reason = f"DIR ({dir_value:.1f} days) > overstocked threshold ({settings.overstocked_threshold} days)"
@@ -211,7 +224,7 @@ class RecommendationsService:
                     "reason": reason,
                     "priority": "medium"
                 }
-        
+
         elif rec_type == "DEAD_STOCK":
             # Check last sale date
             last_sale_result = await self.db.execute(
@@ -225,7 +238,7 @@ class RecommendationsService:
                 {"client_id": client_id, "item_id": product.item_id}
             )
             last_sale_row = last_sale_result.fetchone()
-            
+
             if last_sale_row and last_sale_row[0]:
                 days_since_sale = (date.today() - last_sale_row[0]).days
                 if days_since_sale >= settings.dead_stock_days:
@@ -247,7 +260,7 @@ class RecommendationsService:
                         "reason": reason,
                         "priority": "low"
                     }
-        
+
         elif rec_type == "PROMOTE":
             if dir_value > 30 and current_stock > 0:
                 # Check if product is in active campaign (simplified - would need campaign table)
@@ -269,6 +282,6 @@ class RecommendationsService:
                     "reason": reason,
                     "priority": "low"
                 }
-        
+
         return None
 

@@ -31,7 +31,7 @@ async def get_settings(
         select(ClientSettings).where(ClientSettings.client_id == client.client_id)
     )
     settings = result.scalar_one_or_none()
-    
+
     if not settings:
         # Return default settings
         return ClientSettingsResponse(
@@ -51,7 +51,7 @@ async def get_settings(
                 "min_risk_score": 0
             }
         )
-    
+
     return ClientSettingsResponse(
         client_id=settings.client_id,
         safety_buffer_days=settings.safety_buffer_days,
@@ -73,7 +73,7 @@ async def update_settings(
         select(ClientSettings).where(ClientSettings.client_id == client.client_id)
     )
     settings = result.scalar_one_or_none()
-    
+
     if not settings:
         # Create new settings
         settings = ClientSettings(
@@ -94,10 +94,10 @@ async def update_settings(
             settings.overstocked_threshold = data.overstocked_threshold
         if data.dead_stock_days is not None:
             settings.dead_stock_days = data.dead_stock_days
-    
+
     await db.commit()
     await db.refresh(settings)
-    
+
     return ClientSettingsResponse(
         client_id=settings.client_id,
         safety_buffer_days=settings.safety_buffer_days,
@@ -118,7 +118,7 @@ async def get_recommendation_rules(
         select(ClientSettings).where(ClientSettings.client_id == client.client_id)
     )
     settings = result.scalar_one_or_none()
-    
+
     if not settings or not settings.recommendation_rules:
         return {
             "enabled_types": ["REORDER", "REDUCE_ORDER", "PROMOTE", "DEAD_STOCK", "URGENT"],
@@ -130,7 +130,7 @@ async def get_recommendation_rules(
             "min_inventory_value": 0,
             "min_risk_score": 0
         }
-    
+
     return settings.recommendation_rules
 
 
@@ -145,7 +145,7 @@ async def update_recommendation_rules(
         select(ClientSettings).where(ClientSettings.client_id == client.client_id)
     )
     settings = result.scalar_one_or_none()
-    
+
     if not settings:
         # Create new settings with default values
         default_rules = {
@@ -167,7 +167,7 @@ async def update_recommendation_rules(
         # Update existing rules
         if not settings.recommendation_rules:
             settings.recommendation_rules = {}
-        
+
         if data.enabled_types is not None:
             settings.recommendation_rules["enabled_types"] = data.enabled_types
         if data.role_rules is not None:
@@ -176,9 +176,9 @@ async def update_recommendation_rules(
             settings.recommendation_rules["min_inventory_value"] = data.min_inventory_value
         if data.min_risk_score is not None:
             settings.recommendation_rules["min_risk_score"] = data.min_risk_score
-    
+
     await db.commit()
     await db.refresh(settings)
-    
+
     return settings.recommendation_rules or {}
 

@@ -19,7 +19,7 @@ depends_on = None
 def upgrade():
     """
     Add composite index optimized for forecasting engine queries.
-    
+
     Query pattern: WHERE client_id = X AND item_id IN (...) AND date_local BETWEEN ... ORDER BY item_id, date_local
     """
     # Create composite index for common forecasting query pattern
@@ -30,7 +30,7 @@ def upgrade():
         ['client_id', 'item_id', 'date_local'],
         unique=False
     )
-    
+
     # Note: Existing indexes are kept:
     # - idx_ts_demand_daily_client_item (may be redundant but kept for backward compatibility)
     # - idx_ts_demand_daily_date (useful for date-only queries)

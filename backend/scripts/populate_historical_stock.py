@@ -32,21 +32,21 @@ async def populate_historical_stock(
 ) -> dict:
     """
     Populate stock_on_date for historical dates by calculating backwards from current stock.
-    
+
     Args:
         client_id: Client UUID string
         item_ids: List of item_ids (if None, uses all products)
         days_back: Number of days to populate (default: 365)
         reference_date: Reference date (default: today)
-    
+
     Returns:
         dict with counts of records updated
     """
     if reference_date is None:
         reference_date = date.today()
-    
+
     start_date = reference_date - timedelta(days=days_back)
-    
+
     AsyncSessionLocal = get_async_session_local()
     async with AsyncSessionLocal() as session:
         # Get item_ids if not provided
@@ -57,12 +57,12 @@ async def populate_historical_stock(
                 )
             )
             item_ids = [row[0] for row in result.fetchall()]
-        
+
         if not item_ids:
             return {"error": "No products found", "records_updated": 0}
-        
+
         records_updated = 0
-        
+
         for item_id in item_ids:
             # Determine which locations exist in sales data for this item
             loc_result = await session.execute(
@@ -75,7 +75,7 @@ async def populate_historical_stock(
                 {"client_id": client_id, "item_id": item_id}
             )
             locations = [row[0] for row in loc_result.fetchall()]
-            
+
             for location_id in locations:
                 # Get current stock for this item/location
                 stock_result = await session.execute(
@@ -93,7 +93,7 @@ async def populate_historical_stock(
                     }
                 )
                 current_stock = int(stock_result.scalar() or 0)
-                
+
                 if current_stock == 0:
                     await session.execute(
                         text("""
@@ -114,7 +114,7 @@ async def populate_historical_stock(
                         }
                     )
                     continue
-                
+
                 # Get sales data for this period (ordered by date DESC)
                 sales_result = await session.execute(
                     text("""
@@ -136,36 +136,36 @@ async def populate_historical_stock(
                     }
                 )
                 sales_data = {row.date_local: float(row.units_sold) for row in sales_result}
-                
+
                 if not sales_data:
                     continue
-                
+
                 # Calculate average weekly sales for restocking simulation
                 recent_sales = [
                     sales_data.get(reference_date - timedelta(days=i), 0)
                     for i in range(min(30, days_back))
                 ]
                 avg_weekly_sales = sum(recent_sales) / max(1, len(recent_sales) / 7) if recent_sales else 0
-                
+
                 # Calculate stock backwards from today
                 stock = current_stock
                 stock_levels = {}
-                
+
                 for day_offset in range(days_back):
                     sale_date = reference_date - timedelta(days=day_offset)
                     units_sold = sales_data.get(sale_date, 0)
-                    
+
                     # Weekly restocking (simulate - happens on Mondays)
                     restocking = 0
                     if sale_date.weekday() == 0 and day_offset > 0:  # Monday
                         restocking = int(avg_weekly_sales * 1.2)  # Restock 120% of weekly average
-                    
+
                     # Working backwards: stock_yesterday = stock_today + units_sold_today - restocking_today
                     stock = stock + units_sold - restocking
                     stock = max(0, stock)  # Can't be negative
-                    
+
                     stock_levels[sale_date] = int(stock)
-                
+
                 # Update stock_on_date for all dates for this location
                 for sale_date, stock_value in stock_levels.items():
                     await session.execute(
@@ -186,9 +186,9 @@ async def populate_historical_stock(
                         }
                     )
                     records_updated += 1
-        
+
         await session.commit()
-        
+
         return {
             "records_updated": records_updated,
             "products": len(item_ids),
@@ -201,7 +201,7 @@ async def populate_historical_stock(
 async def main():
     """CLI entry point"""
     import argparse
-    
+
     parser = argparse.ArgumentParser(
         description="Populate historical stock data (stock_on_date) from current stock"
     )
@@ -217,23 +217,23 @@ async def main():
         default=365,
         help="Number of days to populate (default: 365)"
     )
-    
+
     args = parser.parse_args()
-    
+
     try:
         result = await populate_historical_stock(
             client_id=args.client_id,
             days_back=args.days_back
         )
-        
+
         if "error" in result:
             print(f"❌ Error: {result['error']}")
             sys.exit(1)
-        
+
         print(f"\n✅ Populated {result['records_updated']} historical stock records")
         print(f"   Products: {result['products']}")
         print(f"   Date range: {result['start_date']} to {result['end_date']}")
-        
+
     except Exception as e:
         print(f"\n❌ Error: {e}")
         import traceback

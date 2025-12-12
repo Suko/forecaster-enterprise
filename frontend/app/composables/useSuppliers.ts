@@ -14,8 +14,29 @@ export const useSuppliers = () => {
     return await $fetch<Supplier>(`/api/suppliers/${encodeURIComponent(id)}`);
   };
 
+  const updateSupplier = async (
+    id: string,
+    data: {
+      name?: string;
+      contact_email?: string;
+      contact_phone?: string;
+      address?: string;
+      supplier_type?: string;
+      default_moq?: number;
+      default_lead_time_days?: number;
+      notes?: string;
+      apply_to_existing?: boolean;
+    }
+  ): Promise<Supplier> => {
+    return await $fetch<Supplier>(`/api/suppliers/${encodeURIComponent(id)}`, {
+      method: "PUT",
+      body: data,
+    });
+  };
+
   return {
     fetchSuppliers,
     fetchSupplier,
+    updateSupplier,
   };
 };

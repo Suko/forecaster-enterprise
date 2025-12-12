@@ -13,7 +13,7 @@ from models.user import User
 async def test_login_user_success(test_session: AsyncSession, test_user: User, mock_request: Request):
     """Test successful user login."""
     result = await login_user(mock_request, test_session, test_user.email, "testpass123")
-    
+
     assert "access_token" in result
     assert "token_type" in result
     assert result["token_type"] == "bearer"
@@ -25,7 +25,7 @@ async def test_login_user_invalid_credentials(test_session: AsyncSession, test_u
     """Test login with invalid password."""
     with pytest.raises(HTTPException) as exc_info:
         await login_user(mock_request, test_session, test_user.email, "wrongpassword")
-    
+
     assert exc_info.value.status_code == 401
     assert "password" in exc_info.value.detail.lower() or "incorrect" in exc_info.value.detail.lower()
 
@@ -35,10 +35,10 @@ async def test_login_user_inactive_account(test_session: AsyncSession, test_user
     """Test login with inactive account."""
     test_user.is_active = False
     await test_session.commit()
-    
+
     with pytest.raises(HTTPException) as exc_info:
         await login_user(mock_request, test_session, test_user.email, "testpass123")
-    
+
     assert exc_info.value.status_code == 403
     assert "inactive" in exc_info.value.detail.lower()
 
@@ -48,7 +48,7 @@ async def test_login_user_not_found(test_session: AsyncSession, mock_request: Re
     """Test login with non-existent user."""
     with pytest.raises(HTTPException) as exc_info:
         await login_user(mock_request, test_session, "nonexistent@example.com", "password")
-    
+
     assert exc_info.value.status_code == 401
 
 
@@ -60,9 +60,9 @@ async def test_register_user_success(test_session: AsyncSession, mock_request: R
         password="newpassword123",
         name="New User"
     )
-    
+
     user = await register_user(mock_request, test_session, user_data)
-    
+
     assert user is not None
     assert user.email == "newuser@example.com"
     assert user.name == "New User"
@@ -76,10 +76,10 @@ async def test_register_user_duplicate_email(test_session: AsyncSession, test_us
         password="password123",
         name="Duplicate"
     )
-    
+
     with pytest.raises(HTTPException) as exc_info:
         await register_user(mock_request, test_session, user_data)
-    
+
     assert exc_info.value.status_code == 400
     assert "already registered" in exc_info.value.detail.lower()
 
@@ -94,7 +94,7 @@ async def test_register_user_short_password(test_session: AsyncSession, mock_req
             password="short",
             name="Short Pass"
         )
-    
+
     # Verify the validation error is about password length
     errors = exc_info.value.errors()
     assert any("password" in str(error.get("loc", [])).lower() for error in errors)

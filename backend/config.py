@@ -38,24 +38,24 @@ def _enforce_database_tls(database_url: str) -> str:
     parsed = urlparse(database_url)
     # Allow non-SSL for localhost and Docker internal hostnames
     is_internal = parsed.hostname in ["localhost", "127.0.0.1", "::1", "db", "postgres", "database"]
-    
+
     if is_internal:
         return database_url
-    
+
     # Check if sslmode is explicitly set to disable (user override)
     query_params = parse_qs(parsed.query)
     sslmode = query_params.get("sslmode", [None])[0]
-    
+
     if sslmode == "disable":
         return database_url
-    
+
     # For remote databases, enforce TLS
     if sslmode not in ["require", "prefer", "verify-ca", "verify-full"]:
         query_params["sslmode"] = ["require"]
         new_query = urlencode(query_params, doseq=True)
         parsed = parsed._replace(query=new_query)
         return urlunparse(parsed)
-    
+
     return database_url
 
 class Settings(BaseSettings):
@@ -74,7 +74,7 @@ class Settings(BaseSettings):
     secret_key: str = os.getenv("JWT_SECRET_KEY", "")
     algorithm: str = os.getenv("JWT_ALGORITHM", "HS256")
     access_token_expire_minutes: int = int(os.getenv("JWT_ACCESS_TOKEN_EXPIRE_MINUTES", "30"))
-    
+
     # Service API Key - For automated/system forecasts (optional)
     service_api_key: Optional[str] = os.getenv("SERVICE_API_KEY", None)
 
@@ -87,7 +87,7 @@ class Settings(BaseSettings):
         "CORS_ORIGINS",
         "http://localhost:3000,http://localhost:5173"
     ).split(",")
-    
+
     # Rate Limiting Configuration
     rate_limit_enabled: bool = os.getenv("RATE_LIMIT_ENABLED", "true").lower() in ["true", "1", "yes"]
     rate_limit_per_minute: int = int(os.getenv("RATE_LIMIT_PER_MINUTE", "5"))
@@ -101,7 +101,7 @@ class Settings(BaseSettings):
     def model_post_init(self, __context) -> None:
         """Validate configuration after initialization"""
         is_dev = self.environment.lower() in ["development", "dev", "local"]
-        
+
         # JWT Secret Key - Required in all environments
         if not self.secret_key:
             if is_dev:
@@ -120,17 +120,17 @@ class Settings(BaseSettings):
         else:
             if len(self.secret_key) < 32:
                 raise ValueError("JWT_SECRET_KEY must be at least 32 characters long")
-        
+
         # Database URL - Enforce TLS for remote connections
         self.database_url = _enforce_database_tls(self.database_url)
-        
+
         # Debug mode - Disable in production
         if self.debug and not is_dev:
             raise ValueError(
                 "DEBUG mode cannot be enabled in production. "
                 "Set ENVIRONMENT=development for debug mode."
             )
-        
+
         # API Host - Restrict binding in production
         if not is_dev and self.api_host == "0.0.0.0":
             warnings.warn(
@@ -138,7 +138,7 @@ class Settings(BaseSettings):
                 "Consider binding to 127.0.0.1 and using a reverse proxy.",
                 UserWarning
             )
-        
+
         # CORS - Restrict in production
         if not is_dev:
             # In production, require explicit CORS origins (no wildcards)

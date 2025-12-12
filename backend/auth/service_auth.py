@@ -18,7 +18,7 @@ async def get_service_token(
 ) -> Optional[str]:
     """
     Extract service API key from header.
-    
+
     Returns:
         API key if present, None otherwise
     """
@@ -30,32 +30,32 @@ async def verify_service_token(
 ) -> bool:
     """
     Verify service API key.
-    
+
     Returns:
         True if valid service token, False otherwise
-    
+
     Raises:
         HTTPException: If token is invalid
     """
     if not x_api_key:
         return False
-    
+
     # Get service API key from environment or config
     from config import settings
     valid_api_key = settings.service_api_key or os.getenv("SERVICE_API_KEY")
-    
+
     if not valid_api_key:
         # Service auth not configured - reject
         return False
-    
+
     # Constant-time comparison to prevent timing attacks
     if len(x_api_key) != len(valid_api_key):
         return False
-    
+
     result = 0
     for a, b in zip(x_api_key, valid_api_key):
         result |= ord(a) ^ ord(b)
-    
+
     return result == 0
 
 
@@ -67,28 +67,28 @@ async def get_client_id_from_request_or_token(
 ) -> str:
     """
     Get client_id from multiple sources (unified multi-tenant).
-    
+
     Priority:
     1. Request body/query parameter (for system calls)
     2. JWT token (for user calls)
     3. Service token (for automated calls - requires client_id in request)
-    
+
     Args:
         request: FastAPI request
         client_id: Optional client_id from request
         x_api_key: Optional service API key
         db: Database session
-    
+
     Returns:
         client_id as string
-    
+
     Raises:
         HTTPException: If client_id cannot be determined
     """
     # Priority 1: Explicit client_id in request (for system/automated calls)
     if client_id:
         return client_id
-    
+
     # Priority 2: Try JWT token (for user calls)
     authorization = request.headers.get("Authorization")
     if authorization and authorization.startswith("Bearer "):
@@ -114,7 +114,7 @@ async def get_client_id_from_request_or_token(
                 pass  # Not a valid JWT, continue to service token
             except Exception:
                 pass  # JWT auth failed, continue to service token
-    
+
     # Priority 3: Service token (requires client_id in request)
     if x_api_key:
         is_valid = await verify_service_token(x_api_key)
@@ -126,7 +126,7 @@ async def get_client_id_from_request_or_token(
                     detail="client_id is required when using service API key"
                 )
             return client_id
-    
+
     # No valid authentication found
     raise HTTPException(
         status_code=status.HTTP_401_UNAUTHORIZED,
@@ -143,9 +143,9 @@ async def get_optional_client_id(
 ) -> Optional[str]:
     """
     Get client_id if available, but don't require it.
-    
+
     For client-agnostic endpoints (health checks, system status, etc.).
-    
+
     Returns:
         client_id if available, None otherwise
     """

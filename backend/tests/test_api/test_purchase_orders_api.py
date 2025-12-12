@@ -30,7 +30,7 @@ async def test_create_purchase_order(test_client, test_jwt_token, test_client_ob
     db_session.add_all([product, supplier])
     await db_session.commit()
     await db_session.refresh(supplier)
-    
+
     condition = create_test_product_supplier_condition(
         client_id=test_client_obj.client_id,
         item_id=product.item_id,
@@ -39,7 +39,7 @@ async def test_create_purchase_order(test_client, test_jwt_token, test_client_ob
     )
     db_session.add(condition)
     await db_session.commit()
-    
+
     # Create PO
     response = await test_client.post(
         "/api/v1/purchase-orders",
@@ -55,7 +55,7 @@ async def test_create_purchase_order(test_client, test_jwt_token, test_client_ob
             ]
         }
     )
-    
+
     assert response.status_code == 201
     data = response.json()
     assert data["status"] == "pending"
@@ -74,7 +74,7 @@ async def test_get_purchase_orders(test_client, test_jwt_token, test_client_obj,
     db_session.add(supplier)
     await db_session.commit()
     await db_session.refresh(supplier)
-    
+
     # Create a PO first
     await test_client.post(
         "/api/v1/purchase-orders",
@@ -84,13 +84,13 @@ async def test_get_purchase_orders(test_client, test_jwt_token, test_client_obj,
             "items": []
         }
     )
-    
+
     # List POs
     response = await test_client.get(
         "/api/v1/purchase-orders",
         headers={"Authorization": f"Bearer {test_jwt_token}"}
     )
-    
+
     assert response.status_code == 200
     data = response.json()
     assert isinstance(data["items"], list)
@@ -108,7 +108,7 @@ async def test_get_purchase_order_detail(test_client, test_jwt_token, test_clien
     db_session.add(supplier)
     await db_session.commit()
     await db_session.refresh(supplier)
-    
+
     # Create a PO
     create_response = await test_client.post(
         "/api/v1/purchase-orders",
@@ -119,13 +119,13 @@ async def test_get_purchase_order_detail(test_client, test_jwt_token, test_clien
         }
     )
     po_id = create_response.json()["id"]
-    
+
     # Get PO details
     response = await test_client.get(
         f"/api/v1/purchase-orders/{po_id}",
         headers={"Authorization": f"Bearer {test_jwt_token}"}
     )
-    
+
     assert response.status_code == 200
     data = response.json()
     assert data["id"] == po_id
@@ -143,7 +143,7 @@ async def test_update_po_status(test_client, test_jwt_token, test_client_obj, db
     db_session.add(supplier)
     await db_session.commit()
     await db_session.refresh(supplier)
-    
+
     # Create a PO
     create_response = await test_client.post(
         "/api/v1/purchase-orders",
@@ -154,14 +154,14 @@ async def test_update_po_status(test_client, test_jwt_token, test_client_obj, db
         }
     )
     po_id = create_response.json()["id"]
-    
+
     # Update status
     response = await test_client.patch(
         f"/api/v1/purchase-orders/{po_id}/status",
         headers={"Authorization": f"Bearer {test_jwt_token}"},
         json={"status": "confirmed"}
     )
-    
+
     assert response.status_code == 200
     data = response.json()
     assert data["status"] == "confirmed"
@@ -182,7 +182,7 @@ async def test_create_po_from_cart(test_client, test_jwt_token, test_client_obj,
     db_session.add_all([product, supplier])
     await db_session.commit()
     await db_session.refresh(supplier)
-    
+
     condition = create_test_product_supplier_condition(
         client_id=test_client_obj.client_id,
         item_id=product.item_id,
@@ -190,9 +190,9 @@ async def test_create_po_from_cart(test_client, test_jwt_token, test_client_obj,
     )
     db_session.add(condition)
     await db_session.commit()
-    
+
     # Use JWT token
-    
+
     # Add to cart
     await test_client.post(
         "/api/v1/order-planning/cart/add",
@@ -203,7 +203,7 @@ async def test_create_po_from_cart(test_client, test_jwt_token, test_client_obj,
             "quantity": 10
         }
     )
-    
+
     # Create PO from cart
     response = await test_client.post(
         "/api/v1/purchase-orders/from-cart",
@@ -212,7 +212,7 @@ async def test_create_po_from_cart(test_client, test_jwt_token, test_client_obj,
             "supplier_id": str(supplier.id)
         }
     )
-    
+
     assert response.status_code == 201
     data = response.json()
     assert data["status"] == "pending"

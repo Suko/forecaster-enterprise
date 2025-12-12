@@ -6,6 +6,8 @@ export interface Supplier {
   contact_phone?: string | null;
   address?: string | null;
   supplier_type: "PO" | "WO" | string;
+  default_moq: number;
+  default_lead_time_days: number;
   is_synced: boolean;
   notes?: string | null;
   created_at: string;

@@ -36,18 +36,18 @@ async def clear_all_test_data(
 ) -> dict:
     """
     Delete all test data for a client.
-    
+
     Args:
         client_id: Client UUID string
         keep_sales_data: If True, don't delete ts_demand_daily (preserve M5/synthetic data)
-    
+
     Returns:
         dict with counts of deleted records
     """
     AsyncSessionLocal = get_async_session_local()
     async with AsyncSessionLocal() as session:
         deleted_counts = {}
-        
+
         # Delete in order (respecting foreign keys)
         # purchase_order_items does NOT have client_id, so delete via PO join first.
         po_items_result = await session.execute(
@@ -76,7 +76,7 @@ async def clear_all_test_data(
             ("locations", "Locations"),
             ("client_settings", "Client settings"),
         ]
-        
+
         for table_name, display_name in tables:
             result = await session.execute(
                 text(f"DELETE FROM {table_name} WHERE client_id = :client_id"),
@@ -84,7 +84,7 @@ async def clear_all_test_data(
             )
             deleted_counts[table_name] = result.rowcount
             print(f"   Deleted {result.rowcount} {display_name}")
-        
+
         # Optionally delete sales data
         if not keep_sales_data:
             result = await session.execute(
@@ -102,9 +102,9 @@ async def clear_all_test_data(
             existing_count = count_result.scalar() or 0
             deleted_counts["ts_demand_daily"] = 0
             print(f"   Kept sales data (ts_demand_daily) - {existing_count} records preserved")
-        
+
         await session.commit()
-        
+
         return deleted_counts
 
 
@@ -116,31 +116,31 @@ async def reset_test_data(
 ) -> dict:
     """
     Complete reset: delete all test data and repopulate.
-    
+
     Args:
         client_id: Client UUID (if None, uses client_name to find/create)
         client_name: Client name (if creating new)
         keep_sales_data: If True, preserve ts_demand_daily data
         days_back: Days of recent data to ensure (for date shifting)
-    
+
     Returns:
         dict with reset results
     """
     print("="*60)
     print("COMPLETE TEST DATA RESET")
     print("="*60)
-    
+
     # Step 1: Get client
     from scripts.setup_test_data import get_or_create_client
     client_id = await get_or_create_client(client_id, client_name)
-    
+
     # Step 2: Clear all existing test data
     print(f"\n🗑️  Step 1: Clearing all existing test data...")
     deleted_counts = await clear_all_test_data(client_id, keep_sales_data)
-    
+
     total_deleted = sum(deleted_counts.values())
     print(f"\n   ✅ Deleted {total_deleted} total records")
-    
+
     # Step 3: Check if we need to re-import sales data
     if not keep_sales_data:
         print(f"\n⚠️  WARNING: Sales data (ts_demand_daily) was deleted.")
@@ -162,7 +162,7 @@ async def reset_test_data(
             "status": "sales_data_deleted",
             "next_step": "import_sales_data"
         }
-    
+
     # Step 4: Re-populate test data
     print(f"\n🔄 Step 2: Re-populating test data...")
     setup_result = await setup_test_data(
@@ -172,7 +172,7 @@ async def reset_test_data(
         days_back=days_back,
         skip_recent_sales=False
     )
-    
+
     if "error" in setup_result:
         return {
             "client_id": client_id,
@@ -180,7 +180,7 @@ async def reset_test_data(
             "error": setup_result.get("error"),
             "status": "setup_failed"
         }
-    
+
     print("\n" + "="*60)
     print("✅ RESET COMPLETE!")
     print("="*60)
@@ -194,7 +194,7 @@ async def reset_test_data(
     print(f"  - Stock Levels: {setup_result.get('stock_levels', 0)}")
     print(f"  - Sales Records Updated: {setup_result.get('sales_records_updated', 0)}")
     print(f"  - Historical Stock Records: {setup_result.get('historical_stock_records', 0)}")
-    
+
     return {
         "client_id": client_id,
         "deleted": deleted_counts,
@@ -229,9 +229,9 @@ async def main():
         default=30,
         help="Days of recent data to ensure (default: 30)"
     )
-    
+
     args = parser.parse_args()
-    
+
     try:
         result = await reset_test_data(
             client_id=args.client_id,
@@ -239,7 +239,7 @@ async def main():
             keep_sales_data=args.keep_sales_data,
             days_back=args.days_back
         )
-        
+
         if result.get("status") == "sales_data_deleted":
             print("\n⚠️  Next step: Import sales data, then run setup_test_data.py")
             sys.exit(0)
@@ -252,7 +252,7 @@ async def main():
         else:
             print(f"\n⚠️  Unexpected status: {result.get('status')}")
             sys.exit(1)
-            
+
     except Exception as e:
         print(f"\n❌ Error: {e}")
         import traceback

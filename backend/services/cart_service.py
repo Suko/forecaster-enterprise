@@ -13,19 +13,21 @@ from models.order_cart import OrderCartItem
 from models.product import Product
 from models.supplier import Supplier
 from models.product_supplier import ProductSupplierCondition
+from services.inventory_service import InventoryService
 from schemas.order import CartItemCreate, CartItemUpdate
 
 
 class CartService:
     """Service for cart management"""
-    
+
     def __init__(self, db: AsyncSession):
         self.db = db
-    
+        self.inventory_service = InventoryService(db)
+
     def _get_session_id(self, user_id: Optional[str] = None, session_id: Optional[str] = None) -> str:
         """Get session identifier (prefer user_id if available)"""
         return user_id or session_id or "anonymous"
-    
+
     async def add_to_cart(
         self,
         client_id: UUID,
@@ -46,7 +48,7 @@ class CartService:
         product = product_result.scalar_one_or_none()
         if not product:
             raise ValueError(f"Product with item_id {item_id} not found")
-        
+
         # Verify supplier exists
         supplier_result = await self.db.execute(
             select(Supplier).where(
@@ -57,8 +59,8 @@ class CartService:
         supplier = supplier_result.scalar_one_or_none()
         if not supplier:
             raise ValueError(f"Supplier with id {supplier_id} not found")
-        
-        # Get product-supplier condition
+
+        # Get product-supplier condition (for supplier_cost, packaging)
         condition_result = await self.db.execute(
             select(ProductSupplierCondition).where(
                 ProductSupplierCondition.client_id == client_id,
@@ -69,17 +71,22 @@ class CartService:
         condition = condition_result.scalar_one_or_none()
         if not condition:
             raise ValueError(f"Product-supplier condition not found for item_id {item_id} and supplier {supplier_id}")
-        
-        # Use MOQ if quantity not provided
+
+        # Get effective MOQ (uses condition.moq or supplier.default_moq)
+        effective_moq = await self.inventory_service.get_effective_moq(
+            client_id, item_id, supplier_id
+        )
+
+        # Use effective MOQ if quantity not provided
         if quantity is None:
-            quantity = condition.moq
-        elif quantity < condition.moq:
-            raise ValueError(f"Quantity {quantity} is less than MOQ {condition.moq}")
-        
+            quantity = effective_moq if effective_moq > 0 else 1
+        elif quantity < effective_moq:
+            raise ValueError(f"Quantity {quantity} is less than MOQ {effective_moq}")
+
         # Calculate costs
         unit_cost = condition.supplier_cost or product.unit_cost
         total_price = Decimal(quantity) * unit_cost
-        
+
         # Check if item already in cart
         existing_result = await self.db.execute(
             select(OrderCartItem).where(
@@ -90,7 +97,7 @@ class CartService:
             )
         )
         existing = existing_result.scalar_one_or_none()
-        
+
         if existing:
             # Update existing item
             existing.quantity = quantity
@@ -100,7 +107,7 @@ class CartService:
             await self.db.commit()
             await self.db.refresh(existing)
             return existing
-        
+
         # Create new cart item
         cart_item = OrderCartItem(
             client_id=client_id,
@@ -114,13 +121,13 @@ class CartService:
             packaging_qty=condition.packaging_qty,
             notes=notes
         )
-        
+
         self.db.add(cart_item)
         await self.db.commit()
         await self.db.refresh(cart_item)
-        
+
         return cart_item
-    
+
     async def get_cart(
         self,
         client_id: UUID,
@@ -134,7 +141,7 @@ class CartService:
             ).order_by(OrderCartItem.supplier_id, OrderCartItem.created_at)
         )
         return result.scalars().all()
-    
+
     async def update_cart_item(
         self,
         client_id: UUID,
@@ -154,34 +161,29 @@ class CartService:
             )
         )
         cart_item = result.scalar_one_or_none()
-        
+
         if not cart_item:
             return None
-        
-        # Get product-supplier condition for MOQ validation
-        condition_result = await self.db.execute(
-            select(ProductSupplierCondition).where(
-                ProductSupplierCondition.client_id == client_id,
-                ProductSupplierCondition.item_id == item_id,
-                ProductSupplierCondition.supplier_id == supplier_id
-            )
+
+        # Get effective MOQ for validation
+        effective_moq = await self.inventory_service.get_effective_moq(
+            client_id, item_id, supplier_id
         )
-        condition = condition_result.scalar_one_or_none()
-        
+
         if quantity is not None:
-            if condition and quantity < condition.moq:
-                raise ValueError(f"Quantity {quantity} is less than MOQ {condition.moq}")
+            if quantity < effective_moq:
+                raise ValueError(f"Quantity {quantity} is less than MOQ {effective_moq}")
             cart_item.quantity = quantity
             cart_item.total_price = Decimal(quantity) * cart_item.unit_cost
-        
+
         if notes is not None:
             cart_item.notes = notes
-        
+
         await self.db.commit()
         await self.db.refresh(cart_item)
-        
+
         return cart_item
-    
+
     async def remove_from_cart(
         self,
         client_id: UUID,
@@ -199,15 +201,15 @@ class CartService:
             )
         )
         cart_item = result.scalar_one_or_none()
-        
+
         if not cart_item:
             return False
-        
+
         await self.db.delete(cart_item)
         await self.db.commit()
-        
+
         return True
-    
+
     async def clear_cart(
         self,
         client_id: UUID,
@@ -221,12 +223,12 @@ class CartService:
             )
         )
         items = result.scalars().all()
-        
+
         count = len(items)
         for item in items:
             await self.db.delete(item)
-        
+
         await self.db.commit()
-        
+
         return count
 

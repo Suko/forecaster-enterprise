@@ -66,7 +66,7 @@ async def test_create_user(test_session: AsyncSession):
         name="New User"
     )
     user = await create_user(test_session, user_data)
-    
+
     assert user is not None
     assert user.email == "newuser@example.com"
     assert user.name == "New User"
@@ -82,10 +82,10 @@ async def test_create_user_duplicate_email(test_session: AsyncSession, test_user
         password="password123",
         name="Duplicate"
     )
-    
+
     with pytest.raises(HTTPException) as exc_info:
         await create_user(test_session, user_data)
-    
+
     assert exc_info.value.status_code == 400
     assert "already registered" in exc_info.value.detail.lower()
 
@@ -94,7 +94,7 @@ async def test_create_user_duplicate_email(test_session: AsyncSession, test_user
 async def test_create_user_short_password(test_session: AsyncSession):
     """Test creating user with short password."""
     from pydantic import ValidationError
-    
+
     # Pydantic validation will catch short password before function is called
     with pytest.raises(ValidationError):
         UserCreate(
@@ -112,9 +112,9 @@ async def test_update_user(test_session: AsyncSession, test_user: User):
         role="admin",
         is_active=False
     )
-    
+
     updated_user = await update_user(test_session, test_user.id, user_data)
-    
+
     assert updated_user.name == "Updated Name"
     assert updated_user.role == "admin"
     assert updated_user.is_active is False
@@ -124,9 +124,9 @@ async def test_update_user(test_session: AsyncSession, test_user: User):
 async def test_update_user_partial(test_session: AsyncSession, test_user: User):
     """Test partial user update."""
     user_data = UserUpdate(name="Partial Update")
-    
+
     updated_user = await update_user(test_session, test_user.id, user_data)
-    
+
     assert updated_user.name == "Partial Update"
     # Other fields should remain unchanged
     assert updated_user.email == test_user.email
@@ -136,10 +136,10 @@ async def test_update_user_partial(test_session: AsyncSession, test_user: User):
 async def test_update_user_not_found(test_session: AsyncSession):
     """Test updating non-existent user."""
     user_data = UserUpdate(name="Test")
-    
+
     with pytest.raises(HTTPException) as exc_info:
         await update_user(test_session, "nonexistent-id", user_data)
-    
+
     assert exc_info.value.status_code == 404
 
 
@@ -147,10 +147,10 @@ async def test_update_user_not_found(test_session: AsyncSession):
 async def test_update_user_invalid_role(test_session: AsyncSession, test_user: User):
     """Test updating user with invalid role."""
     user_data = UserUpdate(role="invalid_role")
-    
+
     with pytest.raises(HTTPException) as exc_info:
         await update_user(test_session, test_user.id, user_data)
-    
+
     assert exc_info.value.status_code == 400
 
 
@@ -158,7 +158,7 @@ async def test_update_user_invalid_role(test_session: AsyncSession, test_user: U
 async def test_delete_user(test_session: AsyncSession, test_user: User, test_admin_user: User):
     """Test deleting user."""
     await delete_user(test_session, test_user.id, test_admin_user.id)
-    
+
     # Verify user is deleted
     deleted_user = await get_user_by_id(test_session, test_user.id)
     assert deleted_user is None
@@ -169,7 +169,7 @@ async def test_delete_user_self(test_session: AsyncSession, test_user: User):
     """Test deleting own account (should fail)."""
     with pytest.raises(HTTPException) as exc_info:
         await delete_user(test_session, test_user.id, test_user.id)
-    
+
     assert exc_info.value.status_code == 400
     assert "own account" in exc_info.value.detail.lower()
 
@@ -179,7 +179,7 @@ async def test_delete_user_not_found(test_session: AsyncSession, test_admin_user
     """Test deleting non-existent user."""
     with pytest.raises(HTTPException) as exc_info:
         await delete_user(test_session, "nonexistent-id", test_admin_user.id)
-    
+
     assert exc_info.value.status_code == 404
 
 

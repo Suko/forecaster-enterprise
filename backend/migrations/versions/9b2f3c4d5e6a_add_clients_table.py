@@ -29,7 +29,7 @@ def upgrade():
         sa.Column('created_at', sa.DateTime(timezone=True), server_default=sa.func.now()),
         sa.Column('updated_at', sa.DateTime(timezone=True), server_default=sa.func.now(), onupdate=sa.func.now()),
     )
-    
+
     # Create indexes
     op.create_index('idx_clients_name', 'clients', ['name'])
     op.create_index('idx_clients_active', 'clients', ['is_active'], postgresql_where=sa.text('is_active = true'))

@@ -23,14 +23,14 @@ from config import settings
 
 
 async def main():
-    
+
     engine = create_async_engine(
         settings.database_url.replace("postgresql://", "postgresql+asyncpg://"),
         echo=False
     )
-    
+
     async_session = sessionmaker(engine, class_=AsyncSession, expire_on_commit=False)
-    
+
     async with async_session() as db:
         # Get A-Y SKUs
         result = await db.execute(
@@ -40,16 +40,16 @@ async def main():
             )
         )
         ay_skus = result.scalars().all()
-        
+
         if not ay_skus:
             print("❌ No A-Y SKUs found")
             return
-        
+
         print("=" * 80)
         print("A-Y DATA QUALITY DIAGNOSTIC")
         print("=" * 80)
         print(f"\nFound {len(ay_skus)} A-Y SKUs")
-        
+
         for sku in ay_skus:
             print(f"\n{'='*80}")
             print(f"SKU: {sku.item_id}")
@@ -57,7 +57,7 @@ async def main():
             print(f"CV: {float(sku.coefficient_of_variation):.2f} | ADI: {float(sku.average_demand_interval):.2f}")
             print(f"Method: {sku.recommended_method} | History: {sku.history_days_used} days")
             print("=" * 80)
-            
+
             # Get all data for this SKU using raw SQL
             result = await db.execute(
                 text("""
@@ -69,11 +69,11 @@ async def main():
                 {"item_id": sku.item_id, "client_id": sku.client_id}
             )
             records = result.fetchall()
-            
+
             if not records:
                 print("❌ No data found")
                 continue
-            
+
             # Convert to DataFrame
             df = pd.DataFrame([{
                 'date': r.date,
@@ -81,7 +81,7 @@ async def main():
             } for r in records])
             df['date'] = pd.to_datetime(df['date'])
             df = df.sort_values('date')
-            
+
             # Basic stats
             print(f"\n📊 BASIC STATISTICS")
             print(f"   Total days: {len(df)}")
@@ -92,7 +92,7 @@ async def main():
             print(f"   Min: {df['quantity'].min():.0f}")
             print(f"   Max: {df['quantity'].max():.0f}")
             print(f"   Median: {df['quantity'].median():.2f}")
-            
+
             # Zero days
             zero_days = (df['quantity'] == 0).sum()
             zero_pct = zero_days / len(df) * 100
@@ -100,7 +100,7 @@ async def main():
             print(f"   Zero days: {zero_days} ({zero_pct:.1f}%)")
             if zero_pct > 20:
                 print(f"   ⚠️ HIGH ZERO RATE - may indicate intermittent demand")
-            
+
             # Outlier detection (IQR method)
             Q1 = df['quantity'].quantile(0.25)
             Q3 = df['quantity'].quantile(0.75)
@@ -111,7 +111,7 @@ async def main():
             print(f"   Outliers: {len(outliers)} ({len(outliers)/len(df)*100:.1f}%)")
             if len(outliers) > 0:
                 print(f"   Outlier values: {sorted(outliers['quantity'].values)}")
-            
+
             # Trend analysis
             df['day_num'] = range(len(df))
             correlation = df['day_num'].corr(df['quantity'])
@@ -122,60 +122,60 @@ async def main():
                 print(f"   ⚠️ SIGNIFICANT {trend.upper()} TREND")
             else:
                 print(f"   ✅ No strong trend")
-            
+
             # Split analysis (training vs test period)
             test_days = 30
             train_df = df.iloc[:-test_days]
             test_df = df.iloc[-test_days:]
-            
+
             print(f"\n🔀 TRAIN/TEST SPLIT ANALYSIS")
             print(f"   Training: {len(train_df)} days ({train_df['date'].min().date()} to {train_df['date'].max().date()})")
             print(f"   Test: {len(test_df)} days ({test_df['date'].min().date()} to {test_df['date'].max().date()})")
-            
+
             train_mean = train_df['quantity'].mean()
             test_mean = test_df['quantity'].mean()
             mean_shift = (test_mean - train_mean) / train_mean * 100 if train_mean > 0 else 0
-            
+
             print(f"\n   Training mean: {train_mean:.2f}")
             print(f"   Test mean: {test_mean:.2f}")
             print(f"   Mean shift: {mean_shift:+.1f}%")
-            
+
             if abs(mean_shift) > 30:
                 print(f"   ⚠️ SIGNIFICANT MEAN SHIFT between train and test")
                 print(f"      This could explain high MAPE!")
-            
+
             train_cv = train_df['quantity'].std() / train_df['quantity'].mean() if train_df['quantity'].mean() > 0 else 0
             test_cv = test_df['quantity'].std() / test_df['quantity'].mean() if test_df['quantity'].mean() > 0 else 0
-            
+
             print(f"\n   Training CV: {train_cv:.2f}")
             print(f"   Test CV: {test_cv:.2f}")
-            
+
             # Seasonality check (day of week)
             df['dow'] = df['date'].dt.dayofweek
             dow_mean = df.groupby('dow')['quantity'].mean()
             dow_cv = dow_mean.std() / dow_mean.mean() if dow_mean.mean() > 0 else 0
-            
+
             print(f"\n📅 DAY-OF-WEEK PATTERN")
             print(f"   Day-of-week CV: {dow_cv:.2f}")
             for day, mean in dow_mean.items():
                 day_name = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'][day]
                 print(f"      {day_name}: {mean:.1f}")
-            
+
             if dow_cv > 0.3:
                 print(f"   ⚠️ STRONG DAY-OF-WEEK PATTERN - may need seasonality model")
-            
+
             # Recent volatility
             recent_30 = df.tail(60).head(30)  # 30 days before test
             recent_cv = recent_30['quantity'].std() / recent_30['quantity'].mean() if recent_30['quantity'].mean() > 0 else 0
             print(f"\n📊 RECENT VOLATILITY (30 days before test)")
             print(f"   Recent CV: {recent_cv:.2f}")
             print(f"   Overall CV: {df['quantity'].std() / df['quantity'].mean():.2f}")
-            
+
             # Diagnosis
             print(f"\n{'='*80}")
             print("📋 DIAGNOSIS")
             print("=" * 80)
-            
+
             issues = []
             if zero_pct > 20:
                 issues.append("High zero-demand rate (intermittent pattern)")
@@ -189,14 +189,14 @@ async def main():
                 issues.append("Strong day-of-week pattern")
             if len(df) < 90:
                 issues.append(f"Limited history ({len(df)} days)")
-            
+
             if issues:
                 print("⚠️ POTENTIAL ISSUES:")
                 for issue in issues:
                     print(f"   - {issue}")
             else:
                 print("✅ No obvious data quality issues detected")
-            
+
             # Recommendation
             print(f"\n💡 RECOMMENDATION:")
             if abs(mean_shift) > 30:
@@ -215,7 +215,7 @@ async def main():
             else:
                 print("   Data looks appropriate for forecasting.")
                 print("   A-Y classification may inherently have higher MAPE.")
-        
+
         print(f"\n{'='*80}")
         print("SUMMARY")
         print("=" * 80)

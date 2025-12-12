@@ -24,28 +24,28 @@ def test_missing_dates():
     print("=" * 80)
     print("Test 1: Missing Dates (Darts' fill_missing_dates)")
     print("=" * 80)
-    
+
     # Create data with missing dates
     dates = pd.date_range('2024-01-01', '2024-01-10', freq='D')
     # Remove some dates
     dates = dates.drop([dates[2], dates[5], dates[7]])
-    
+
     df = pd.DataFrame({
         'id': ['SKU001'] * len(dates),
         'timestamp': dates,
         'target': [10, 20, 30, 40, 50, 60, 70]
     })
-    
+
     print(f"\nOriginal data: {len(df)} days")
     print(f"Missing dates: 3 (Jan 3, 6, 8)")
-    
+
     # Test without filling
     is_valid, report, cleaned_df = DataValidator.validate_time_index(
         df, expected_freq="D", fill_missing_dates=False
     )
     print(f"\n❌ Without fill_missing_dates: {is_valid}")
     print(f"   Warnings: {report['warnings']}")
-    
+
     # Test with filling (Darts' behavior)
     is_valid, report, cleaned_df = DataValidator.validate_time_index(
         df, expected_freq="D", fill_missing_dates=True
@@ -61,20 +61,20 @@ def test_nan_values():
     print("\n" + "=" * 80)
     print("Test 2: NaN Values (Darts' fillna_value)")
     print("=" * 80)
-    
+
     dates = pd.date_range('2024-01-01', '2024-01-10', freq='D')
     df = pd.DataFrame({
         'id': ['SKU001'] * len(dates),
         'timestamp': dates,
         'target': [10, 20, np.nan, 40, np.nan, 60, 70, 80, np.nan, 100]
     })
-    
+
     print(f"\nOriginal data: {len(df)} days")
     print(f"NaN values: {df['target'].isna().sum()}")
-    
+
     # Test different strategies
     strategies = ['zero', 'forward_fill', 'value']
-    
+
     for strategy in strategies:
         is_valid, report, cleaned_df = DataValidator.validate_nan_values(
             df, fillna_strategy=strategy, fillna_value=0
@@ -90,21 +90,21 @@ def test_duplicate_dates():
     print("\n" + "=" * 80)
     print("Test 3: Duplicate Timestamps")
     print("=" * 80)
-    
+
     dates = pd.to_datetime(['2024-01-01', '2024-01-01', '2024-01-02', '2024-01-03'])
     df = pd.DataFrame({
         'id': ['SKU001'] * len(dates),
         'timestamp': dates,
         'target': [10, 20, 30, 40]  # First duplicate has 10, second has 20
     })
-    
+
     print(f"\nOriginal data: {len(df)} rows")
     print(f"Duplicate dates: 1 (2024-01-01 appears twice)")
-    
+
     is_valid, report, cleaned_df = DataValidator.validate_time_index(
         df, expected_freq="D", fill_missing_dates=False
     )
-    
+
     print(f"\n✅ After validation:")
     print(f"   Duplicates detected: {report['duplicate_dates']}")
     print(f"   Result: {len(cleaned_df)} rows (duplicates removed, kept first)")
@@ -116,7 +116,7 @@ def test_frequency_consistency():
     print("\n" + "=" * 80)
     print("Test 4: Frequency Consistency (Darts' Requirement)")
     print("=" * 80)
-    
+
     # Consistent frequency
     dates1 = pd.date_range('2024-01-01', '2024-01-10', freq='D')
     df1 = pd.DataFrame({
@@ -124,7 +124,7 @@ def test_frequency_consistency():
         'timestamp': dates1,
         'target': np.random.randint(10, 100, len(dates1))
     })
-    
+
     # Inconsistent frequency
     dates2 = pd.to_datetime(['2024-01-01', '2024-01-02', '2024-01-05', '2024-01-06', '2024-01-10'])
     df2 = pd.DataFrame({
@@ -132,7 +132,7 @@ def test_frequency_consistency():
         'timestamp': dates2,
         'target': np.random.randint(10, 100, len(dates2))
     })
-    
+
     print("\n✅ Consistent frequency (daily):")
     is_valid, report, _ = DataValidator.validate_time_index(
         df1, expected_freq="D", fill_missing_dates=False
@@ -140,7 +140,7 @@ def test_frequency_consistency():
     print(f"   Valid: {is_valid}")
     print(f"   Frequency consistent: {report['frequency_consistent']}")
     print(f"   Detected freq: {report.get('detected_freq', 'N/A')}")
-    
+
     print("\n❌ Inconsistent frequency (gaps):")
     is_valid, report, _ = DataValidator.validate_time_index(
         df2, expected_freq="D", fill_missing_dates=False
@@ -156,22 +156,22 @@ def test_complete_validation():
     print("\n" + "=" * 80)
     print("Test 5: Complete Validation (Darts' TimeSeries.from_dataframe equivalent)")
     print("=" * 80)
-    
+
     # Create data with multiple issues
     dates = pd.date_range('2024-01-01', '2024-01-10', freq='D')
     dates = dates.drop([dates[2], dates[5]])  # Missing dates
-    
+
     df = pd.DataFrame({
         'id': ['SKU001'] * len(dates),
         'timestamp': dates,
         'target': [10, 20, np.nan, 40, 50, np.nan, 70, 80]
     })
-    
+
     print(f"\nOriginal data issues:")
     print(f"  - Missing dates: 2")
     print(f"  - NaN values: {df['target'].isna().sum()}")
     print(f"  - Total rows: {len(df)}")
-    
+
     # Complete validation (like Darts)
     is_valid, report, cleaned_df, error = DataValidator.validate_complete(
         df,
@@ -181,7 +181,7 @@ def test_complete_validation():
         fill_missing_dates=True,  # Like Darts' fill_missing_dates=True
         fillna_strategy="zero",   # Like Darts' fillna_value=0
     )
-    
+
     print(f"\n✅ After complete validation:")
     print(f"   Valid: {is_valid}")
     print(f"   Original rows: {len(df)}")
@@ -198,7 +198,7 @@ if __name__ == "__main__":
     test_duplicate_dates()
     test_frequency_consistency()
     test_complete_validation()
-    
+
     print("\n" + "=" * 80)
     print("Summary")
     print("=" * 80)

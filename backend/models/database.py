@@ -19,13 +19,13 @@ def _get_database_url() -> str:
     Strips 'sslmode' (asyncpg uses 'ssl') and ensures ssl=require when host is Supabase.
     """
     database_url = os.getenv("ASYNC_DATABASE_URL", settings.database_url)
-    
+
     # Convert to asyncpg driver
     if database_url.startswith("postgres://"):
         database_url = database_url.replace("postgres://", "postgresql+asyncpg://", 1)
     elif database_url.startswith("postgresql://") and "+asyncpg" not in database_url:
         database_url = database_url.replace("postgresql://", "postgresql+asyncpg://", 1)
-    
+
     # Remove sslmode parameter (asyncpg uses 'ssl' instead) and optionally add ssl=require
     parsed = urlparse(database_url)
     query_params = parse_qs(parsed.query)
@@ -39,7 +39,7 @@ def _get_database_url() -> str:
     database_url = urlunparse(parsed)
     # Hard strip any lingering sslmode fragment
     database_url = database_url.replace("sslmode=require", "")
-    
+
     return database_url
 
 
@@ -51,7 +51,7 @@ def get_engine() -> AsyncEngine:
         # Supabase can handle higher connection counts
         pool_size = 10
         max_overflow = 20
-        
+
         _engine = create_async_engine(
             _get_database_url(),
             pool_pre_ping=True,  # Verify connections before using

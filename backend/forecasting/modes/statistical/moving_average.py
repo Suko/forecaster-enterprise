@@ -13,15 +13,15 @@ from ...core.models.base import BaseForecastModel
 
 class MovingAverageModel(BaseForecastModel):
     """7-day Moving Average statistical forecasting method"""
-    
+
     def __init__(self, window: int = 7):
         super().__init__(model_name="statistical_ma7")
         self.window = window
-    
+
     async def initialize(self) -> None:
         """No initialization needed for statistical methods"""
         self._initialized = True
-    
+
     async def predict(
         self,
         context_df: pd.DataFrame,
@@ -31,29 +31,29 @@ class MovingAverageModel(BaseForecastModel):
     ) -> pd.DataFrame:
         """
         Generate forecast using 7-day moving average.
-        
+
         Args:
             context_df: Historical data with columns: id, timestamp, target
             prediction_length: Number of days to forecast
             future_covariates: Ignored for statistical methods
             quantile_levels: Quantiles to return (default: [0.1, 0.5, 0.9])
-        
+
         Returns:
             DataFrame with columns: id, timestamp, point_forecast, p10, p50, p90
         """
         # Validate input
         self.validate_input(context_df, prediction_length, min_history=self.window)
-        
+
         if quantile_levels is None:
             quantile_levels = [0.1, 0.5, 0.9]
-        
+
         # Calculate moving average from last N days
         # Convert to float to handle Decimal types from database
         target_values = pd.to_numeric(context_df["target"], errors='coerce').values
         last_window = target_values[-self.window:]
         avg_demand = float(np.mean(last_window))
         std_demand = float(np.std(last_window)) if len(last_window) > 1 else 0.0
-        
+
         # Generate forecast dates
         last_date = pd.to_datetime(context_df["timestamp"].max())
         forecast_dates = pd.date_range(
@@ -61,13 +61,13 @@ class MovingAverageModel(BaseForecastModel):
             periods=prediction_length,
             freq="D"
         )
-        
+
         # Create result DataFrame
         result_df = pd.DataFrame()
         result_df["id"] = context_df["id"].iloc[0] if "id" in context_df.columns else "item_1"
         result_df["timestamp"] = forecast_dates
         result_df["point_forecast"] = avg_demand
-        
+
         # Calculate quantiles (simple approximation using normal distribution)
         # For statistical methods, we use a simple approximation
         for q in quantile_levels:
@@ -81,9 +81,9 @@ class MovingAverageModel(BaseForecastModel):
             else:  # q > 0.5
                 z_score = 1.28  # Approximation for 90th percentile
                 result_df[f"p{int(q*100)}"] = avg_demand + z_score * std_demand
-        
+
         return result_df
-    
+
     def get_model_info(self) -> Dict[str, Any]:
         """Get model metadata"""
         return {

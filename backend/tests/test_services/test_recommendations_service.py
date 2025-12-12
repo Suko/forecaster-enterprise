@@ -21,14 +21,14 @@ from tests.fixtures.test_inventory_data import (
 async def test_get_recommendations_reorder(db_session, test_client_obj, populate_test_data):
     """Test getting REORDER recommendations"""
     service = RecommendationsService(db_session)
-    
+
     # Create settings
     settings = create_test_client_settings(
         client_id=test_client_obj.client_id,
         safety_buffer_days=7
     )
     db_session.add(settings)
-    
+
     # Create product with low stock
     product = create_test_product(
         client_id=test_client_obj.client_id,
@@ -41,13 +41,13 @@ async def test_get_recommendations_reorder(db_session, test_client_obj, populate
     )
     db_session.add_all([product, stock])
     await db_session.commit()
-    
+
     # Get recommendations
     recommendations = await service.get_recommendations(
         client_id=test_client_obj.client_id,
         recommendation_type="REORDER"
     )
-    
+
     # Should have at least one REORDER recommendation
     assert len(recommendations) >= 0  # May be empty if no suppliers configured
 
@@ -56,7 +56,7 @@ async def test_get_recommendations_reorder(db_session, test_client_obj, populate
 async def test_get_recommendations_by_role(db_session, test_client_obj, populate_test_data):
     """Test filtering recommendations by role"""
     service = RecommendationsService(db_session)
-    
+
     # Create settings with role rules
     settings = create_test_client_settings(
         client_id=test_client_obj.client_id
@@ -71,13 +71,13 @@ async def test_get_recommendations_by_role(db_session, test_client_obj, populate
     }
     db_session.add(settings)
     await db_session.commit()
-    
+
     # Get recommendations for PROCUREMENT role
     recommendations = await service.get_recommendations(
         client_id=test_client_obj.client_id,
         role="PROCUREMENT"
     )
-    
+
     # Should only include types allowed for PROCUREMENT
     assert isinstance(recommendations, list)
 
@@ -86,12 +86,12 @@ async def test_get_recommendations_by_role(db_session, test_client_obj, populate
 async def test_get_recommendations_empty(db_session, test_client_obj):
     """Test getting recommendations when none exist"""
     service = RecommendationsService(db_session)
-    
+
     # Get recommendations with no data
     recommendations = await service.get_recommendations(
         client_id=test_client_obj.client_id
     )
-    
+
     assert isinstance(recommendations, list)
     # May be empty if no products or metrics available
 

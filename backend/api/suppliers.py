@@ -13,7 +13,7 @@ from models.database import get_db
 from models.client import Client
 from auth.dependencies import get_current_client
 from services.supplier_service import SupplierService
-from schemas.supplier import SupplierListResponse, SupplierResponse
+from schemas.supplier import SupplierListResponse, SupplierResponse, SupplierUpdate
 
 
 router = APIRouter(prefix="/api/v1", tags=["suppliers"])
@@ -49,6 +49,39 @@ async def get_supplier(
     """Get supplier detail"""
     service = SupplierService(db)
     supplier = await service.get_supplier(client.client_id, supplier_id)
+    if not supplier:
+        raise HTTPException(status_code=404, detail="Supplier not found")
+    return SupplierResponse.model_validate(supplier)
+
+
+@router.put("/suppliers/{supplier_id}", response_model=SupplierResponse)
+async def update_supplier(
+    supplier_id: UUID,
+    data: SupplierUpdate,
+    client: Client = Depends(get_current_client),
+    db: AsyncSession = Depends(get_db),
+):
+    """
+    Update supplier information.
+
+    If apply_to_existing is True:
+    - Updates product-supplier conditions where MOQ/lead_time_days match the old supplier defaults
+    - Only affects conditions that were using the supplier defaults (not explicit overrides)
+    """
+    service = SupplierService(db)
+    supplier = await service.update_supplier(
+        client_id=client.client_id,
+        supplier_id=supplier_id,
+        name=data.name,
+        contact_email=data.contact_email,
+        contact_phone=data.contact_phone,
+        address=data.address,
+        supplier_type=data.supplier_type,
+        default_moq=data.default_moq,
+        default_lead_time_days=data.default_lead_time_days,
+        notes=data.notes,
+        apply_to_existing=data.apply_to_existing,
+    )
     if not supplier:
         raise HTTPException(status_code=404, detail="Supplier not found")
     return SupplierResponse.model_validate(supplier)

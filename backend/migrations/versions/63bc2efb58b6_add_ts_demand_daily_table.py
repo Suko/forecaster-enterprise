@@ -32,7 +32,7 @@ def upgrade():
         sa.PrimaryKeyConstraint('item_id', 'date_local', 'client_id'),
         sa.ForeignKeyConstraint(['client_id'], ['clients.client_id'], ondelete='CASCADE'),
     )
-    
+
     # Create indexes for common queries
     op.create_index('idx_ts_demand_daily_client_item', 'ts_demand_daily', ['client_id', 'item_id'])
     op.create_index('idx_ts_demand_daily_date', 'ts_demand_daily', ['date_local'])

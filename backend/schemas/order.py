@@ -45,7 +45,7 @@ class CartItemResponse(CartItemBase):
     supplier_name: str
     created_at: datetime
     updated_at: datetime
-    
+
     class Config:
         from_attributes = True
 
@@ -91,7 +91,7 @@ class PurchaseOrderItemResponse(BaseModel):
     total_price: Decimal
     packaging_unit: Optional[str] = None
     packaging_qty: Optional[int] = None
-    
+
     class Config:
         from_attributes = True
 
@@ -113,7 +113,7 @@ class PurchaseOrderResponse(BaseModel):
     items: List[PurchaseOrderItemResponse]
     created_at: datetime
     updated_at: datetime
-    
+
     class Config:
         from_attributes = True
 

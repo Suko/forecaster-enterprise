@@ -33,45 +33,45 @@ async def create_purchase_order(
 ):
     """
     Create a new purchase order.
-    
+
     Can be created from:
     - Direct items (provided in request)
     - Cart items (use create_po_from_cart endpoint)
     """
     service = PurchaseOrderService(db)
-    
+
     created_by = user.email if user else None
-    
+
     try:
         po = await service.create_purchase_order(
             client_id=client.client_id,
             data=data,
             created_by=created_by
         )
-        
+
         # Get supplier and items for response
         from sqlalchemy import select
         from models.supplier import Supplier
         from models.product import Product
         from models.purchase_order import PurchaseOrderItem
-        
+
         supplier_result = await db.execute(
             select(Supplier).where(Supplier.id == po.supplier_id)
         )
         supplier = supplier_result.scalar_one()
-        
+
         items_result = await db.execute(
             select(PurchaseOrderItem).where(PurchaseOrderItem.po_id == po.id)
         )
         items = items_result.scalars().all()
-        
+
         items_response = []
         for item in items:
             product_result = await db.execute(
                 select(Product).where(Product.item_id == item.item_id)
             )
             product = product_result.scalar_one()
-            
+
             items_response.append(PurchaseOrderItemResponse(
                 id=item.id,
                 item_id=item.item_id,
@@ -82,7 +82,7 @@ async def create_purchase_order(
                 packaging_unit=item.packaging_unit,
                 packaging_qty=item.packaging_qty
             ))
-        
+
         return PurchaseOrderResponse(
             id=po.id,
             po_number=po.po_number,
@@ -100,7 +100,7 @@ async def create_purchase_order(
             created_at=po.created_at.date(),
             updated_at=po.updated_at.date()
         )
-        
+
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
 
@@ -118,14 +118,14 @@ async def create_po_from_cart(
 ):
     """
     Create purchase order from cart items for a specific supplier.
-    
+
     Removes items from cart after creating PO.
     """
     service = PurchaseOrderService(db)
-    
+
     session_id = user.email if user else x_session_id or "anonymous"
     created_by = user.email if user else None
-    
+
     try:
         po = await service.create_po_from_cart(
             client_id=client.client_id,
@@ -136,30 +136,30 @@ async def create_po_from_cart(
             notes=notes,
             created_by=created_by
         )
-        
+
         # Get supplier and items for response
         from sqlalchemy import select
         from models.supplier import Supplier
         from models.product import Product
         from models.purchase_order import PurchaseOrderItem
-        
+
         supplier_result = await db.execute(
             select(Supplier).where(Supplier.id == po.supplier_id)
         )
         supplier = supplier_result.scalar_one()
-        
+
         items_result = await db.execute(
             select(PurchaseOrderItem).where(PurchaseOrderItem.po_id == po.id)
         )
         items = items_result.scalars().all()
-        
+
         items_response = []
         for item in items:
             product_result = await db.execute(
                 select(Product).where(Product.item_id == item.item_id)
             )
             product = product_result.scalar_one()
-            
+
             items_response.append(PurchaseOrderItemResponse(
                 id=item.id,
                 item_id=item.item_id,
@@ -170,7 +170,7 @@ async def create_po_from_cart(
                 packaging_unit=item.packaging_unit,
                 packaging_qty=item.packaging_qty
             ))
-        
+
         return PurchaseOrderResponse(
             id=po.id,
             po_number=po.po_number,
@@ -188,7 +188,7 @@ async def create_po_from_cart(
             created_at=po.created_at.date(),
             updated_at=po.updated_at.date()
         )
-        
+
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
 
@@ -204,7 +204,7 @@ async def get_purchase_orders(
 ):
     """Get paginated list of purchase orders"""
     service = PurchaseOrderService(db)
-    
+
     result = await service.get_purchase_orders(
         client_id=client.client_id,
         status=status,
@@ -212,18 +212,18 @@ async def get_purchase_orders(
         page=page,
         page_size=page_size
     )
-    
+
     # Convert to response format
     from sqlalchemy import select
     from models.supplier import Supplier
-    
+
     orders_response = []
     for po in result["items"]:
         supplier_result = await db.execute(
             select(Supplier).where(Supplier.id == po.supplier_id)
         )
         supplier = supplier_result.scalar_one()
-        
+
         orders_response.append({
             "id": str(po.id),
             "po_number": po.po_number,
@@ -235,7 +235,7 @@ async def get_purchase_orders(
             "total_amount": float(po.total_amount),
             "created_at": po.created_at.isoformat()
         })
-    
+
     return {
         "items": orders_response,
         "total": result["total"],
@@ -253,35 +253,35 @@ async def get_purchase_order(
 ):
     """Get purchase order details"""
     service = PurchaseOrderService(db)
-    
+
     po = await service.get_purchase_order(client.client_id, po_id)
-    
+
     if not po:
         raise HTTPException(status_code=404, detail="Purchase order not found")
-    
+
     # Get supplier and items
     from sqlalchemy import select
     from models.supplier import Supplier
     from models.product import Product
     from models.purchase_order import PurchaseOrderItem
-    
+
     supplier_result = await db.execute(
         select(Supplier).where(Supplier.id == po.supplier_id)
     )
     supplier = supplier_result.scalar_one()
-    
+
     items_result = await db.execute(
         select(PurchaseOrderItem).where(PurchaseOrderItem.po_id == po.id)
     )
     items = items_result.scalars().all()
-    
+
     items_response = []
     for item in items:
         product_result = await db.execute(
             select(Product).where(Product.item_id == item.item_id)
         )
         product = product_result.scalar_one()
-        
+
         items_response.append(PurchaseOrderItemResponse(
             id=item.id,
             item_id=item.item_id,
@@ -292,7 +292,7 @@ async def get_purchase_order(
             packaging_unit=item.packaging_unit,
             packaging_qty=item.packaging_qty
         ))
-    
+
     return PurchaseOrderResponse(
         id=po.id,
         po_number=po.po_number,
@@ -321,40 +321,40 @@ async def update_purchase_order_status(
 ):
     """Update purchase order status"""
     service = PurchaseOrderService(db)
-    
+
     try:
         po = await service.update_purchase_order_status(
             client_id=client.client_id,
             po_id=po_id,
             status=data.status
         )
-        
+
         if not po:
             raise HTTPException(status_code=404, detail="Purchase order not found")
-        
+
         # Get supplier and items for response
         from sqlalchemy import select
         from models.supplier import Supplier
         from models.product import Product
         from models.purchase_order import PurchaseOrderItem
-        
+
         supplier_result = await db.execute(
             select(Supplier).where(Supplier.id == po.supplier_id)
         )
         supplier = supplier_result.scalar_one()
-        
+
         items_result = await db.execute(
             select(PurchaseOrderItem).where(PurchaseOrderItem.po_id == po.id)
         )
         items = items_result.scalars().all()
-        
+
         items_response = []
         for item in items:
             product_result = await db.execute(
                 select(Product).where(Product.item_id == item.item_id)
             )
             product = product_result.scalar_one()
-            
+
             items_response.append(PurchaseOrderItemResponse(
                 id=item.id,
                 item_id=item.item_id,
@@ -365,7 +365,7 @@ async def update_purchase_order_status(
                 packaging_unit=item.packaging_unit,
                 packaging_qty=item.packaging_qty
             ))
-        
+
         return PurchaseOrderResponse(
             id=po.id,
             po_number=po.po_number,
@@ -383,7 +383,7 @@ async def update_purchase_order_status(
             created_at=po.created_at.date(),
             updated_at=po.updated_at.date()
         )
-        
+
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
 

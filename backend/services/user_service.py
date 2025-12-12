@@ -35,7 +35,7 @@ async def create_user(db: AsyncSession, user_data: UserCreate) -> User:
             status_code=status.HTTP_400_BAD_REQUEST,
             detail=str(e)
         )
-    
+
     # Check if user already exists
     existing_user = await get_user_by_email(db, user_data.email)
     if existing_user:
@@ -43,7 +43,7 @@ async def create_user(db: AsyncSession, user_data: UserCreate) -> User:
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="Email already registered"
         )
-    
+
     # Create new user
     hashed_password = get_password_hash(user_data.password)
     new_user = User(
@@ -51,11 +51,11 @@ async def create_user(db: AsyncSession, user_data: UserCreate) -> User:
         name=user_data.name,
         hashed_password=hashed_password,
     )
-    
+
     db.add(new_user)
     await db.commit()
     await db.refresh(new_user)
-    
+
     return new_user
 
 
@@ -67,7 +67,7 @@ async def update_user(db: AsyncSession, user_id: str, user_data: UserUpdate) -> 
             status_code=status.HTTP_404_NOT_FOUND,
             detail="User not found"
         )
-    
+
     if user_data.name is not None:
         user.name = user_data.name
     if user_data.role is not None:
@@ -79,10 +79,10 @@ async def update_user(db: AsyncSession, user_id: str, user_data: UserUpdate) -> 
         user.role = user_data.role
     if user_data.is_active is not None:
         user.is_active = user_data.is_active
-    
+
     await db.commit()
     await db.refresh(user)
-    
+
     return user
 
 
@@ -93,14 +93,14 @@ async def delete_user(db: AsyncSession, user_id: str, current_user_id: str) -> N
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="Cannot delete your own account"
         )
-    
+
     user = await get_user_by_id(db, user_id)
     if not user:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="User not found"
         )
-    
+
     await db.delete(user)
     await db.commit()
 
@@ -110,8 +110,8 @@ async def authenticate_user(db: AsyncSession, email: str, password: str) -> User
     user = await get_user_by_email(db, email)
     if not user:
         return None
-    
+
     if not verify_password(password, user.hashed_password):
         return None
-    
+
     return user

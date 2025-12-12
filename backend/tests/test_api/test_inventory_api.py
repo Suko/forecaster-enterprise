@@ -42,13 +42,13 @@ async def test_get_products(
     )
     db_session.add_all([product1, product2])
     await db_session.commit()
-    
+
     # Make request
     response = await test_client.get(
         "/api/v1/products",
         headers={"Authorization": f"Bearer {test_jwt_token}"}
     )
-    
+
     assert response.status_code == 200
     data = response.json()
     assert "items" in data
@@ -77,13 +77,13 @@ async def test_get_products_with_filters(
     )
     db_session.add_all([product1, product2])
     await db_session.commit()
-    
+
     # Filter by category
     response = await test_client.get(
         "/api/v1/products?category=Electronics",
         headers={"Authorization": f"Bearer {test_jwt_token}"}
     )
-    
+
     assert response.status_code == 200
     data = response.json()
     assert all(item["category"] == "Electronics" for item in data["items"])
@@ -104,12 +104,12 @@ async def test_get_product_detail(
     )
     db_session.add(product)
     await db_session.commit()
-    
+
     response = await test_client.get(
         f"/api/v1/products/{product.item_id}",
         headers={"Authorization": f"Bearer {test_jwt_token}"}
     )
-    
+
     assert response.status_code == 200
     data = response.json()
     assert data["item_id"] == product.item_id
@@ -136,12 +136,12 @@ async def test_get_product_metrics(
     )
     db_session.add_all([product, stock])
     await db_session.commit()
-    
+
     response = await test_client.get(
         f"/api/v1/products/{product.item_id}/metrics",
         headers={"Authorization": f"Bearer {test_jwt_token}"}
     )
-    
+
     assert response.status_code == 200
     data = response.json()
     assert "dir" in data
@@ -166,12 +166,12 @@ async def test_get_dashboard(
     db_session.add_all(batch["products"])
     db_session.add_all(batch["stock_levels"])
     await db_session.commit()
-    
+
     response = await test_client.get(
         "/api/v1/dashboard",
         headers={"Authorization": f"Bearer {test_jwt_token}"}
     )
-    
+
     assert response.status_code == 200
     data = response.json()
     assert "metrics" in data
@@ -197,7 +197,7 @@ async def test_get_product_suppliers(
     )
     db_session.add_all([product, supplier])
     await db_session.flush()
-    
+
     condition = create_test_product_supplier_condition(
         client_id=test_client_obj.client_id,
         item_id=product.item_id,
@@ -205,15 +205,15 @@ async def test_get_product_suppliers(
     )
     db_session.add(condition)
     await db_session.commit()
-    
+
     # Refresh to ensure timestamps are set
     await db_session.refresh(condition)
-    
+
     response = await test_client.get(
         f"/api/v1/products/{product.item_id}/suppliers",
         headers={"Authorization": f"Bearer {test_jwt_token}"}
     )
-    
+
     assert response.status_code == 200
     data = response.json()
     assert isinstance(data, list)
@@ -240,7 +240,7 @@ async def test_add_product_supplier(
     )
     db_session.add_all([product, supplier])
     await db_session.commit()
-    
+
     response = await test_client.post(
         f"/api/v1/products/{product.item_id}/suppliers",
         headers={"Authorization": f"Bearer {test_jwt_token}"},
@@ -252,11 +252,11 @@ async def test_add_product_supplier(
             "is_primary": True
         }
     )
-    
+
     if response.status_code != 200:
         print(f"Response status: {response.status_code}")
         print(f"Response body: {response.json()}")
-    
+
     assert response.status_code == 200
     data = response.json()
     assert data["supplier_id"] == str(supplier.id)
@@ -279,7 +279,7 @@ async def test_get_products_wrong_client(
 ):
     """Test multi-tenant isolation - products from other clients not visible"""
     import uuid
-    
+
     # Create product for different client
     other_client_id = uuid.uuid4()
     other_product = create_test_product(
@@ -288,13 +288,13 @@ async def test_get_products_wrong_client(
     )
     db_session.add(other_product)
     await db_session.commit()
-    
+
     # Request products for test_client
     response = await test_client.get(
         "/api/v1/products",
         headers={"Authorization": f"Bearer {test_jwt_token}"}
     )
-    
+
     assert response.status_code == 200
     data = response.json()
     # Should not see other client's products

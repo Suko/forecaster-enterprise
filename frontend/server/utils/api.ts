@@ -39,7 +39,7 @@ export async function authenticatedFetch(
   const response = await $fetch(`${apiBaseUrl}${endpoint}`, {
     ...options,
     headers,
-  });
+  } as any);
 
   return response;
 }

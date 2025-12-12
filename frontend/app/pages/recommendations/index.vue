@@ -64,7 +64,7 @@
     <!-- Error State -->
     <UAlert
       v-else-if="error"
-      color="red"
+      color="warning"
       variant="soft"
       title="Error loading recommendations"
       :description="error"
@@ -265,7 +265,7 @@ const onCellClicked = async (params: any) => {
       toast.add({
         title: "Added to cart",
         description: `${params.data.product_name} added to order planning cart`,
-        color: "green",
+        color: "success",
       });
     } catch (err: any) {
       // Handle 401 errors - redirect to login
@@ -279,7 +279,7 @@ const onCellClicked = async (params: any) => {
       toast.add({
         title: "Error",
         description: "Failed to add item to cart",
-        color: "red",
+        color: "warning",
       });
     }
   }

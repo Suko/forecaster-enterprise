@@ -101,10 +101,10 @@
                   <UBadge
                     :color="
                       (Number(item.stockout_risk) || 0) > 70
-                        ? 'red'
+                        ? 'error'
                         : (Number(item.stockout_risk) || 0) > 40
-                        ? 'orange'
-                        : 'yellow'
+                        ? 'warning'
+                        : 'info'
                     "
                     variant="soft"
                   >

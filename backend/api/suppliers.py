@@ -13,7 +13,7 @@ from models.database import get_db
 from models.client import Client
 from auth.dependencies import get_current_client
 from services.supplier_service import SupplierService
-from schemas.supplier import SupplierListResponse, SupplierResponse, SupplierUpdate
+from schemas.supplier import SupplierListResponse, SupplierResponse, SupplierUpdate, SupplierCreate
 
 
 router = APIRouter(prefix="/api/v1", tags=["suppliers"])
@@ -38,6 +38,32 @@ async def get_suppliers(
         page_size=page_size,
     )
     return SupplierListResponse(**result)
+
+
+@router.post("/suppliers", response_model=SupplierResponse)
+async def create_supplier(
+    data: SupplierCreate,
+    client: Client = Depends(get_current_client),
+    db: AsyncSession = Depends(get_db),
+):
+    """Create a new supplier"""
+    service = SupplierService(db)
+    try:
+        supplier = await service.create_supplier(
+            client_id=client.client_id,
+            name=data.name,
+            contact_email=data.contact_email,
+            contact_phone=data.contact_phone,
+            address=data.address,
+            supplier_type=data.supplier_type,
+            default_moq=data.default_moq,
+            default_lead_time_days=data.default_lead_time_days,
+            external_id=data.external_id,
+            notes=data.notes,
+        )
+        return SupplierResponse.model_validate(supplier)
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
 
 
 @router.get("/suppliers/{supplier_id}", response_model=SupplierResponse)

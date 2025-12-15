@@ -209,6 +209,7 @@ async def add_product_supplier(
             moq=data.moq,  # Optional - auto-populated from supplier default if None
             lead_time_days=data.lead_time_days,  # Optional - auto-populated from supplier default if None
             supplier_cost=data.supplier_cost,
+            supplier_sku=data.supplier_sku,
             packaging_unit=data.packaging_unit,
             packaging_qty=data.packaging_qty,
             is_primary=data.is_primary,
@@ -275,6 +276,7 @@ async def update_product_supplier(
             moq=data.moq,
             lead_time_days=data.lead_time_days,
             supplier_cost=data.supplier_cost,
+            supplier_sku=data.supplier_sku,
             packaging_unit=data.packaging_unit,
             packaging_qty=data.packaging_qty,
             is_primary=data.is_primary,

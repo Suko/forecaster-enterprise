@@ -66,15 +66,10 @@ Suppliers are the entities from which you purchase products. Each supplier can h
 
 ### Creating a Supplier
 
-**Note:** Supplier creation via API is not yet implemented. Suppliers are typically created through:
-- Database migrations/seeding
-- External system sync (if `is_synced = true`)
-- Direct database insertion
-
-**Planned API:** `POST /api/v1/suppliers` (see roadmap)
+**UI:** Purchase Orders → Suppliers → (Add Supplier button - if available)  
+**API:** `POST /api/v1/suppliers`
 
 ```http
-# Planned endpoint (not yet implemented)
 POST /api/v1/suppliers
 {
   "name": "Test Supplier",
@@ -84,9 +79,15 @@ POST /api/v1/suppliers
   "supplier_type": "PO",
   "default_moq": 100,
   "default_lead_time_days": 14,
+  "external_id": "EXT-SUP-001",  // Optional - external system ID
   "notes": "Primary supplier for electronics"
 }
 ```
+
+**Validation:**
+- Supplier name must be unique per client
+- External ID must be unique per client (if provided)
+- Returns 400 error if duplicate name or external_id exists
 
 ### Editing Supplier Information
 
@@ -131,14 +132,13 @@ POST /api/v1/products/SKU-001/suppliers
   "moq": 100,  // Optional - uses supplier default if not provided
   "lead_time_days": 14,  // Optional - uses supplier default if not provided
   "is_primary": true,  // Set as primary supplier
+  "supplier_sku": "SUP-SKU-001",  // Supplier's SKU if different
   "supplier_cost": 25.50,  // Price from this supplier
   "packaging_unit": "box",
   "packaging_qty": 12,
   "notes": "Preferred supplier for this product"
 }
 ```
-
-**Note:** `supplier_sku` field exists in the database model but is not yet supported in the API schemas. It can be set via direct database access or will be added to the API in a future update.
 
 ### Multiple Suppliers per Product
 
@@ -353,19 +353,22 @@ Supplier B:
 
 ### Setting Supplier SKU
 
-**Note:** The `supplier_sku` field exists in the database model but is **not yet supported in the API schemas**. It can be set via:
-- Direct database access
-- Future API update (planned)
-
-**Database Field:** `product_supplier_conditions.supplier_sku` (VARCHAR(100), nullable)
-
-**Planned API:**
+**UI:** Purchase Orders → Suppliers → [Supplier] → Products → Edit MOQ → Supplier SKU field  
+**API:**
 ```http
+POST /api/v1/products/{item_id}/suppliers
+{
+  "supplier_id": "...",
+  "supplier_sku": "SUP-A-WIDGET-001"
+}
+
 PUT /api/v1/products/{item_id}/suppliers/{supplier_id}
 {
   "supplier_sku": "SUP-A-WIDGET-001"
 }
 ```
+
+**Database Field:** `product_supplier_conditions.supplier_sku` (VARCHAR(100), nullable)
 
 ### Use Cases
 
@@ -467,14 +470,14 @@ GET /api/v1/suppliers?page=1&page_size=50&search=test&supplier_type=PO
 # Get supplier by ID
 GET /api/v1/suppliers/{supplier_id}
 
-# Create supplier (NOT YET IMPLEMENTED - see roadmap)
-# POST /api/v1/suppliers
-# {
-#   "name": "Test Supplier",
-#   "contact_email": "contact@supplier.com",
-#   "default_moq": 100,
-#   "default_lead_time_days": 14
-# }
+# Create supplier
+POST /api/v1/suppliers
+{
+  "name": "Test Supplier",
+  "contact_email": "contact@supplier.com",
+  "default_moq": 100,
+  "default_lead_time_days": 14
+}
 
 # Update supplier
 PUT /api/v1/suppliers/{supplier_id}
@@ -507,13 +510,12 @@ PUT /api/v1/products/{item_id}/suppliers/{supplier_id}
   "moq": 70,
   "lead_time_days": 21,
   "is_primary": true,  // Setting to true automatically unsets other primaries
+  "supplier_sku": "SUP-SKU-001",
   "supplier_cost": 25.50,
   "packaging_unit": "box",
   "packaging_qty": 12
 }
 ```
-
-**Note:** `supplier_sku` field exists in the database but is not yet supported in the API update schema. It can be set via direct database access.
 
 # Get all suppliers for a product
 GET /api/v1/products/{item_id}/suppliers

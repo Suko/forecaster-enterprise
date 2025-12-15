@@ -166,6 +166,72 @@ class SupplierService:
             "total_pages": total_pages,
         }
 
+    async def create_supplier(
+        self,
+        client_id: UUID,
+        name: str,
+        contact_email: Optional[str] = None,
+        contact_phone: Optional[str] = None,
+        address: Optional[str] = None,
+        supplier_type: str = "PO",
+        default_moq: int = 0,
+        default_lead_time_days: int = 14,
+        external_id: Optional[str] = None,
+        notes: Optional[str] = None,
+    ) -> Supplier:
+        """Create a new supplier"""
+        # Check for duplicate name
+        existing = await self.db.execute(
+            select(Supplier).where(
+                Supplier.client_id == client_id,
+                Supplier.name == name
+            )
+        )
+        if existing.scalar_one_or_none():
+            raise ValueError(f"Supplier with name '{name}' already exists")
+        
+        # Check for duplicate external_id if provided
+        if external_id:
+            existing_ext = await self.db.execute(
+                select(Supplier).where(
+                    Supplier.client_id == client_id,
+                    Supplier.external_id == external_id
+                )
+            )
+            if existing_ext.scalar_one_or_none():
+                raise ValueError(f"Supplier with external_id '{external_id}' already exists")
+        
+        supplier = Supplier(
+            client_id=client_id,
+            name=name,
+            contact_email=contact_email,
+            contact_phone=contact_phone,
+            address=address,
+            supplier_type=supplier_type,
+            default_moq=default_moq,
+            default_lead_time_days=default_lead_time_days,
+            external_id=external_id,
+            notes=notes,
+            is_synced=False
+        )
+        
+        self.db.add(supplier)
+        await self.db.commit()
+        await self.db.refresh(supplier)
+        
+        # Calculate effective statistics for new supplier (empty initially)
+        setattr(supplier, 'default_product_count', 0)
+        setattr(supplier, 'effective_moq_avg', default_moq)
+        setattr(supplier, 'effective_moq_min', default_moq)
+        setattr(supplier, 'effective_moq_max', default_moq)
+        setattr(supplier, 'custom_moq_count', 0)
+        setattr(supplier, 'effective_lead_time_avg', default_lead_time_days)
+        setattr(supplier, 'effective_lead_time_min', default_lead_time_days)
+        setattr(supplier, 'effective_lead_time_max', default_lead_time_days)
+        setattr(supplier, 'custom_lead_time_count', 0)
+        
+        return supplier
+
     async def get_supplier(self, client_id: UUID, supplier_id: UUID) -> Optional[Supplier]:
         """Get supplier by ID with effective statistics"""
         result = await self.db.execute(

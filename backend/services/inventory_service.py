@@ -423,6 +423,7 @@ class InventoryService:
         moq: Optional[int] = None,
         lead_time_days: Optional[int] = None,
         supplier_cost: Optional[Decimal] = None,
+        supplier_sku: Optional[str] = None,
         packaging_unit: Optional[str] = None,
         packaging_qty: Optional[int] = None,
         is_primary: bool = False,
@@ -490,6 +491,7 @@ class InventoryService:
             moq=moq,
             lead_time_days=lead_time_days,
             supplier_cost=supplier_cost,
+            supplier_sku=supplier_sku,
             packaging_unit=packaging_unit,
             packaging_qty=packaging_qty,
             is_primary=is_primary,
@@ -510,6 +512,7 @@ class InventoryService:
         moq: Optional[int] = None,
         lead_time_days: Optional[int] = None,
         supplier_cost: Optional[Decimal] = None,
+        supplier_sku: Optional[str] = None,
         packaging_unit: Optional[str] = None,
         packaging_qty: Optional[int] = None,
         is_primary: Optional[bool] = None,
@@ -535,6 +538,8 @@ class InventoryService:
             condition.lead_time_days = lead_time_days
         if supplier_cost is not None:
             condition.supplier_cost = supplier_cost
+        if supplier_sku is not None:
+            condition.supplier_sku = supplier_sku
         if packaging_unit is not None:
             condition.packaging_unit = packaging_unit
         if packaging_qty is not None:

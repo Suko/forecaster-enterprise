@@ -170,6 +170,7 @@ class ProductSupplierBase(BaseModel):
     moq: Optional[int] = Field(None, ge=0, description="Minimum Order Quantity (auto-populated from supplier default if not provided)")
     lead_time_days: Optional[int] = Field(None, ge=0, description="Lead time in days (auto-populated from supplier default if not provided)")
     supplier_cost: Optional[Decimal] = None
+    supplier_sku: Optional[str] = Field(None, max_length=100, description="Supplier's SKU if different from product item_id")
     packaging_unit: Optional[str] = None
     packaging_qty: Optional[int] = None
     is_primary: bool = False
@@ -186,6 +187,7 @@ class ProductSupplierUpdate(BaseModel):
     moq: Optional[int] = Field(None, ge=0)
     lead_time_days: Optional[int] = Field(None, ge=0)
     supplier_cost: Optional[Decimal] = None
+    supplier_sku: Optional[str] = Field(None, max_length=100)
     packaging_unit: Optional[str] = None
     packaging_qty: Optional[int] = None
     is_primary: Optional[bool] = None

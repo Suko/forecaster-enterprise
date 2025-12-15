@@ -131,13 +131,14 @@ POST /api/v1/products/SKU-001/suppliers
   "moq": 100,  // Optional - uses supplier default if not provided
   "lead_time_days": 14,  // Optional - uses supplier default if not provided
   "is_primary": true,  // Set as primary supplier
-  "supplier_sku": "SUP-SKU-001",  // Supplier's SKU if different
   "supplier_cost": 25.50,  // Price from this supplier
   "packaging_unit": "box",
   "packaging_qty": 12,
   "notes": "Preferred supplier for this product"
 }
 ```
+
+**Note:** `supplier_sku` field exists in the database model but is not yet supported in the API schemas. It can be set via direct database access or will be added to the API in a future update.
 
 ### Multiple Suppliers per Product
 
@@ -352,8 +353,13 @@ Supplier B:
 
 ### Setting Supplier SKU
 
-**UI:** Purchase Orders → Suppliers → [Supplier] → Products → Edit MOQ → Supplier SKU field  
-**API:**
+**Note:** The `supplier_sku` field exists in the database model but is **not yet supported in the API schemas**. It can be set via:
+- Direct database access
+- Future API update (planned)
+
+**Database Field:** `product_supplier_conditions.supplier_sku` (VARCHAR(100), nullable)
+
+**Planned API:**
 ```http
 PUT /api/v1/products/{item_id}/suppliers/{supplier_id}
 {
@@ -501,9 +507,13 @@ PUT /api/v1/products/{item_id}/suppliers/{supplier_id}
   "moq": 70,
   "lead_time_days": 21,
   "is_primary": true,  // Setting to true automatically unsets other primaries
-  "supplier_sku": "SUP-SKU-001",
-  "supplier_cost": 25.50
+  "supplier_cost": 25.50,
+  "packaging_unit": "box",
+  "packaging_qty": 12
 }
+```
+
+**Note:** `supplier_sku` field exists in the database but is not yet supported in the API update schema. It can be set via direct database access.
 
 # Get all suppliers for a product
 GET /api/v1/products/{item_id}/suppliers

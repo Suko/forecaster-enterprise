@@ -108,4 +108,4 @@ backend/reports/*.json
 backend/scripts/archive/
 backend/reports/archive/
 
-./old/
+old/

@@ -47,6 +47,8 @@ uv run pytest tests/test_api/test_inventory_api.py -v
 | **[API_REFERENCE.md](./API_REFERENCE.md)** | Complete API docs for frontend integration |
 | **[ARCHITECTURE.md](./ARCHITECTURE.md)** | System architecture and design |
 | **[BACKEND_ROADMAP.md](./BACKEND_ROADMAP.md)** | Implementation history (Phases 1-4) |
+| **[FORECASTING_ROADMAP.md](./FORECASTING_ROADMAP.md)** | Forecasting module roadmap |
+| **[SUPPLIER_MANAGEMENT_GUIDE.md](./SUPPLIER_MANAGEMENT_GUIDE.md)** | Supplier & MOQ management |
 | **[TEST_PLAN.md](./TEST_PLAN.md)** | Testing strategy and coverage |
 
 ---

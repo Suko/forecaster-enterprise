@@ -1173,5 +1173,5 @@ class Product(Base):
 - [USER_STORIES.md](../../USER_STORIES.md) - User requirements
 - [ARCHITECTURE.md](./ARCHITECTURE.md) - System architecture
 - [forecasting/README.md](./forecasting/README.md) - Forecasting module
-- [ROADMAP.md](./ROADMAP.md) - Forecasting engine roadmap (separate)
+- [FORECASTING_ROADMAP.md](./FORECASTING_ROADMAP.md) - Forecasting engine roadmap (separate)
 

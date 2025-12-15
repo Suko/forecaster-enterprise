@@ -5,6 +5,8 @@
 
 > **Note:** This document focuses on the **forecasting engine** specifically.  
 > For the complete backend system roadmap (APIs, ETL, inventory management), see [BACKEND_ROADMAP.md](./BACKEND_ROADMAP.md)
+> 
+> **Note:** This file was renamed from `ROADMAP.md` to `FORECASTING_ROADMAP.md` for clarity.
 
 ---
 

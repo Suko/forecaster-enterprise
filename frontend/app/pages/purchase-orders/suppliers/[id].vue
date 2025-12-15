@@ -44,7 +44,7 @@ const productsPageSize = ref(50);
 const productsTotalPages = ref(0);
 const productConditions = ref<Map<string, ProductSupplierCondition>>(new Map());
 const editingProductId = ref<string | null>(null);
-const editingProductForm = ref<{ moq: number; lead_time_days: number } | null>(null);
+const editingProductForm = ref<{ moq: number; lead_time_days: number; is_primary?: boolean } | null>(null);
 const savingProduct = ref(false);
 
 const badgeColorForType = (supplierType: string) => {
@@ -186,6 +186,7 @@ const startEditingProduct = (product: Product) => {
   editingProductForm.value = {
     moq: condition?.moq ?? (supplier.value?.default_moq || 0),
     lead_time_days: condition?.lead_time_days ?? (supplier.value?.default_lead_time_days || 14),
+    is_primary: condition?.is_primary ?? false,
   };
 };
 
@@ -204,17 +205,19 @@ const saveProductCondition = async (product: Product) => {
     
     // If condition doesn't exist, create it; otherwise update it
     if (!condition) {
-      updated = await addProductSupplier(product.item_id, {
-        supplier_id: supplierId.value,
-        moq: editingProductForm.value.moq,
-        lead_time_days: editingProductForm.value.lead_time_days,
-      });
-    } else {
-      updated = await updateProductSupplier(product.item_id, supplierId.value, {
-        moq: editingProductForm.value.moq,
-        lead_time_days: editingProductForm.value.lead_time_days,
-      });
-    }
+            updated = await addProductSupplier(product.item_id, {
+              supplier_id: supplierId.value,
+              moq: editingProductForm.value.moq,
+              lead_time_days: editingProductForm.value.lead_time_days,
+              is_primary: editingProductForm.value.is_primary ?? false,
+            });
+          } else {
+            updated = await updateProductSupplier(product.item_id, supplierId.value, {
+              moq: editingProductForm.value.moq,
+              lead_time_days: editingProductForm.value.lead_time_days,
+              is_primary: editingProductForm.value.is_primary,
+            });
+          }
     
     // Update local state
     productConditions.value.set(product.item_id, updated);
@@ -831,6 +834,18 @@ onMounted(async () => {
                   Custom
                 </UBadge>
               </div>
+              <div
+                v-if="getProductCondition(p.item_id)?.is_primary"
+                class="flex items-center gap-2"
+              >
+                <UBadge
+                  color="green"
+                  variant="soft"
+                  size="xs"
+                >
+                  Primary Supplier
+                </UBadge>
+              </div>
             </div>
             
             <!-- Edit Form -->
@@ -868,6 +883,18 @@ onMounted(async () => {
                   </template>
                 </UFormField>
               </div>
+              <UFormField
+                label="Primary Supplier"
+                name="is_primary"
+              >
+                <UCheckbox
+                  v-model="editingProductForm!.is_primary"
+                  label="Set as primary supplier for this product"
+                />
+                <template #hint>
+                  Primary supplier is used for MOQ/lead time calculations. Only one supplier can be primary per product.
+                </template>
+              </UFormField>
               <div class="flex items-center justify-between">
                 <UButton
                   v-if="hasCustomValues(p.item_id)"

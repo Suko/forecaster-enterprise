@@ -2,6 +2,8 @@
 
 Complete guide to Minimum Order Quantity (MOQ), Lead Time, and Safety Buffer configuration and management.
 
+**📖 For comprehensive supplier management including product-supplier relationships, primary supplier management, and SKU relationships, see:** [`SUPPLIER_MANAGEMENT_GUIDE.md`](./SUPPLIER_MANAGEMENT_GUIDE.md)
+
 ---
 
 ## Quick Reference
@@ -473,6 +475,8 @@ Step 5: User updates quantity
 - If no primary supplier is set, the system may use the first supplier found (implementation-dependent)
 
 **Best Practice:** Always set `is_primary = True` for the default supplier for each product.
+
+**📖 For detailed information on managing primary suppliers, see:** [`SUPPLIER_MANAGEMENT_GUIDE.md`](./SUPPLIER_MANAGEMENT_GUIDE.md) Part 3
 
 ---
 

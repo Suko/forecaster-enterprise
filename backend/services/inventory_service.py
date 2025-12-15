@@ -470,6 +470,18 @@ class InventoryService:
         if existing_result.scalar_one_or_none():
             raise ValueError(f"Product-supplier condition already exists")
 
+        # If setting this supplier as primary, unset all other primary suppliers for this product
+        if is_primary:
+            other_primaries = await self.db.execute(
+                select(ProductSupplierCondition).where(
+                    ProductSupplierCondition.client_id == client_id,
+                    ProductSupplierCondition.item_id == item_id,
+                    ProductSupplierCondition.is_primary == True
+                )
+            )
+            for other_primary in other_primaries.scalars().all():
+                other_primary.is_primary = False
+
         # Create condition
         condition = ProductSupplierCondition(
             client_id=client_id,
@@ -528,6 +540,19 @@ class InventoryService:
         if packaging_qty is not None:
             condition.packaging_qty = packaging_qty
         if is_primary is not None:
+            # If setting this supplier as primary, unset all other primary suppliers for this product
+            if is_primary:
+                # Unset all other primary suppliers for this product
+                other_primaries = await self.db.execute(
+                    select(ProductSupplierCondition).where(
+                        ProductSupplierCondition.client_id == client_id,
+                        ProductSupplierCondition.item_id == item_id,
+                        ProductSupplierCondition.supplier_id != supplier_id,
+                        ProductSupplierCondition.is_primary == True
+                    )
+                )
+                for other_primary in other_primaries.scalars().all():
+                    other_primary.is_primary = False
             condition.is_primary = is_primary
         if notes is not None:
             condition.notes = notes

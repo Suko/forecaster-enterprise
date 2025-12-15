@@ -66,10 +66,15 @@ Suppliers are the entities from which you purchase products. Each supplier can h
 
 ### Creating a Supplier
 
-**UI:** Purchase Orders → Suppliers → (Add Supplier button - if available)  
-**API:** `POST /api/v1/suppliers`
+**Note:** Supplier creation via API is not yet implemented. Suppliers are typically created through:
+- Database migrations/seeding
+- External system sync (if `is_synced = true`)
+- Direct database insertion
+
+**Planned API:** `POST /api/v1/suppliers` (see roadmap)
 
 ```http
+# Planned endpoint (not yet implemented)
 POST /api/v1/suppliers
 {
   "name": "Test Supplier",
@@ -456,14 +461,14 @@ GET /api/v1/suppliers?page=1&page_size=50&search=test&supplier_type=PO
 # Get supplier by ID
 GET /api/v1/suppliers/{supplier_id}
 
-# Create supplier
-POST /api/v1/suppliers
-{
-  "name": "Test Supplier",
-  "contact_email": "contact@supplier.com",
-  "default_moq": 100,
-  "default_lead_time_days": 14
-}
+# Create supplier (NOT YET IMPLEMENTED - see roadmap)
+# POST /api/v1/suppliers
+# {
+#   "name": "Test Supplier",
+#   "contact_email": "contact@supplier.com",
+#   "default_moq": 100,
+#   "default_lead_time_days": 14
+# }
 
 # Update supplier
 PUT /api/v1/suppliers/{supplier_id}

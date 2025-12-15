@@ -12,6 +12,7 @@ export interface Supplier {
   notes?: string | null;
   created_at: string;
   updated_at: string;
+  default_product_count?: number; // Count of products where this supplier is primary/default
 }
 
 export interface SupplierListResponse {

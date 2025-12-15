@@ -188,6 +188,9 @@ onMounted(async () => {
             <div class="flex items-center gap-4 mt-2 text-xs text-muted">
               <span>MOQ: {{ supplier.default_moq || 0 }}</span>
               <span>Lead: {{ supplier.default_lead_time_days || 14 }}d</span>
+              <span v-if="supplier.default_product_count !== undefined && supplier.default_product_count > 0">
+                {{ supplier.default_product_count }} product{{ supplier.default_product_count !== 1 ? 's' : '' }} (default)
+              </span>
             </div>
           </div>
           <UIcon

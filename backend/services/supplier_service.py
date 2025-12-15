@@ -11,6 +11,7 @@ from sqlalchemy import select, func, or_
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from models.supplier import Supplier
+from models.product_supplier import ProductSupplierCondition
 
 
 class SupplierService:
@@ -53,6 +54,30 @@ class SupplierService:
 
         result = await self.db.execute(query)
         suppliers: List[Supplier] = result.scalars().all()
+
+        # Get product counts for each supplier (only primary/default products)
+        supplier_ids = [s.id for s in suppliers]
+        product_counts = {}
+        if supplier_ids:
+            count_query = (
+                select(
+                    ProductSupplierCondition.supplier_id,
+                    func.count(ProductSupplierCondition.item_id).label('count')
+                )
+                .where(
+                    ProductSupplierCondition.client_id == client_id,
+                    ProductSupplierCondition.supplier_id.in_(supplier_ids),
+                    ProductSupplierCondition.is_primary == True
+                )
+                .group_by(ProductSupplierCondition.supplier_id)
+            )
+            count_result = await self.db.execute(count_query)
+            for row in count_result.all():
+                product_counts[row.supplier_id] = row.count
+
+        # Attach product counts to suppliers
+        for supplier in suppliers:
+            setattr(supplier, 'default_product_count', product_counts.get(supplier.id, 0))
 
         total_pages = (total + page_size - 1) // page_size if total > 0 else 0
 

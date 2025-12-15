@@ -56,6 +56,7 @@ class SupplierResponse(BaseModel):
     notes: Optional[str] = None
     created_at: datetime
     updated_at: datetime
+    default_product_count: int = 0  # Count of products where this supplier is primary/default
 
     class Config:
         from_attributes = True

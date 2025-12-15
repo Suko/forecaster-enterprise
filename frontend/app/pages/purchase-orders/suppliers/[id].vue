@@ -91,6 +91,9 @@ const startEditing = () => {
     default_lead_time_days: supplier.value.default_lead_time_days || 14,
     notes: supplier.value.notes || "",
   };
+  // Reset modal state when starting to edit
+  showApplyDialog.value = false;
+  pendingChanges.value = null;
   isEditing.value = true;
 };
 
@@ -99,6 +102,7 @@ const cancelEditing = () => {
   applyToExisting.value = false;
   pendingChanges.value = null;
   showApplyDialog.value = false;  // Ensure dialog is closed when canceling
+  saving.value = false;  // Reset saving state
 };
 
 const checkForDefaultChanges = (): { default_moq?: number; default_lead_time_days?: number } | null => {
@@ -131,6 +135,9 @@ const saveSupplier = async () => {
 const performSave = async (applyToExistingProducts: boolean) => {
   if (!supplier.value || saving.value) return;
 
+  // Close modal first before setting saving to true
+  showApplyDialog.value = false;
+  
   saving.value = true;
   error.value = null;
 
@@ -151,7 +158,6 @@ const performSave = async (applyToExistingProducts: boolean) => {
     isEditing.value = false;
     applyToExisting.value = false;
     pendingChanges.value = null;
-    showApplyDialog.value = false;
 
     // Reload products to show updated values
     await loadProducts();
@@ -165,12 +171,10 @@ const performSave = async (applyToExistingProducts: boolean) => {
 };
 
 const confirmApplyToExisting = () => {
-  showApplyDialog.value = false;
   performSave(true);
 };
 
 const skipApplyToExisting = () => {
-  showApplyDialog.value = false;
   performSave(false);
 };
 
@@ -353,35 +357,48 @@ onMounted(async () => {
           class="p-4 space-y-4"
         >
           <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <UFormGroup
+            <UFormField
               label="Name"
+              name="name"
               required
             >
               <UInput
                 v-model="editForm.name"
                 placeholder="Supplier name"
               />
-            </UFormGroup>
-            <UFormGroup label="Supplier Type">
+            </UFormField>
+            <UFormField
+              label="Supplier Type"
+              name="supplier_type"
+            >
               <USelectMenu
                 v-model="editForm.supplier_type"
                 :options="['PO', 'WO']"
               />
-            </UFormGroup>
-            <UFormGroup label="Contact Email">
+            </UFormField>
+            <UFormField
+              label="Contact Email"
+              name="contact_email"
+            >
               <UInput
                 v-model="editForm.contact_email"
                 type="email"
                 placeholder="email@example.com"
               />
-            </UFormGroup>
-            <UFormGroup label="Contact Phone">
+            </UFormField>
+            <UFormField
+              label="Contact Phone"
+              name="contact_phone"
+            >
               <UInput
                 v-model="editForm.contact_phone"
                 placeholder="+1 234 567 8900"
               />
-            </UFormGroup>
-            <UFormGroup label="Default MOQ">
+            </UFormField>
+            <UFormField
+              label="Default MOQ"
+              name="default_moq"
+            >
               <UInput
                 v-model.number="editForm.default_moq"
                 type="number"
@@ -391,8 +408,11 @@ onMounted(async () => {
               <template #hint>
                 Used when linking products to this supplier
               </template>
-            </UFormGroup>
-            <UFormGroup label="Default Lead Time (Days)">
+            </UFormField>
+            <UFormField
+              label="Default Lead Time (Days)"
+              name="default_lead_time_days"
+            >
               <UInput
                 v-model.number="editForm.default_lead_time_days"
                 type="number"
@@ -402,9 +422,10 @@ onMounted(async () => {
               <template #hint>
                 Used when linking products to this supplier
               </template>
-            </UFormGroup>
-            <UFormGroup
+            </UFormField>
+            <UFormField
               label="Address"
+              name="address"
               class="md:col-span-2"
             >
               <UTextarea
@@ -412,9 +433,10 @@ onMounted(async () => {
                 placeholder="Street address, City, State, ZIP"
                 :rows="3"
               />
-            </UFormGroup>
-            <UFormGroup
+            </UFormField>
+            <UFormField
               label="Notes"
+              name="notes"
               class="md:col-span-2"
             >
               <UTextarea
@@ -422,7 +444,7 @@ onMounted(async () => {
                 placeholder="Additional notes..."
                 :rows="3"
               />
-            </UFormGroup>
+            </UFormField>
           </div>
         </div>
       </UCard>
@@ -493,17 +515,12 @@ onMounted(async () => {
 
     <!-- Apply to Existing Products Dialog -->
     <UModal
-      v-if="showApplyDialog"
-      v-model="showApplyDialog"
-      :prevent-close="saving"
-      :ui="{ width: 'sm:max-w-md' }"
-      @close="showApplyDialog = false"
+      v-model:open="showApplyDialog"
+      :dismissible="!saving"
+      title="Apply Default Changes to Existing Products?"
+      :ui="{ width: 'sm:max-w-md', footer: 'justify-end' }"
     >
-      <UCard>
-        <template #header>
-          <h3 class="text-lg font-semibold">Apply Default Changes to Existing Products?</h3>
-        </template>
-
+      <template #body>
         <div class="space-y-4">
           <p class="text-sm text-muted">
             You've changed the supplier defaults. Would you like to apply these changes to existing products?
@@ -536,26 +553,24 @@ onMounted(async () => {
             description="This will only update products that are currently using the supplier defaults. Products with explicit overrides will remain unchanged."
           />
         </div>
+      </template>
 
-        <template #footer>
-          <div class="flex items-center justify-end gap-2">
-            <UButton
-              variant="ghost"
-              :disabled="saving"
-              @click="skipApplyToExisting"
-            >
-              Skip
-            </UButton>
-            <UButton
-              color="primary"
-              :loading="saving"
-              @click="confirmApplyToExisting"
-            >
-              Apply to Existing Products
-            </UButton>
-          </div>
-        </template>
-      </UCard>
+      <template #footer>
+        <UButton
+          variant="ghost"
+          :disabled="saving"
+          @click="skipApplyToExisting"
+        >
+          Skip
+        </UButton>
+        <UButton
+          color="primary"
+          :loading="saving"
+          @click="confirmApplyToExisting"
+        >
+          Apply to Existing Products
+        </UButton>
+      </template>
     </UModal>
   </div>
 </template>

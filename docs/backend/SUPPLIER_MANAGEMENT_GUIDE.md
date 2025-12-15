@@ -16,7 +16,9 @@ Complete guide to supplier setup, product-supplier relationships, MOQ, Lead Time
 8. [Safety Buffer](#part-7-safety-buffer)
 9. [API Reference](#part-8-api-reference)
 10. [Data Model](#part-9-data-model)
-11. [Best Practices](#part-10-best-practices)
+11. [Usage in Business Logic](#part-10-usage-in-business-logic)
+12. [Best Practices](#part-11-best-practices)
+13. [Edge Cases](#part-12-edge-cases)
 
 ---
 
@@ -610,7 +612,49 @@ def get_effective_lead_time(item_id, supplier_id):
 
 ---
 
-## Part 10: Best Practices
+## Part 10: Usage in Business Logic
+
+### Cart Validation
+
+```python
+# backend/services/cart_service.py
+effective_moq = get_effective_moq(item_id, supplier_id)
+if quantity < effective_moq:
+    raise ValueError(f"Quantity {quantity} is less than MOQ {effective_moq}")
+```
+
+### Purchase Order Validation
+
+```python
+# backend/services/purchase_order_service.py
+effective_moq = get_effective_moq(item_id, supplier_id)
+if item_data.quantity < effective_moq:
+    raise ValueError(f"Quantity {item_data.quantity} is less than MOQ {effective_moq}")
+```
+
+### Recommendations
+
+```python
+# backend/services/recommendations_service.py
+effective_lead_time = get_effective_lead_time(item_id, supplier_id)
+required_days = effective_lead_time + settings.safety_buffer_days
+if dir < required_days:
+    recommendation_type = "REORDER"
+```
+
+### Stockout Risk
+
+```python
+# backend/services/metrics_service.py
+effective_lead_time = get_effective_lead_time(item_id, supplier_id)
+total_required_days = effective_lead_time + safety_buffer_days
+if dir < total_required_days:
+    risk = 100 * (1 - dir / total_required_days)
+```
+
+---
+
+## Part 11: Best Practices
 
 ### Supplier Setup
 
@@ -662,15 +706,82 @@ def get_effective_lead_time(item_id, supplier_id):
 
 ---
 
-## Edge Cases
+## Part 12: Edge Cases
 
 ### Cart Items When Supplier MOQ Changes
 
 **Scenario:** What happens to products already in the draft/cart when supplier MOQ changes?
 
-**Answer:** MOQ is recalculated dynamically. Cart items show warnings if quantity < new MOQ, and PO creation will fail if quantity is below MOQ.
+**Current Behavior:**
 
-See detailed explanation in [MOQ_LEAD_TIME_GUIDE.md](./MOQ_LEAD_TIME_GUIDE.md) Part 8.
+1. **Cart Items Don't Store MOQ**
+   - Cart items (`order_cart_items`) store `quantity` but **NOT** MOQ
+   - MOQ is calculated **dynamically** each time the cart is fetched
+
+2. **MOQ Recalculation on Cart Load**
+   - When `GET /api/v1/order-planning/cart` is called, the system:
+     - Fetches cart items from database
+     - Recalculates `effective_moq` for each item using current supplier/product conditions
+     - Returns updated MOQ in response
+
+3. **Visual Feedback**
+   - Frontend displays current MOQ next to quantity input
+   - If `quantity < moq`, shows:
+     - Red text for MOQ display
+     - Red ring around quantity input
+     - Clear visual warning
+
+4. **PO Creation Validation**
+   - When creating purchase order from cart, system validates:
+     ```python
+     if item_data.quantity < effective_moq:
+         raise ValueError(f"Quantity {item_data.quantity} is less than MOQ {effective_moq}")
+     ```
+   - **PO creation will FAIL** if cart quantity is below new MOQ
+
+**Example Flow:**
+
+```
+Step 1: User adds item to cart
+  - Product: SKU-001
+  - Supplier: Test Supplier (default_moq = 50)
+  - Quantity: 70 ✅ (70 >= 50, valid)
+  - Cart item stored: quantity = 70
+
+Step 2: Supplier default MOQ changes
+  - Supplier default_moq: 50 → 100
+  - apply_to_existing: false (or true, doesn't matter for cart)
+
+Step 3: User views cart
+  - Cart item still has: quantity = 70
+  - System recalculates: effective_moq = 100 (new supplier default)
+  - UI shows: 
+    - Quantity: 70
+    - MOQ: 100 (in red text)
+    - Input field with red ring (70 < 100)
+
+Step 4: User tries to create PO
+  - System validates: 70 < 100
+  - ❌ ERROR: "Quantity 70 is less than MOQ 100"
+  - PO creation blocked
+
+Step 5: User updates quantity
+  - Changes quantity to 100 (or higher)
+  - ✅ PO creation succeeds
+```
+
+**Important Points:**
+
+✅ **What Works:**
+- MOQ is always current (recalculated on cart load)
+- Visual warnings alert user to invalid quantities
+- PO creation is blocked if quantity < MOQ
+- User can update quantity before creating PO
+
+⚠️ **Limitations:**
+- Cart items with old quantities remain in cart (not auto-updated)
+- No automatic notification when MOQ changes
+- User must manually update quantities or remove invalid items
 
 ### Multiple Primary Suppliers
 

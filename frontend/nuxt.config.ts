@@ -4,6 +4,16 @@ export default defineNuxtConfig({
   devtools: { enabled: true },
   modules: ["@nuxt/ui", "nuxt-auth-utils"],
   css: ["~/assets/css/main.css"],
+  colorMode: {
+    preference: "system", // default to system preference
+    fallback: "light", // fallback if system preference not available
+    hid: "nuxt-color-mode-script",
+    globalName: "__NUXT_COLOR_MODE__",
+    componentName: "ColorScheme",
+    classPrefix: "",
+    classSuffix: "",
+    storageKey: "nuxt-color-mode",
+  },
   runtimeConfig: {
     // Private keys (only available on server-side)
     // Override at runtime with NUXT_API_BASE_URL env var

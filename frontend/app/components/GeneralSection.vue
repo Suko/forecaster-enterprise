@@ -52,10 +52,71 @@
         </div>
       </template>
     </UCard>
+
+    <UCard>
+      <template #header>
+        <h3 class="text-lg font-semibold">Appearance</h3>
+      </template>
+
+      <div class="space-y-4">
+        <UFormField
+          label="Theme"
+          name="theme"
+          description="Choose your preferred color scheme"
+        >
+          <div class="flex gap-2">
+            <UButton
+              variant="outline"
+              :color="themePreference === 'light' ? 'primary' : 'neutral'"
+              @click="handleThemeChange('light')"
+            >
+              <UIcon
+                name="i-lucide-sun"
+                class="size-4 mr-2"
+              />
+              Light
+            </UButton>
+            <UButton
+              variant="outline"
+              :color="themePreference === 'dark' ? 'primary' : 'neutral'"
+              @click="handleThemeChange('dark')"
+            >
+              <UIcon
+                name="i-lucide-moon"
+                class="size-4 mr-2"
+              />
+              Dark
+            </UButton>
+            <UButton
+              variant="outline"
+              :color="themePreference === 'system' ? 'primary' : 'neutral'"
+              @click="handleThemeChange('system')"
+            >
+              <UIcon
+                name="i-lucide-monitor"
+                class="size-4 mr-2"
+              />
+              System
+            </UButton>
+          </div>
+        </UFormField>
+
+        <div class="flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400">
+          <UIcon
+            :name="themeIcon"
+            class="size-4"
+          />
+          <span>Current theme: {{ currentThemeLabel }}</span>
+        </div>
+      </div>
+    </UCard>
   </div>
 </template>
 
 <script setup lang="ts">
+// Color mode (dark/light theme)
+const colorMode = useColorMode();
+
 const formState = reactive({
   companyName: "",
   timezone: "UTC",
@@ -77,4 +138,39 @@ const languageOptions = [
   { label: "French", value: "fr" },
   { label: "German", value: "de" },
 ];
+
+// Theme options
+const themeOptions = [
+  { label: "Light", value: "light" },
+  { label: "Dark", value: "dark" },
+  { label: "System", value: "system" },
+];
+
+// Theme preference (syncs with colorMode)
+const themePreference = ref(colorMode.preference);
+
+// Watch for changes from colorMode (external changes)
+watch(
+  () => colorMode.preference,
+  (newValue) => {
+    themePreference.value = newValue;
+  },
+  { immediate: true }
+);
+
+const handleThemeChange = (value: string) => {
+  colorMode.preference = value;
+  themePreference.value = value;
+};
+
+const currentThemeLabel = computed(() => {
+  if (colorMode.preference === "system") {
+    return `System (${colorMode.value === "dark" ? "Dark" : "Light"})`;
+  }
+  return colorMode.value === "dark" ? "Dark" : "Light";
+});
+
+const themeIcon = computed(() => {
+  return colorMode.value === "dark" ? "i-lucide-moon" : "i-lucide-sun";
+});
 </script>

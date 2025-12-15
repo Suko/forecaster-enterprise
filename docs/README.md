@@ -2,11 +2,247 @@
 
 ---
 
+## 🌓 Theme Selector
+
+<div id="theme-toggle-container" style="margin: 10px 0; padding: 12px; border: 1px solid #ddd; border-radius: 6px; background: #f9f9f9;">
+  <button id="theme-toggle-btn" onclick="toggleTheme()" style="padding: 8px 16px; border: 1px solid #ccc; border-radius: 4px; cursor: pointer; background: #fff; color: #333; font-size: 14px; display: inline-flex; align-items: center; gap: 8px;">
+    <span id="theme-icon">🌙</span>
+    <span id="theme-text">Switch to Dark Mode</span>
+  </button>
+  <span style="margin-left: 12px; font-size: 12px; color: #666;">(Works in HTML markdown viewers)</span>
+</div>
+
+<script>
+(function() {
+  'use strict';
+  
+  // Initialize theme on load
+  function initTheme() {
+    const savedTheme = localStorage.getItem('docs-theme') || 'light';
+    applyTheme(savedTheme);
+  }
+  
+  function applyTheme(theme) {
+    const isDark = theme === 'dark';
+    const root = document.documentElement;
+    
+    // CSS Variables
+    root.style.setProperty('--docs-bg', isDark ? '#1e1e1e' : '#ffffff');
+    root.style.setProperty('--docs-text', isDark ? '#d4d4d4' : '#24292e');
+    root.style.setProperty('--docs-border', isDark ? '#444' : '#ddd');
+    root.style.setProperty('--docs-code-bg', isDark ? '#252526' : '#f6f8fa');
+    root.style.setProperty('--docs-code-text', isDark ? '#d4d4d4' : '#24292e');
+    root.style.setProperty('--docs-btn-bg', isDark ? '#2d2d2d' : '#fff');
+    root.style.setProperty('--docs-btn-text', isDark ? '#d4d4d4' : '#333');
+    root.style.setProperty('--docs-container-bg', isDark ? '#252526' : '#f9f9f9');
+    
+    // Apply to body
+    if (document.body) {
+      document.body.style.backgroundColor = isDark ? '#1e1e1e' : '#ffffff';
+      document.body.style.color = isDark ? '#d4d4d4' : '#24292e';
+    }
+    
+    // Update toggle container
+    const container = document.getElementById('theme-toggle-container');
+    if (container) {
+      container.style.backgroundColor = isDark ? '#252526' : '#f9f9f9';
+      container.style.borderColor = isDark ? '#444' : '#ddd';
+    }
+    
+    // Update button
+    const btn = document.getElementById('theme-toggle-btn');
+    if (btn) {
+      btn.style.backgroundColor = isDark ? '#2d2d2d' : '#fff';
+      btn.style.color = isDark ? '#d4d4d4' : '#333';
+      btn.style.borderColor = isDark ? '#555' : '#ccc';
+    }
+    
+    // Update icon and text
+    const icon = document.getElementById('theme-icon');
+    const text = document.getElementById('theme-text');
+    if (icon) icon.textContent = isDark ? '☀️' : '🌙';
+    if (text) text.textContent = isDark ? 'Switch to Light Mode' : 'Switch to Dark Mode';
+    
+    // Update code blocks
+    document.querySelectorAll('pre').forEach(el => {
+      el.style.backgroundColor = isDark ? '#252526' : '#f6f8fa';
+      el.style.color = isDark ? '#d4d4d4' : '#24292e';
+      el.style.borderColor = isDark ? '#444' : '#ddd';
+    });
+    
+    document.querySelectorAll('code').forEach(el => {
+      if (!el.closest('pre')) {
+        el.style.backgroundColor = isDark ? '#252526' : '#f6f8fa';
+        el.style.color = isDark ? '#d4d4d4' : '#24292e';
+      }
+    });
+    
+    // Update tables
+    document.querySelectorAll('table').forEach(el => {
+      el.style.borderColor = isDark ? '#444' : '#ddd';
+    });
+    
+    // Update details/summary
+    document.querySelectorAll('details').forEach(el => {
+      el.style.borderColor = isDark ? '#444' : '#ddd';
+    });
+  }
+  
+  // Toggle function
+  window.toggleTheme = function() {
+    const currentTheme = localStorage.getItem('docs-theme') || 'light';
+    const newTheme = currentTheme === 'light' ? 'dark' : 'light';
+    localStorage.setItem('docs-theme', newTheme);
+    applyTheme(newTheme);
+  };
+  
+  // Initialize on load
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initTheme);
+  } else {
+    initTheme();
+  }
+})();
+</script>
+
+<style>
+  /* Smooth transitions */
+  body, pre, code, table, details {
+    transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease;
+  }
+  
+  /* Respect system preference on first load */
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme]) {
+      --docs-bg: #1e1e1e;
+      --docs-text: #d4d4d4;
+    }
+  }
+</style>
+
+---
+
+## 📋 Documentation View Selector
+
+**Quick Filter:** Jump to docs by your role or interest
+
+| View | Key Documents |
+|------|---------------|
+| **👨‍💻 Developer** | [Quick Start](QUICK_START.md) → [Next Steps](NEXT_STEPS.md) → [API Reference](backend/API_REFERENCE.md) → [Architecture](backend/ARCHITECTURE.md) |
+| **📊 Product Manager** | [Next Steps](NEXT_STEPS.md) → [User Stories](USER_STORIES.md) → [Workflows](WORKFLOWS.md) → [Roadmaps](backend/BACKEND_ROADMAP.md) |
+| **🔧 DevOps** | [Quick Start](QUICK_START.md) → [Development Setup](DEVELOPMENT_SETUP.md) → [ENV Management](ENV_MANAGEMENT.md) → [Security Audit](SECURITY_AUDIT_REPORT.md) |
+| **📚 Reference** | [API Reference](backend/API_REFERENCE.md) → [Data Model](DATA_MODEL.md) → [System Contracts](system/CONTRACTS.md) → [Standards](standards/STANDARDS.md) |
+| **🎯 Current Work** | [Next Steps](NEXT_STEPS.md) - 4-week development plan |
+
+**Detailed View (Expandable Sections):**
+
+<details>
+<summary><strong>👨‍💻 For Developers</strong> - Setup, APIs, Architecture</summary>
+
+**Getting Started:**
+- [Quick Start](QUICK_START.md) - One-command setup
+- [Development Setup](DEVELOPMENT_SETUP.md) - Docker & local development
+- [Next Steps](NEXT_STEPS.md) - Current development priorities
+
+**Backend:**
+- [Backend Roadmap](backend/BACKEND_ROADMAP.md) - Implementation status
+- [API Reference](backend/API_REFERENCE.md) - All endpoints
+- [Architecture](backend/ARCHITECTURE.md) - System design
+- [System Contracts](system/CONTRACTS.md) - Naming conventions, patterns
+
+**Frontend:**
+- [Frontend Roadmap](frontend/FRONTEND_ROADMAP.md) - UI development status
+- [Auth Best Practices](frontend/AUTH_BEST_PRACTICES.md) - Authentication patterns
+
+**Data & Models:**
+- [Data Model](DATA_MODEL.md) - Database schema
+- [M5 Data Mapping](M5_DATA_MAPPING.md) - Dataset mapping
+
+</details>
+
+<details>
+<summary><strong>📊 For Product/Project Managers</strong> - Roadmaps, User Stories, Workflows</summary>
+
+**Planning & Status:**
+- [Next Steps](NEXT_STEPS.md) - Current development priorities (4-week plan)
+- [Backend Roadmap](backend/BACKEND_ROADMAP.md) - Backend implementation status
+- [Frontend Roadmap](frontend/FRONTEND_ROADMAP.md) - Frontend development status
+
+**Requirements:**
+- [User Stories](USER_STORIES.md) - Feature requirements by stakeholder
+- [Workflows](WORKFLOWS.md) - System workflows and decision loops
+
+**Forecasting:**
+- [Forecasting Roadmap](backend/FORECASTING_ROADMAP.md) - Forecasting module roadmap
+- [Forecasting Methods](backend/forecasting/METHODS.md) - Method implementations
+
+</details>
+
+<details>
+<summary><strong>🔧 For DevOps/Setup</strong> - Environment, Deployment, Configuration</summary>
+
+**Setup:**
+- [Quick Start](QUICK_START.md) - One-command setup guide
+- [Development Setup](DEVELOPMENT_SETUP.md) - Docker & local development
+- [Setup Script Guide](SETUP_SCRIPT_GUIDE.md) - Detailed setup options
+- [Environment Management](ENV_MANAGEMENT.md) - Environment variables guide
+
+**Data:**
+- [Shared Test Data](SHARED_TEST_DATA_SUPABASE.md) - Test data workflow
+- [M5 Data Mapping](M5_DATA_MAPPING.md) - Dataset mapping
+
+**Security:**
+- [Security Audit Report](SECURITY_AUDIT_REPORT.md) - Security findings
+
+</details>
+
+<details>
+<summary><strong>📚 Reference Documentation</strong> - APIs, Contracts, Standards</summary>
+
+**APIs:**
+- [API Reference](backend/API_REFERENCE.md) - All API endpoints
+- [Backend Architecture](backend/ARCHITECTURE.md) - System design
+
+**Standards:**
+- [System Contracts](system/CONTRACTS.md) - Naming conventions, patterns
+- [Standards](standards/STANDARDS.md) - Project standards
+
+**Data:**
+- [Data Model](DATA_MODEL.md) - Database schema and relationships
+- [M5 Data Mapping](M5_DATA_MAPPING.md) - How M5 dataset is mapped
+
+**Guides:**
+- [Supplier Management Guide](backend/SUPPLIER_MANAGEMENT_GUIDE.md) - MOQ, Lead Time
+- [Forecasting Methods](backend/forecasting/METHODS.md) - Method implementations
+
+</details>
+
+<details>
+<summary><strong>🎯 Current Work (Active Development)</strong> - What's being worked on now</summary>
+
+**Active Priorities:**
+- [Next Steps](NEXT_STEPS.md) - **Current 4-week development plan**
+  - Week 1: Empty State Handling
+  - Week 2: Frontend Polish
+  - Week 3: Data Validation
+  - Week 4: ETL Scheduling
+
+**Status:**
+- Backend MVP: ✅ Complete (Phases 1-4)
+- Frontend MVP: ✅ ~87% Complete
+- Next: Empty State Handling + Frontend Polish
+
+</details>
+
+---
+
 ## Quick Links
 
 | Document | Purpose |
 |----------|---------|
 | [Quick Start](QUICK_START.md) | One-command setup guide |
+| [Next Steps](NEXT_STEPS.md) | **Current development priorities** |
+| [Demo Wow Features](DEMO_WOW_FEATURES.md) | **UI features for impressive demos** |
 | [Development Setup](DEVELOPMENT_SETUP.md) | Docker & local development |
 | [Data Model](DATA_MODEL.md) | Database schema and sync strategy |
 | [System Contracts](system/CONTRACTS.md) | Auth, security, naming conventions |
@@ -19,6 +255,8 @@
 docs/
 ├── README.md                     # This file
 ├── QUICK_START.md                # One-command setup
+├── NEXT_STEPS.md                 # Current development priorities
+├── DEMO_WOW_FEATURES.md          # UI features for impressive demos
 ├── DEVELOPMENT_SETUP.md          # Docker & local development (consolidated)
 ├── SETUP_SCRIPT_GUIDE.md         # Detailed setup options
 ├── ENV_MANAGEMENT.md             # Environment variables guide

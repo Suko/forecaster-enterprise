@@ -38,9 +38,39 @@ const settingsItem = ref<NavigationMenuItem>({
   defaultOpen: false,
   children: [
     {
+      label: "General",
+      icon: "i-lucide-settings-2",
+      to: "/settings",
+      active: false,
+    },
+    {
+      label: "Inventory",
+      icon: "i-lucide-package",
+      to: "/settings/inventory",
+      active: false,
+    },
+    {
+      label: "Locations",
+      icon: "i-lucide-map-pin",
+      to: "/settings/locations",
+      active: false,
+    },
+    {
       label: "Users",
       icon: "i-lucide-users",
       to: "/settings/users",
+      active: false,
+    },
+    {
+      label: "Notifications",
+      icon: "i-lucide-bell",
+      to: "/settings/notifications",
+      active: false,
+    },
+    {
+      label: "Security",
+      icon: "i-lucide-shield",
+      to: "/settings/security",
       active: false,
     },
   ],
@@ -52,7 +82,13 @@ watch(
     settingsItem.value.active = path.startsWith("/settings");
     settingsItem.value.defaultOpen = path.startsWith("/settings");
     if (settingsItem.value.children) {
-      settingsItem.value.children[0].active = path === "/settings/users";
+      settingsItem.value.children.forEach((child) => {
+        if (path === "/settings" || path === "/settings/") {
+          child.active = child.to === "/settings";
+        } else {
+          child.active = path === child.to;
+        }
+      });
     }
   },
   { immediate: true }

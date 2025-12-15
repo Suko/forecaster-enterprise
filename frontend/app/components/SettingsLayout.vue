@@ -53,6 +53,12 @@
         </slot>
       </template>
 
+      <template #forecasting>
+        <slot name="forecasting">
+          <ForecastingAssumptionsSection />
+        </slot>
+      </template>
+
       <template #security>
         <slot name="security">
           <div class="py-8">
@@ -87,6 +93,11 @@ const tabs: TabsItem[] = [
     slot: "locations",
   },
   {
+    label: "Forecasting",
+    value: "forecasting",
+    slot: "forecasting",
+  },
+  {
     label: "Users",
     value: "users",
     slot: "users",
@@ -112,6 +123,9 @@ const activeTab = computed(() => {
   }
   if (route.path === "/settings/locations") {
     return "locations";
+  }
+  if (route.path === "/settings/forecasting") {
+    return "forecasting";
   }
   if (route.path === "/settings/users") {
     return "users";

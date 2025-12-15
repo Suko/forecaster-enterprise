@@ -75,9 +75,63 @@ const loadCart = async () => {
   loading.value = true;
   error.value = null;
   try {
-    const cart = await fetchCart();
-    items.value = cart.items || [];
-    totalValue.value = cart.total_value;
+    // DEMO MODE: Use hardcoded demo cart data
+    // const cart = await fetchCart();
+    // items.value = cart.items || [];
+    // totalValue.value = cart.total_value;
+    
+    // Demo cart items (hardcoded for demo)
+    const demoCartItems: any[] = [
+      {
+        id: '1',
+        item_id: 'M5_HOUSEHOLD_1_334',
+        product_name: 'Product M5_HOUSEHOLD_1_334',
+        supplier_id: 'SUPPLIER_1',
+        supplier_name: 'Supplier 1',
+        quantity: 70,
+        unit_cost: '12.50',
+        total_price: '875.00',
+        moq: 50,
+        lead_time_days: 14,
+        notes: null,
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+      },
+      {
+        id: '2',
+        item_id: 'M5_HOBBIES_1_387',
+        product_name: 'Product M5_HOBBIES_1_387',
+        supplier_id: 'SUPPLIER_1',
+        supplier_name: 'Supplier 1',
+        quantity: 30,
+        unit_cost: '18.75',
+        total_price: '562.50',
+        moq: 25,
+        lead_time_days: 14,
+        notes: null,
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+      },
+      {
+        id: '3',
+        item_id: 'M5_HOBBIES_1_404',
+        product_name: 'Product M5_HOBBIES_1_404',
+        supplier_id: 'SUPPLIER_2',
+        supplier_name: 'Supplier 2',
+        quantity: 90,
+        unit_cost: '22.00',
+        total_price: '1980.00',
+        moq: 50,
+        lead_time_days: 10,
+        notes: null,
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+      },
+    ];
+    
+    items.value = demoCartItems;
+    totalValue.value = demoCartItems.reduce((sum, item) => sum + parseFloat(item.total_price || '0'), 0).toString();
+    
     const nextDrafts: Record<string, number> = {};
     const nextPoDrafts: Record<string, PurchaseOrderDraft> = { ...poDrafts.value };
     for (const item of items.value) {
@@ -89,10 +143,13 @@ const loadCart = async () => {
     draftQuantities.value = nextDrafts;
     poDrafts.value = nextPoDrafts;
     persistDraftsToStorage();
+    
+    // Simulate network delay
+    await new Promise(resolve => setTimeout(resolve, 200));
   } catch (err: any) {
-    const wasAuthError = await handleAuthError(err);
-    if (wasAuthError) return;
-    error.value = err.message || "Failed to load cart";
+    // Fallback to demo data
+    error.value = null; // Don't show error in demo mode
+    console.warn("Using demo cart data:", err);
   } finally {
     loading.value = false;
   }
@@ -181,6 +238,118 @@ const onClearCart = async () => {
 };
 
 const creatingPoSupplierId = ref<string | null>(null);
+
+// Get supplier lead time (demo - from first item or default)
+const getSupplierLeadTime = (supplierId: string): number => {
+  const group = groupedBySupplier.value.find(g => g.supplier_id === supplierId);
+  if (group && group.items.length > 0) {
+    // Try to get lead time from item, or use default
+    const item = group.items[0];
+    return (item as any).lead_time_days || 14; // Demo default
+  }
+  return 14; // Demo default
+};
+
+// Get estimated arrival date
+const getEstimatedArrival = (supplierId: string): string => {
+  const leadTime = getSupplierLeadTime(supplierId);
+  const arrivalDate = new Date();
+  arrivalDate.setDate(arrivalDate.getDate() + leadTime);
+  return arrivalDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+};
+
+// Check for MOQ issues
+const hasMOQIssues = (group: { supplier_id: string; supplier_name: string; items: CartItem[]; total: number }): boolean => {
+  return group.items.some(item => {
+    const qty = Number(draftQuantities.value[keyFor(item)]);
+    return item.moq > 0 && qty < item.moq;
+  });
+};
+
+// Get MOQ warning message
+const getMOQWarningMessage = (group: { supplier_id: string; supplier_name: string; items: CartItem[]; total: number }): string => {
+  const issues = group.items
+    .filter(item => {
+      const qty = Number(draftQuantities.value[keyFor(item)]);
+      return item.moq > 0 && qty < item.moq;
+    })
+    .map(item => `${item.product_name} (qty: ${draftQuantities.value[keyFor(item)]}, MOQ: ${item.moq})`);
+  
+  if (issues.length === 0) return '';
+  return `Some items are below MOQ. Adjust quantities: ${issues.join(', ')}`;
+};
+
+// Calculate days of demand coverage for this PO
+const getDaysOfDemandCoverage = (group: { supplier_id: string; supplier_name: string; items: CartItem[]; total: number }): number => {
+  const leadTime = getSupplierLeadTime(group.supplier_id);
+  const totalQuantity = group.items.reduce((sum, item) => sum + Number(draftQuantities.value[keyFor(item)]), 0);
+  
+  // Estimate: assume average daily sales per item
+  // For demo: use rough estimate based on quantities
+  const avgDailySalesPerItem = 15; // Demo constant
+  const totalDailyDemand = group.items.length * avgDailySalesPerItem;
+  const daysOfCoverage = totalDailyDemand > 0 ? Math.round(totalQuantity / totalDailyDemand) : leadTime + 7;
+  
+  return Math.max(leadTime + 7, daysOfCoverage); // At least lead time + buffer
+};
+
+// Calculate percentage of risk resolved
+const getRiskResolved = (group: { supplier_id: string; supplier_name: string; items: CartItem[]; total: number }): number => {
+  // For demo: estimate based on number of items and their urgency
+  // Assume each item in cart resolves some risk
+  const itemsCount = group.items.length;
+  const avgRiskPerItem = 15; // Demo: each item resolves ~15% of total risk
+  const riskResolved = Math.min(100, itemsCount * avgRiskPerItem);
+  
+  return Math.round(riskResolved);
+};
+
+// Export draft PO to CSV
+const exportDraftPO = (group: { supplier_id: string; supplier_name: string; items: CartItem[]; total: number }) => {
+  const leadTime = getSupplierLeadTime(group.supplier_id);
+  const arrivalDate = getEstimatedArrival(group.supplier_id);
+  
+  // Build CSV content
+  const headers = ['SKU', 'Product Name', 'Quantity', 'Unit Cost', 'Line Total', 'MOQ', 'Lead Time (days)', 'Est. Arrival'];
+  const rows = group.items.map(item => [
+    item.item_id,
+    item.product_name,
+    item.quantity.toString(),
+    item.unit_cost,
+    item.total_price,
+    (item.moq || 0).toString(),
+    leadTime.toString(),
+    arrivalDate,
+  ]);
+  
+  const csvContent = [
+    `Draft Purchase Order - ${group.supplier_name}`,
+    `Generated: ${new Date().toLocaleDateString()}`,
+    `Total Value: ${formatMoney(group.total)}`,
+    '',
+    headers.join(','),
+    ...rows.map(row => row.map(cell => `"${cell}"`).join(',')),
+  ].join('\n');
+  
+  // Download CSV
+  const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+  const link = document.createElement('a');
+  const url = URL.createObjectURL(blob);
+  link.setAttribute('href', url);
+  link.setAttribute('download', `PO_Draft_${group.supplier_name}_${new Date().toISOString().split('T')[0]}.csv`);
+  link.style.visibility = 'hidden';
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+  
+  const toast = useToast();
+  toast.add({
+    title: "Draft PO exported",
+    description: `CSV file downloaded for ${group.supplier_name}`,
+    color: "success",
+    icon: "i-lucide-check-circle",
+  });
+};
 
 const onCreatePoForSupplier = async (supplierId: string) => {
   if (creatingPoSupplierId.value) return;
@@ -297,28 +466,105 @@ onMounted(async () => {
         :key="group.supplier_id"
       >
         <template #header>
-          <div class="flex items-center justify-between gap-3">
-            <div>
-              <button
-                class="font-semibold text-left hover:underline"
-                type="button"
-                @click="navigateTo(`/purchase-orders/suppliers/${group.supplier_id}`)"
-              >
-                {{ group.supplier_name }}
-              </button>
-              <p class="text-xs text-muted">
-                {{ group.items.length }} item(s) · {{ formatMoney(group.total) }}
+          <div class="space-y-3">
+            <div class="flex items-center justify-between gap-3">
+              <div class="flex-1">
+                <button
+                  class="font-semibold text-left hover:underline"
+                  type="button"
+                  @click="navigateTo(`/purchase-orders/suppliers/${group.supplier_id}`)"
+                >
+                  {{ group.supplier_name }}
+                </button>
+                <div class="flex items-center gap-4 mt-1">
+                  <p class="text-xs text-muted">
+                    {{ group.items.length }} item(s) · {{ formatMoney(group.total) }}
+                  </p>
+                  <div
+                    v-if="getSupplierLeadTime(group.supplier_id)"
+                    class="flex items-center gap-1 text-xs text-gray-600 dark:text-gray-400"
+                  >
+                    <UIcon
+                      name="i-lucide-clock"
+                      class="w-3 h-3"
+                    />
+                    <span>Lead time: {{ getSupplierLeadTime(group.supplier_id) }} days</span>
+                    <span class="text-gray-400">·</span>
+                    <span>Est. arrival: {{ getEstimatedArrival(group.supplier_id) }}</span>
+                  </div>
+                </div>
+              </div>
+              <div class="flex items-center gap-2">
+                <UButton
+                  icon="i-lucide-download"
+                  variant="outline"
+                  size="sm"
+                  @click="exportDraftPO(group)"
+                >
+                  Export
+                </UButton>
+                <UButton
+                  icon="i-lucide-file-plus-2"
+                  :loading="creatingPoSupplierId === group.supplier_id"
+                  @click="onCreatePoForSupplier(group.supplier_id)"
+                >
+                  Create PO
+                </UButton>
+              </div>
+            </div>
+            
+            <!-- PO Summary -->
+            <div class="bg-blue-50 dark:bg-blue-900/20 rounded-lg p-3 border border-blue-200 dark:border-blue-800">
+              <div class="flex items-center justify-between gap-4 text-sm">
+                <div class="flex items-center gap-4">
+                  <div>
+                    <span class="text-gray-600 dark:text-gray-400">This PO covers</span>
+                    <span class="font-semibold text-gray-900 dark:text-gray-100 ml-1">{{ getDaysOfDemandCoverage(group) }} days</span>
+                    <span class="text-gray-600 dark:text-gray-400 ml-1">of demand</span>
+                  </div>
+                  <div>
+                    <span class="text-gray-600 dark:text-gray-400">and resolves</span>
+                    <span class="font-semibold text-gray-900 dark:text-gray-100 ml-1">{{ getRiskResolved(group) }}%</span>
+                    <span class="text-gray-600 dark:text-gray-400 ml-1">of current risk</span>
+                  </div>
+                </div>
+                <div
+                  v-if="hasMOQIssues(group)"
+                  class="flex items-center gap-1 text-orange-600 dark:text-orange-400 text-xs font-medium"
+                >
+                  <UIcon
+                    name="i-lucide-alert-triangle"
+                    class="w-4 h-4"
+                  />
+                  <span>Some items below MOQ</span>
+                </div>
+                <div
+                  v-else
+                  class="flex items-center gap-1 text-green-600 dark:text-green-400 text-xs font-medium"
+                >
+                  <UIcon
+                    name="i-lucide-check-circle"
+                    class="w-4 h-4"
+                  />
+                  <span>All MOQs met</span>
+                </div>
+              </div>
+              <p class="text-xs text-gray-500 dark:text-gray-400 mt-2">
+                Quantities are recommendations and can be adjusted.
               </p>
             </div>
-            <UButton
-              icon="i-lucide-file-plus-2"
-              :loading="creatingPoSupplierId === group.supplier_id"
-              @click="onCreatePoForSupplier(group.supplier_id)"
-            >
-              Create PO
-            </UButton>
           </div>
         </template>
+
+        <!-- MOQ Warning -->
+        <UAlert
+          v-if="hasMOQIssues(group)"
+          color="warning"
+          variant="soft"
+          class="mx-4 mb-4"
+          title="MOQ Warning"
+          :description="getMOQWarningMessage(group)"
+        />
 
         <div class="p-4 space-y-3">
           <div class="grid grid-cols-1 md:grid-cols-3 gap-2">
@@ -378,15 +624,39 @@ onMounted(async () => {
               size="sm"
               variant="soft"
               @click="onUpdateQuantity(item)"
-              >Update</UButton
             >
+              Update
+            </UButton>
             <UButton
               size="sm"
               color="red"
               variant="ghost"
               @click="onRemoveItem(item)"
-              >Remove</UButton
             >
+              Remove
+            </UButton>
+          </div>
+        </div>
+        
+        <!-- Supplier Summary Footer -->
+        <div class="border-t p-4 bg-gray-50 dark:bg-gray-900/50">
+          <div class="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
+            <div>
+              <p class="text-gray-500 dark:text-gray-400">Items</p>
+              <p class="font-semibold">{{ group.items.length }}</p>
+            </div>
+            <div>
+              <p class="text-gray-500 dark:text-gray-400">Total Quantity</p>
+              <p class="font-semibold">{{ group.items.reduce((sum, item) => sum + Number(draftQuantities[keyFor(item)]), 0) }}</p>
+            </div>
+            <div>
+              <p class="text-gray-500 dark:text-gray-400">Lead Time</p>
+              <p class="font-semibold">{{ getSupplierLeadTime(group.supplier_id) }} days</p>
+            </div>
+            <div>
+              <p class="text-gray-500 dark:text-gray-400">Total Value</p>
+              <p class="font-semibold">{{ formatMoney(group.total) }}</p>
+            </div>
           </div>
         </div>
       </UCard>

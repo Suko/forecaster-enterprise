@@ -1,3 +1,141 @@
+## Demo-Critical Screenshots & Narrative (Sales-Driven)
+
+**Goal:** Win trust and create urgency in 5 minutes.  
+This demo is not about feature completeness — it is about showing *money, risk, and decisions*.
+
+The screenshots below are **mandatory for demos, sales PDFs, and outbound follow-ups**.
+
+---
+
+### 0️⃣ Hero Screenshot – Executive Overview (MANDATORY)
+
+**What this must show:**
+- KPI cards:
+  - Cash tied in inventory (€)
+  - SKUs at stockout risk (next 14 / 30 days)
+  - Slow / dead stock value (€)
+- One simple trend chart (sales or inventory coverage)
+
+**Why it matters:**
+- Instantly reframes inventory as a **capital allocation problem**
+- Hooks founders, CFOs, and ops managers in under 10 seconds
+
+**Narrative line:**
+> “This is where your cash and risk live today.”
+
+---
+
+### 1️⃣ Inventory Table with Decision Signals (MANDATORY)
+
+**What this must show:**
+- SKU list with:
+  - Stock on hand
+  - Days of Inventory Remaining (DIR)
+  - Sales velocity (7 / 30 days)
+  - Inventory value (€)
+  - Status badge (🟥 stockout risk / 🟧 excess / 🟩 healthy)
+- Active filter visible (e.g. `DIR < 14 days`)
+- Sorted by inventory value or risk
+
+**Why it matters:**
+- Turns chaos into **prioritized decisions**
+- Shows value even if forecasting is imperfect
+
+**Narrative line:**
+> “You already have this data — you just can’t see it like this.”
+
+---
+
+### 2️⃣ Single-SKU Deep Dive (Forecast + Risk) (HIGH PRIORITY)
+
+**What this must show:**
+- Historical sales + stock
+- Forecast line (dashed) with confidence band (can be mocked)
+- Estimated stockout date
+- Recommended reorder window
+
+**Why it matters:**
+- Justifies the intelligence layer
+- Shows *early warning*, not perfect prediction
+
+**Narrative line:**
+> “Stockouts are predictable weeks in advance when signals are connected.”
+
+---
+
+### 3️⃣ Recommendations / Action List (HIGH PRIORITY)
+
+**What this must show:**
+- Clear actions:
+  - “Order X units by DATE”
+  - “Delay reorder — excess coverage 92 days”
+- Short explanation per action (“based on velocity + lead time”)
+- One-click action buttons (add to cart / acknowledge)
+
+**Why it matters:**
+- Proves this is not just analytics — it drives action
+- Reduces cognitive load for operators
+
+**Narrative line:**
+> “The system tells you what to do and why.”
+
+---
+
+### 4️⃣ Constraints Reality Check (MOQs, Lead Times, Suppliers)
+
+**What this must show:**
+- Supplier lead time
+- MOQ / pack size constraints
+- Calendar effects (cutoffs, holidays)
+
+**Why it matters:**
+- Differentiates from ‘toy forecasts’
+- Builds trust with experienced operators
+
+**Narrative line:**
+> “Forecasts are useless unless they respect real-world constraints.”
+
+---
+
+### 5️⃣ (Optional but Powerful) Bundles / Component Explosion
+
+**What this must show:**
+- Bundle SKU → component demand
+- How bundle sales propagate to components
+
+**Why it matters:**
+- Instantly disqualifies Excel and naive tools
+- Signals enterprise readiness
+
+**Narrative line:**
+> “Bundles are where most inventory tools silently break.”
+
+---
+
+## Demo Rules (Do NOT Break These)
+
+- ❌ Do not show settings pages
+- ❌ Do not show empty states
+- ❌ Do not explain models or algorithms
+- ❌ Do not overload charts
+
+If a screen needs explanation before it looks useful — it is not demo-ready.
+
+---
+
+## Recommended Demo Flow (5 Minutes)
+
+1. Hero Dashboard (money & risk)
+2. Inventory table (prioritization)
+3. One SKU deep dive (forecast + risk)
+4. Recommendations (what to do now)
+5. Constraints (why this works in reality)
+
+This flow is optimized for:
+- Live sales calls
+- Sales PDFs
+- LinkedIn / email follow-ups
+
 # Demo "Wow" Features - UI Components for Maximum Impact
 
 **Purpose:** Identify UI features that create impressive demo moments and wow stakeholders

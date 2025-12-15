@@ -104,4 +104,8 @@ data/*/*_clean.csv
 # Test reports (generated files)
 backend/reports/*.json
 
+# Archive folders (old scripts/reports)
+backend/scripts/archive/
+backend/reports/archive/
+
 ./old/

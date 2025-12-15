@@ -4,6 +4,41 @@
 
 ---
 
+## Active Scripts
+
+| Script | Purpose |
+|--------|---------|
+| **Setup & Data** | |
+| `setup_test_data.py` | Create products, locations, suppliers, stock for testing |
+| `setup_demo_client.py` | Create demo client + import CSV data |
+| `reset_test_data.py` | Reset test data for a client |
+| `download_m5_data.py` | Download M5 forecasting competition data |
+| `import_csv_to_ts_demand_daily.py` | Import sales history from CSV |
+| `shift_dates_to_recent.py` | Shift historical dates to recent |
+| `populate_historical_stock.py` | Backfill stock_on_date column |
+| `generate_recent_sales_data.py` | Generate synthetic recent sales |
+| **Supabase Seed** | |
+| `build_local_seed.sh` | Build local seed dump for Supabase |
+| `push_seed_to_supabase.sh` | Push seed to Supabase |
+| `seed_supabase_demo.sh` | Seed Supabase demo data |
+| `setup_kaggle_token.sh` | Configure Kaggle API token |
+| **Testing** | |
+| `test_all_apis.py` | Test all API endpoints |
+| `test_integration.py` | Integration test suite |
+| `test_production_readiness.py` | Production readiness checks |
+| `test_m5_forecast_accuracy.py` | Forecast accuracy testing |
+| `test_classification_endpoint.py` | Classification API test |
+| **Utilities** | |
+| `check_data_completeness.py` | Verify data completeness |
+| `check_inventory_data.py` | Check inventory data |
+| `security_audit.py` | Security audit checks |
+| `comprehensive_model_comparison_all_skus.py` | Model comparison across SKUs |
+| `setup_multi_client_test.py` | Multi-client testing setup |
+
+**Archived scripts:** See `archive/` folder for old diagnostic/investigation scripts.
+
+---
+
 ## Quick Start: Setup Demo Client
 
 The easiest way to get started:

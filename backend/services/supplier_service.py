@@ -55,10 +55,14 @@ class SupplierService:
         result = await self.db.execute(query)
         suppliers: List[Supplier] = result.scalars().all()
 
-        # Get product counts for each supplier (only primary/default products)
+        # Get product counts and aggregate statistics for each supplier
         supplier_ids = [s.id for s in suppliers]
         product_counts = {}
+        moq_stats = {}  # {supplier_id: {'avg': float, 'min': int, 'max': int, 'custom_count': int}}
+        lead_time_stats = {}  # {supplier_id: {'avg': float, 'min': int, 'max': int, 'custom_count': int}}
+        
         if supplier_ids:
+            # Count products where supplier is primary/default
             count_query = (
                 select(
                     ProductSupplierCondition.supplier_id,
@@ -75,9 +79,82 @@ class SupplierService:
             for row in count_result.all():
                 product_counts[row.supplier_id] = row.count
 
-        # Attach product counts to suppliers
+            # Get MOQ and Lead Time statistics (effective values: condition value if > 0, else supplier default)
+            # Only count products where this supplier is PRIMARY (is_primary == True)
+            from sqlalchemy import case
+            for supplier in suppliers:
+                # Fetch product-supplier conditions where this supplier is PRIMARY
+                conditions_query = select(ProductSupplierCondition).where(
+                    ProductSupplierCondition.client_id == client_id,
+                    ProductSupplierCondition.supplier_id == supplier.id,
+                    ProductSupplierCondition.is_primary == True
+                )
+                conditions_result = await self.db.execute(conditions_query)
+                conditions = conditions_result.scalars().all()
+                
+                # Calculate effective MOQ values
+                moq_values = []
+                custom_moq_count = 0
+                for condition in conditions:
+                    # Effective MOQ: condition.moq if > 0, else supplier default
+                    effective_moq = condition.moq if condition.moq > 0 else (supplier.default_moq or 0)
+                    moq_values.append(effective_moq)
+                    # Count as custom if condition.moq > 0 and different from default
+                    if condition.moq > 0 and condition.moq != (supplier.default_moq or 0):
+                        custom_moq_count += 1
+                
+                if moq_values:
+                    moq_stats[supplier.id] = {
+                        'avg': sum(moq_values) / len(moq_values),
+                        'min': min(moq_values),
+                        'max': max(moq_values),
+                        'custom_count': custom_moq_count
+                    }
+                else:
+                    moq_stats[supplier.id] = {
+                        'avg': supplier.default_moq or 0,
+                        'min': supplier.default_moq or 0,
+                        'max': supplier.default_moq or 0,
+                        'custom_count': 0
+                    }
+
+                # Calculate effective Lead Time values
+                lead_time_values = []
+                custom_lead_time_count = 0
+                for condition in conditions:
+                    # Effective lead time: condition.lead_time_days if > 0, else supplier default
+                    effective_lead_time = condition.lead_time_days if condition.lead_time_days > 0 else (supplier.default_lead_time_days or 14)
+                    lead_time_values.append(effective_lead_time)
+                    # Count as custom if condition.lead_time_days > 0 and different from default
+                    if condition.lead_time_days > 0 and condition.lead_time_days != (supplier.default_lead_time_days or 14):
+                        custom_lead_time_count += 1
+                
+                if lead_time_values:
+                    lead_time_stats[supplier.id] = {
+                        'avg': sum(lead_time_values) / len(lead_time_values),
+                        'min': min(lead_time_values),
+                        'max': max(lead_time_values),
+                        'custom_count': custom_lead_time_count
+                    }
+                else:
+                    lead_time_stats[supplier.id] = {
+                        'avg': supplier.default_lead_time_days or 14,
+                        'min': supplier.default_lead_time_days or 14,
+                        'max': supplier.default_lead_time_days or 14,
+                        'custom_count': 0
+                    }
+
+        # Attach statistics to suppliers
         for supplier in suppliers:
             setattr(supplier, 'default_product_count', product_counts.get(supplier.id, 0))
+            setattr(supplier, 'effective_moq_avg', int(moq_stats.get(supplier.id, {}).get('avg', supplier.default_moq or 0)))
+            setattr(supplier, 'effective_moq_min', moq_stats.get(supplier.id, {}).get('min', supplier.default_moq or 0))
+            setattr(supplier, 'effective_moq_max', moq_stats.get(supplier.id, {}).get('max', supplier.default_moq or 0))
+            setattr(supplier, 'custom_moq_count', moq_stats.get(supplier.id, {}).get('custom_count', 0))
+            setattr(supplier, 'effective_lead_time_avg', int(lead_time_stats.get(supplier.id, {}).get('avg', supplier.default_lead_time_days or 14)))
+            setattr(supplier, 'effective_lead_time_min', lead_time_stats.get(supplier.id, {}).get('min', supplier.default_lead_time_days or 14))
+            setattr(supplier, 'effective_lead_time_max', lead_time_stats.get(supplier.id, {}).get('max', supplier.default_lead_time_days or 14))
+            setattr(supplier, 'custom_lead_time_count', lead_time_stats.get(supplier.id, {}).get('custom_count', 0))
 
         total_pages = (total + page_size - 1) // page_size if total > 0 else 0
 
@@ -90,14 +167,81 @@ class SupplierService:
         }
 
     async def get_supplier(self, client_id: UUID, supplier_id: UUID) -> Optional[Supplier]:
-        """Get supplier by ID"""
+        """Get supplier by ID with effective statistics"""
         result = await self.db.execute(
             select(Supplier).where(
                 Supplier.client_id == client_id,
                 Supplier.id == supplier_id,
             )
         )
-        return result.scalar_one_or_none()
+        supplier = result.scalar_one_or_none()
+        if not supplier:
+            return None
+        
+        # Calculate effective statistics (same logic as get_suppliers)
+        # Only count products where this supplier is PRIMARY (is_primary == True)
+        conditions_query = select(ProductSupplierCondition).where(
+            ProductSupplierCondition.client_id == client_id,
+            ProductSupplierCondition.supplier_id == supplier.id,
+            ProductSupplierCondition.is_primary == True
+        )
+        conditions_result = await self.db.execute(conditions_query)
+        conditions = conditions_result.scalars().all()
+        
+        # Calculate effective MOQ values
+        moq_values = []
+        custom_moq_count = 0
+        for condition in conditions:
+            effective_moq = condition.moq if condition.moq > 0 else (supplier.default_moq or 0)
+            moq_values.append(effective_moq)
+            if condition.moq > 0 and condition.moq != (supplier.default_moq or 0):
+                custom_moq_count += 1
+        
+        if moq_values:
+            setattr(supplier, 'effective_moq_avg', int(sum(moq_values) / len(moq_values)))
+            setattr(supplier, 'effective_moq_min', min(moq_values))
+            setattr(supplier, 'effective_moq_max', max(moq_values))
+            setattr(supplier, 'custom_moq_count', custom_moq_count)
+        else:
+            setattr(supplier, 'effective_moq_avg', supplier.default_moq or 0)
+            setattr(supplier, 'effective_moq_min', supplier.default_moq or 0)
+            setattr(supplier, 'effective_moq_max', supplier.default_moq or 0)
+            setattr(supplier, 'custom_moq_count', 0)
+        
+        # Calculate effective Lead Time values
+        lead_time_values = []
+        custom_lead_time_count = 0
+        for condition in conditions:
+            effective_lead_time = condition.lead_time_days if condition.lead_time_days > 0 else (supplier.default_lead_time_days or 14)
+            lead_time_values.append(effective_lead_time)
+            if condition.lead_time_days > 0 and condition.lead_time_days != (supplier.default_lead_time_days or 14):
+                custom_lead_time_count += 1
+        
+        if lead_time_values:
+            setattr(supplier, 'effective_lead_time_avg', int(sum(lead_time_values) / len(lead_time_values)))
+            setattr(supplier, 'effective_lead_time_min', min(lead_time_values))
+            setattr(supplier, 'effective_lead_time_max', max(lead_time_values))
+            setattr(supplier, 'custom_lead_time_count', custom_lead_time_count)
+        else:
+            setattr(supplier, 'effective_lead_time_avg', supplier.default_lead_time_days or 14)
+            setattr(supplier, 'effective_lead_time_min', supplier.default_lead_time_days or 14)
+            setattr(supplier, 'effective_lead_time_max', supplier.default_lead_time_days or 14)
+            setattr(supplier, 'custom_lead_time_count', 0)
+        
+        # Get product count (primary/default products)
+        count_query = (
+            select(func.count(ProductSupplierCondition.item_id))
+            .where(
+                ProductSupplierCondition.client_id == client_id,
+                ProductSupplierCondition.supplier_id == supplier.id,
+                ProductSupplierCondition.is_primary == True
+            )
+        )
+        count_result = await self.db.execute(count_query)
+        product_count = count_result.scalar() or 0
+        setattr(supplier, 'default_product_count', product_count)
+        
+        return supplier
 
     async def update_supplier(
         self,
@@ -189,5 +333,69 @@ class SupplierService:
 
         await self.db.commit()
         await self.db.refresh(supplier)
+        
+        # Recalculate effective statistics after update (conditions may have changed)
+        # Only count products where this supplier is PRIMARY (is_primary == True)
+        conditions_query = select(ProductSupplierCondition).where(
+            ProductSupplierCondition.client_id == client_id,
+            ProductSupplierCondition.supplier_id == supplier.id,
+            ProductSupplierCondition.is_primary == True
+        )
+        conditions_result = await self.db.execute(conditions_query)
+        conditions = conditions_result.scalars().all()
+        
+        # Calculate effective MOQ values
+        moq_values = []
+        custom_moq_count = 0
+        for condition in conditions:
+            effective_moq = condition.moq if condition.moq > 0 else (supplier.default_moq or 0)
+            moq_values.append(effective_moq)
+            if condition.moq > 0 and condition.moq != (supplier.default_moq or 0):
+                custom_moq_count += 1
+        
+        if moq_values:
+            setattr(supplier, 'effective_moq_avg', int(sum(moq_values) / len(moq_values)))
+            setattr(supplier, 'effective_moq_min', min(moq_values))
+            setattr(supplier, 'effective_moq_max', max(moq_values))
+            setattr(supplier, 'custom_moq_count', custom_moq_count)
+        else:
+            setattr(supplier, 'effective_moq_avg', supplier.default_moq or 0)
+            setattr(supplier, 'effective_moq_min', supplier.default_moq or 0)
+            setattr(supplier, 'effective_moq_max', supplier.default_moq or 0)
+            setattr(supplier, 'custom_moq_count', 0)
+        
+        # Calculate effective Lead Time values
+        lead_time_values = []
+        custom_lead_time_count = 0
+        for condition in conditions:
+            effective_lead_time = condition.lead_time_days if condition.lead_time_days > 0 else (supplier.default_lead_time_days or 14)
+            lead_time_values.append(effective_lead_time)
+            if condition.lead_time_days > 0 and condition.lead_time_days != (supplier.default_lead_time_days or 14):
+                custom_lead_time_count += 1
+        
+        if lead_time_values:
+            setattr(supplier, 'effective_lead_time_avg', int(sum(lead_time_values) / len(lead_time_values)))
+            setattr(supplier, 'effective_lead_time_min', min(lead_time_values))
+            setattr(supplier, 'effective_lead_time_max', max(lead_time_values))
+            setattr(supplier, 'custom_lead_time_count', custom_lead_time_count)
+        else:
+            setattr(supplier, 'effective_lead_time_avg', supplier.default_lead_time_days or 14)
+            setattr(supplier, 'effective_lead_time_min', supplier.default_lead_time_days or 14)
+            setattr(supplier, 'effective_lead_time_max', supplier.default_lead_time_days or 14)
+            setattr(supplier, 'custom_lead_time_count', 0)
+        
+        # Get product count (primary/default products)
+        count_query = (
+            select(func.count(ProductSupplierCondition.item_id))
+            .where(
+                ProductSupplierCondition.client_id == client_id,
+                ProductSupplierCondition.supplier_id == supplier.id,
+                ProductSupplierCondition.is_primary == True
+            )
+        )
+        count_result = await self.db.execute(count_query)
+        product_count = count_result.scalar() or 0
+        setattr(supplier, 'default_product_count', product_count)
+        
         return supplier
 

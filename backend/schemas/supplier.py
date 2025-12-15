@@ -57,6 +57,15 @@ class SupplierResponse(BaseModel):
     created_at: datetime
     updated_at: datetime
     default_product_count: int = 0  # Count of products where this supplier is primary/default
+    # Effective values (accounting for product-level overrides)
+    effective_moq_avg: int = 0  # Average effective MOQ across all products
+    effective_moq_min: int = 0  # Minimum effective MOQ
+    effective_moq_max: int = 0  # Maximum effective MOQ
+    custom_moq_count: int = 0  # Number of products with custom MOQ (different from default)
+    effective_lead_time_avg: int = 14  # Average effective lead time across all products
+    effective_lead_time_min: int = 14  # Minimum effective lead time
+    effective_lead_time_max: int = 14  # Maximum effective lead time
+    custom_lead_time_count: int = 0  # Number of products with custom lead time
 
     class Config:
         from_attributes = True

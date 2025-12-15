@@ -11,6 +11,7 @@ export interface CartItem {
   notes?: string | null;
   product_name: string;
   supplier_name: string;
+  moq: number; // Minimum Order Quantity for this product-supplier combination
   created_at: string;
   updated_at: string;
 }

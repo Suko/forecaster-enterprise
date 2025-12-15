@@ -27,9 +27,17 @@ export default defineEventHandler(async (event) => {
     if (error.statusCode === 401) {
       throw createError({ statusCode: 401, statusMessage: "Not authenticated" });
     }
+    // Extract error message from FastAPI response (detail field) or other sources
+    const errorMessage =
+      error.data?.detail || // FastAPI error detail
+      error.data?.statusMessage || // Nuxt error statusMessage
+      error.data?.message || // Generic error message
+      error.message || // Error object message
+      "Failed to update cart item";
     throw createError({
       statusCode: error.statusCode || 500,
-      statusMessage: error.message || "Failed to update cart item",
+      statusMessage: errorMessage,
+      data: error.data, // Preserve original error data
     });
   }
 });

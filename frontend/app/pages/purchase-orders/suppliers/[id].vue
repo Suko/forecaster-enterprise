@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import type { Supplier } from "~/types/supplier";
 import type { Product, ProductListResponse } from "~/types/product";
+import type { ProductSupplierCondition } from "~/types/inventory";
 
 definePageMeta({
   layout: "dashboard",
@@ -10,7 +11,9 @@ const route = useRoute();
 const supplierId = computed(() => String(route.params.id || ""));
 
 const { fetchSupplier, updateSupplier } = useSuppliers();
+const { getProductSuppliers, addProductSupplier, updateProductSupplier } = useProductSuppliers();
 const { handleAuthError } = useAuthError();
+const toast = useToast();
 
 const loading = ref(false);
 const error = ref<string | null>(null);
@@ -35,6 +38,14 @@ const pendingChanges = ref<{ default_moq?: number; default_lead_time_days?: numb
 const productsLoading = ref(false);
 const productsError = ref<string | null>(null);
 const products = ref<Product[]>([]);
+const productsTotal = ref(0);
+const productsPage = ref(1);
+const productsPageSize = ref(50);
+const productsTotalPages = ref(0);
+const productConditions = ref<Map<string, ProductSupplierCondition>>(new Map());
+const editingProductId = ref<string | null>(null);
+const editingProductForm = ref<{ moq: number; lead_time_days: number } | null>(null);
+const savingProduct = ref(false);
 
 const badgeColorForType = (supplierType: string) => {
   if (supplierType === "PO") return "blue";
@@ -57,19 +68,26 @@ const loadSupplier = async () => {
   }
 };
 
-const loadProducts = async () => {
+const loadProducts = async (page: number = productsPage.value) => {
   if (!supplierId.value) return;
   productsLoading.value = true;
   productsError.value = null;
   try {
     const res = await $fetch<ProductListResponse>("/api/products", {
       query: {
-        page: 1,
-        page_size: 50,
+        page,
+        page_size: productsPageSize.value,
         supplier_id: supplierId.value,
       },
     });
     products.value = res.items || [];
+    productsTotal.value = res.total || 0;
+    productsPage.value = res.page || 1;
+    productsPageSize.value = res.page_size || 50;
+    productsTotalPages.value = res.total_pages || 0;
+    
+    // Load product-supplier conditions for each product
+    await loadProductConditions();
   } catch (err: any) {
     const wasAuthError = await handleAuthError(err);
     if (wasAuthError) return;
@@ -77,6 +95,215 @@ const loadProducts = async () => {
   } finally {
     productsLoading.value = false;
   }
+};
+
+const goToPage = (page: number) => {
+  if (page >= 1 && page <= productsTotalPages.value && page !== productsPage.value) {
+    loadProducts(page);
+  }
+};
+
+const getVisiblePages = (): number[] => {
+  const current = productsPage.value;
+  const total = productsTotalPages.value;
+  const pages: number[] = [];
+  
+  if (total <= 7) {
+    // Show all pages if 7 or fewer
+    for (let i = 1; i <= total; i++) {
+      pages.push(i);
+    }
+  } else {
+    // Show first page, pages around current, and last page
+    pages.push(1);
+    
+    if (current > 3) {
+      pages.push(-1); // Ellipsis marker
+    }
+    
+    const start = Math.max(2, current - 1);
+    const end = Math.min(total - 1, current + 1);
+    
+    for (let i = start; i <= end; i++) {
+      if (!pages.includes(i)) {
+        pages.push(i);
+      }
+    }
+    
+    if (current < total - 2) {
+      pages.push(-1); // Ellipsis marker
+    }
+    
+    if (!pages.includes(total)) {
+      pages.push(total);
+    }
+  }
+  
+  return pages;
+};
+
+const loadProductConditions = async () => {
+  if (!supplierId.value) return;
+  
+  const conditionsMap = new Map<string, ProductSupplierCondition>();
+  
+  for (const product of products.value) {
+    try {
+      const conditions = await getProductSuppliers(product.item_id);
+      // Find condition for this supplier
+      const condition = conditions.find(c => c.supplier_id === supplierId.value);
+      if (condition) {
+        conditionsMap.set(product.item_id, condition);
+      }
+    } catch (err) {
+      // Silently fail for individual products
+      console.warn(`Failed to load conditions for product ${product.item_id}:`, err);
+    }
+  }
+  
+  productConditions.value = conditionsMap;
+};
+
+const getProductCondition = (itemId: string): ProductSupplierCondition | null => {
+  return productConditions.value.get(itemId) || null;
+};
+
+const isUsingSupplierDefault = (itemId: string, field: 'moq' | 'lead_time_days'): boolean => {
+  if (!supplier.value) return false;
+  const condition = getProductCondition(itemId);
+  if (!condition) return true; // No condition means using default
+  
+  if (field === 'moq') {
+    return condition.moq === (supplier.value.default_moq || 0);
+  } else {
+    return condition.lead_time_days === (supplier.value.default_lead_time_days || 14);
+  }
+};
+
+const startEditingProduct = (product: Product) => {
+  const condition = getProductCondition(product.item_id);
+  editingProductId.value = product.item_id;
+  editingProductForm.value = {
+    moq: condition?.moq ?? (supplier.value?.default_moq || 0),
+    lead_time_days: condition?.lead_time_days ?? (supplier.value?.default_lead_time_days || 14),
+  };
+};
+
+const cancelEditingProduct = () => {
+  editingProductId.value = null;
+  editingProductForm.value = null;
+};
+
+const saveProductCondition = async (product: Product) => {
+  if (!editingProductForm.value || !supplierId.value || savingProduct.value) return;
+  
+  savingProduct.value = true;
+  try {
+    const condition = getProductCondition(product.item_id);
+    let updated: ProductSupplierCondition;
+    
+    // If condition doesn't exist, create it; otherwise update it
+    if (!condition) {
+      updated = await addProductSupplier(product.item_id, {
+        supplier_id: supplierId.value,
+        moq: editingProductForm.value.moq,
+        lead_time_days: editingProductForm.value.lead_time_days,
+      });
+    } else {
+      updated = await updateProductSupplier(product.item_id, supplierId.value, {
+        moq: editingProductForm.value.moq,
+        lead_time_days: editingProductForm.value.lead_time_days,
+      });
+    }
+    
+    // Update local state
+    productConditions.value.set(product.item_id, updated);
+    
+    toast.add({
+      title: "Updated",
+      description: `MOQ and lead time ${condition ? 'updated' : 'set'} for ${product.product_name}`,
+      color: "green",
+    });
+    
+    editingProductId.value = null;
+    editingProductForm.value = null;
+  } catch (err: any) {
+    const wasAuthError = await handleAuthError(err);
+    if (wasAuthError) return;
+    
+    const errorMessage =
+      err.data?.detail ||
+      err.data?.statusMessage ||
+      err.data?.message ||
+      err.message ||
+      "Failed to save product condition";
+    
+    toast.add({
+      title: "Save failed",
+      description: errorMessage,
+      color: "red",
+    });
+  } finally {
+    savingProduct.value = false;
+  }
+};
+
+const resetToDefault = async (product: Product) => {
+  if (!supplierId.value || !supplier.value || savingProduct.value) return;
+  
+  savingProduct.value = true;
+  try {
+    const condition = getProductCondition(product.item_id);
+    
+    // If no condition exists, nothing to reset
+    if (!condition) {
+      toast.add({
+        title: "Already using defaults",
+        description: `${product.product_name} is already using supplier defaults`,
+        color: "blue",
+      });
+      savingProduct.value = false;
+      return;
+    }
+    
+    // Update condition to match supplier defaults
+    const updated = await updateProductSupplier(product.item_id, supplierId.value, {
+      moq: supplier.value.default_moq || 0,
+      lead_time_days: supplier.value.default_lead_time_days || 14,
+    });
+    
+    // Update local state
+    productConditions.value.set(product.item_id, updated);
+    
+    toast.add({
+      title: "Reset to default",
+      description: `${product.product_name} now uses supplier defaults`,
+      color: "green",
+    });
+  } catch (err: any) {
+    const wasAuthError = await handleAuthError(err);
+    if (wasAuthError) return;
+    
+    const errorMessage =
+      err.data?.detail ||
+      err.data?.statusMessage ||
+      err.data?.message ||
+      err.message ||
+      "Failed to reset to default";
+    
+    toast.add({
+      title: "Reset failed",
+      description: errorMessage,
+      color: "red",
+    });
+  } finally {
+    savingProduct.value = false;
+  }
+};
+
+const hasCustomValues = (itemId: string): boolean => {
+  if (!supplier.value) return false;
+  return !isUsingSupplierDefault(itemId, 'moq') || !isUsingSupplierDefault(itemId, 'lead_time_days');
 };
 
 const startEditing = () => {
@@ -161,6 +388,9 @@ const performSave = async (applyToExistingProducts: boolean) => {
 
     // Reload products to show updated values
     await loadProducts();
+    
+    // Reload product conditions in case they were affected
+    await loadProductConditions();
   } catch (err: any) {
     const wasAuthError = await handleAuthError(err);
     if (wasAuthError) return;
@@ -332,6 +562,18 @@ onMounted(async () => {
             <div class="text-xs text-muted mt-1">
               Used when linking products to this supplier
             </div>
+            <div
+              v-if="supplier.effective_moq_avg !== undefined && supplier.effective_moq_avg !== supplier.default_moq"
+              class="text-xs text-primary mt-1"
+            >
+              Effective avg: {{ supplier.effective_moq_avg }} units
+            </div>
+            <div
+              v-if="supplier.custom_moq_count && supplier.custom_moq_count > 0"
+              class="text-xs text-blue-600 mt-1"
+            >
+              {{ supplier.custom_moq_count }} product{{ supplier.custom_moq_count !== 1 ? 's' : '' }} with custom MOQ
+            </div>
           </div>
           <div>
             <div class="text-xs text-muted">Default Lead Time</div>
@@ -340,6 +582,18 @@ onMounted(async () => {
             </div>
             <div class="text-xs text-muted mt-1">
               Used when linking products to this supplier
+            </div>
+            <div
+              v-if="supplier.effective_lead_time_avg !== undefined && supplier.effective_lead_time_avg !== supplier.default_lead_time_days"
+              class="text-xs text-primary mt-1"
+            >
+              Effective avg: {{ supplier.effective_lead_time_avg }} days
+            </div>
+            <div
+              v-if="supplier.custom_lead_time_count && supplier.custom_lead_time_count > 0"
+              class="text-xs text-blue-600 mt-1"
+            >
+              {{ supplier.custom_lead_time_count }} product{{ supplier.custom_lead_time_count !== 1 ? 's' : '' }} with custom lead time
             </div>
           </div>
           <div class="md:col-span-2">
@@ -452,7 +706,12 @@ onMounted(async () => {
       <UCard>
         <template #header>
           <div class="flex items-center justify-between">
-            <h2 class="text-lg font-semibold">Products (first 50)</h2>
+            <h2 class="text-lg font-semibold">
+              Products
+              <span v-if="productsTotal > 0" class="text-sm font-normal text-muted">
+                ({{ productsTotal }} total)
+              </span>
+            </h2>
             <UButton
               icon="i-lucide-refresh-cw"
               variant="ghost"
@@ -493,20 +752,209 @@ onMounted(async () => {
           <div
             v-for="p in products"
             :key="p.item_id"
-            class="py-3 flex items-center justify-between gap-4"
+            class="py-3 space-y-2"
           >
-            <div class="min-w-0">
-              <div class="font-medium truncate">{{ p.product_name }}</div>
-              <div class="text-xs text-muted">
-                {{ p.item_id }} · {{ p.category || "Uncategorized" }}
+            <div class="flex items-center justify-between gap-4">
+              <div class="min-w-0 flex-1">
+                <div class="font-medium truncate">{{ p.product_name }}</div>
+                <div class="text-xs text-muted">
+                  {{ p.item_id }} · {{ p.category || "Uncategorized" }}
+                </div>
+              </div>
+              <div class="flex items-center gap-2">
+                <UButton
+                  v-if="editingProductId !== p.item_id && hasCustomValues(p.item_id)"
+                  size="sm"
+                  variant="ghost"
+                  color="gray"
+                  icon="i-lucide-rotate-ccw"
+                  :disabled="savingProduct"
+                  @click="resetToDefault(p)"
+                >
+                  Reset to Default
+                </UButton>
+                <UButton
+                  v-if="editingProductId !== p.item_id"
+                  size="sm"
+                  variant="soft"
+                  icon="i-lucide-edit"
+                  @click="startEditingProduct(p)"
+                >
+                  {{ getProductCondition(p.item_id) ? 'Edit MOQ' : 'Set MOQ' }}
+                </UButton>
+                <UButton
+                  size="sm"
+                  variant="soft"
+                  @click="navigateTo({ path: '/inventory', query: { item: p.item_id } })"
+                >
+                  View
+                </UButton>
               </div>
             </div>
-            <UButton
-              size="sm"
-              variant="soft"
-              @click="navigateTo({ path: '/inventory', query: { item: p.item_id } })"
+            
+            <!-- Display MOQ and Lead Time -->
+            <div
+              v-if="editingProductId !== p.item_id"
+              class="flex items-center gap-4 text-sm"
             >
-              View
+              <div class="flex items-center gap-2">
+                <span class="text-muted">MOQ:</span>
+                <span
+                  class="font-medium"
+                  :class="isUsingSupplierDefault(p.item_id, 'moq') ? 'text-muted' : 'text-primary'"
+                >
+                  {{ getProductCondition(p.item_id)?.moq ?? (supplier?.default_moq || 0) }}
+                </span>
+                <UBadge
+                  v-if="!isUsingSupplierDefault(p.item_id, 'moq')"
+                  color="blue"
+                  variant="soft"
+                  size="xs"
+                >
+                  Custom
+                </UBadge>
+              </div>
+              <div class="flex items-center gap-2">
+                <span class="text-muted">Lead Time:</span>
+                <span
+                  class="font-medium"
+                  :class="isUsingSupplierDefault(p.item_id, 'lead_time_days') ? 'text-muted' : 'text-primary'"
+                >
+                  {{ getProductCondition(p.item_id)?.lead_time_days ?? (supplier?.default_lead_time_days || 14) }} days
+                </span>
+                <UBadge
+                  v-if="!isUsingSupplierDefault(p.item_id, 'lead_time_days')"
+                  color="blue"
+                  variant="soft"
+                  size="xs"
+                >
+                  Custom
+                </UBadge>
+              </div>
+            </div>
+            
+            <!-- Edit Form -->
+            <div
+              v-else
+              class="p-3 bg-muted rounded-lg space-y-3"
+            >
+              <div class="grid grid-cols-2 gap-3">
+                <UFormField
+                  label="MOQ"
+                  name="moq"
+                >
+                  <UInput
+                    v-model.number="editingProductForm!.moq"
+                    type="number"
+                    min="0"
+                    size="sm"
+                  />
+                  <template #hint>
+                    Supplier default: {{ supplier?.default_moq || 0 }}
+                  </template>
+                </UFormField>
+                <UFormField
+                  label="Lead Time (Days)"
+                  name="lead_time_days"
+                >
+                  <UInput
+                    v-model.number="editingProductForm!.lead_time_days"
+                    type="number"
+                    min="0"
+                    size="sm"
+                  />
+                  <template #hint>
+                    Supplier default: {{ supplier?.default_lead_time_days || 14 }}
+                  </template>
+                </UFormField>
+              </div>
+              <div class="flex items-center justify-between">
+                <UButton
+                  v-if="hasCustomValues(p.item_id)"
+                  size="sm"
+                  variant="ghost"
+                  color="gray"
+                  icon="i-lucide-rotate-ccw"
+                  :disabled="savingProduct"
+                  @click="resetToDefault(p)"
+                >
+                  Reset to Default
+                </UButton>
+                <div v-else></div>
+                <div class="flex items-center gap-2">
+                  <UButton
+                    size="sm"
+                    variant="ghost"
+                    :disabled="savingProduct"
+                    @click="cancelEditingProduct"
+                  >
+                    Cancel
+                  </UButton>
+                  <UButton
+                    size="sm"
+                    color="primary"
+                    :loading="savingProduct"
+                    @click="saveProductCondition(p)"
+                  >
+                    Save
+                  </UButton>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        <!-- Pagination -->
+        <div
+          v-if="productsTotalPages > 1"
+          class="mt-4 pt-4 border-t flex items-center justify-between"
+        >
+          <div class="text-sm text-muted">
+            Showing {{ (productsPage - 1) * productsPageSize + 1 }} to
+            {{ Math.min(productsPage * productsPageSize, productsTotal) }} of
+            {{ productsTotal }} products
+          </div>
+          <div class="flex items-center gap-2">
+            <UButton
+              icon="i-lucide-chevron-left"
+              variant="ghost"
+              size="sm"
+              :disabled="productsPage <= 1 || productsLoading"
+              @click="goToPage(productsPage - 1)"
+            >
+              Previous
+            </UButton>
+            <div class="flex items-center gap-1">
+              <template
+                v-for="page in getVisiblePages()"
+                :key="page"
+              >
+                <span
+                  v-if="page === -1"
+                  class="px-2 text-sm text-muted"
+                >
+                  ...
+                </span>
+                <UButton
+                  v-else
+                  :variant="page === productsPage ? 'solid' : 'ghost'"
+                  size="sm"
+                  :disabled="productsLoading"
+                  @click="goToPage(page)"
+                >
+                  {{ page }}
+                </UButton>
+              </template>
+            </div>
+            <UButton
+              icon="i-lucide-chevron-right"
+              icon-position="right"
+              variant="ghost"
+              size="sm"
+              :disabled="productsPage >= productsTotalPages || productsLoading"
+              @click="goToPage(productsPage + 1)"
+            >
+              Next
             </UButton>
           </div>
         </div>

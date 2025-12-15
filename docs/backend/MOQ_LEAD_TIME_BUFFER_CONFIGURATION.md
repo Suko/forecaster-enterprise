@@ -4,11 +4,15 @@
 
 ### Summary Table
 
-| Parameter | Current Location | Table | Level | Default | Configurable |
-|-----------|------------------|-------|-------|---------|--------------|
-| **MOQ** | Product-Supplier Relationship | `product_supplier_conditions` | Product × Supplier | 0 | ✅ Yes |
-| **Lead Time** | Product-Supplier Relationship | `product_supplier_conditions` | Product × Supplier | 0 | ✅ Yes |
-| **Safety Buffer** | Client Settings | `client_settings` | Client (Global) | 7 days | ✅ Yes |
+| Parameter | Current Location | Table | Level | Default | Configurable | Priority |
+|-----------|------------------|-------|-------|---------|--------------|----------|
+| **MOQ** | Product-Supplier Override | `product_supplier_conditions` | Product × Supplier | 0 | ✅ Yes | 1st (highest) |
+| **MOQ** | Supplier Default | `suppliers` | Supplier | 0 | ✅ Yes | 2nd (fallback) |
+| **Lead Time** | Product-Supplier Override | `product_supplier_conditions` | Product × Supplier | 0 | ✅ Yes | 1st (highest) |
+| **Lead Time** | Supplier Default | `suppliers` | Supplier | 14 days | ✅ Yes | 2nd (fallback) |
+| **Safety Buffer** | Client Settings | `client_settings` | Client (Global) | 7 days | ✅ Yes | N/A |
+
+**📖 See:** [`MOQ_MANAGEMENT_GUIDE.md`](./MOQ_MANAGEMENT_GUIDE.md) for detailed explanation of the two-level system and how supplier changes affect product-level MOQs.
 
 ---
 
@@ -34,10 +38,18 @@ CREATE TABLE product_supplier_conditions (
 ```
 
 ### Where It's Set
-- **API Endpoint:** `POST /api/v1/products/{item_id}/suppliers`
-- **API Endpoint:** `PUT /api/v1/products/{item_id}/suppliers/{supplier_id}`
-- **UI:** Product → Suppliers → Add/Edit Supplier → MOQ field
-- **CSV Import:** Via product-supplier conditions import
+
+**Product-Level (Override):**
+- **API Endpoint:** `POST /api/v1/products/{item_id}/suppliers` (with custom MOQ)
+- **API Endpoint:** `PUT /api/v1/products/{item_id}/suppliers/{supplier_id}` (update MOQ)
+- **UI:** Purchase Orders → Suppliers → [Supplier] → Products → Edit MOQ / Set MOQ
+
+**Supplier-Level (Default):**
+- **API Endpoint:** `PUT /api/v1/suppliers/{supplier_id}` (set `default_moq`)
+- **UI:** Purchase Orders → Suppliers → [Supplier] → Edit → Default MOQ
+- **Auto-populated:** When linking products, MOQ auto-populates from supplier default if not specified
+
+**CSV Import:** Via product-supplier conditions import
 
 ### Current Usage
 - ✅ Cart validation: `quantity >= MOQ`
@@ -139,32 +151,15 @@ Stockout Risk = f(DIR, Total Required Days)
 
 ## Configuration Hierarchy
 
-### Current State (No Hierarchy)
-```
-┌─────────────────────────────────────────┐
-│  MOQ & Lead Time                       │
-│  └─ product_supplier_conditions        │
-│     (per product × supplier)           │
-└─────────────────────────────────────────┘
-
-┌─────────────────────────────────────────┐
-│  Safety Buffer                         │
-│  └─ client_settings                    │
-│     (global per client)                │
-└─────────────────────────────────────────┘
-```
-
-### Proposed Hierarchy (From Improvement Plan)
+### Current Implementation (Two-Level System)
 ```
 ┌─────────────────────────────────────────┐
 │  MOQ & Lead Time (Priority Order)      │
-│  1. product_supplier_conditions        │
-│     (explicit override)                 │
-│  2. products.default_moq                │
-│     (product default)                   │
-│  3. suppliers.default_moq                │
-│     (supplier default)                  │
-│  4. System default (0/14)               │
+│  1. product_supplier_conditions.moq     │
+│     (product-level override)            │
+│  2. suppliers.default_moq              │
+│     (supplier-level default)            │
+│  3. System default (0/14)               │
 └─────────────────────────────────────────┘
 
 ┌─────────────────────────────────────────┐
@@ -173,6 +168,8 @@ Stockout Risk = f(DIR, Total Required Days)
 │     (global per client)                │
 └─────────────────────────────────────────┘
 ```
+
+**📖 See:** [`MOQ_MANAGEMENT_GUIDE.md`](./MOQ_MANAGEMENT_GUIDE.md) for detailed explanation of supplier vs product-level MOQ management and how changes affect each other.
 
 ---
 
@@ -231,27 +228,23 @@ if dir < total_required_days:
 
 ---
 
-## Current Limitations
+## Current Implementation Status
 
 ### MOQ & Lead Time
-- ❌ Must be set for each product-supplier combination
-- ❌ No product-level defaults
-- ❌ No supplier-level defaults
-- ❌ No fallback when condition doesn't exist
+- ✅ **Supplier-level defaults** (`suppliers.default_moq`) - **IMPLEMENTED**
+- ✅ **Product-level overrides** (`product_supplier_conditions.moq`) - **IMPLEMENTED**
+- ✅ **Fallback chain** (product override → supplier default → system default) - **IMPLEMENTED**
+- ✅ **Auto-population** from supplier defaults when linking products - **IMPLEMENTED**
+- ✅ **Selective updates** via `apply_to_existing` flag - **IMPLEMENTED**
+- ✅ **UI for product-level MOQ editing** - **IMPLEMENTED** (Purchase Orders → Suppliers → [Supplier] → Products)
+
+**📖 See:** [`MOQ_MANAGEMENT_GUIDE.md`](./MOQ_MANAGEMENT_GUIDE.md) for detailed explanation of how supplier and product-level MOQs interact.
 
 ### Safety Buffer
 - ✅ Already at client level (good)
 - ⚠️ Cannot be set per product or per supplier (by design - global setting)
 
 ---
-
-## Improvement Plan
-
-See: `docs/backend/MOQ_LEAD_TIME_IMPROVEMENTS.md`
-
-**Proposed:**
-- Add product-level defaults for MOQ and lead time
-- Add supplier-level defaults for MOQ and lead time
 - Implement fallback chain: product-supplier → product → supplier → system default
 
 ---
@@ -260,19 +253,23 @@ See: `docs/backend/MOQ_LEAD_TIME_IMPROVEMENTS.md`
 
 ### Where to Set Each Parameter
 
-| Parameter | Where to Set | Example |
-|-----------|--------------|---------|
-| **MOQ** | Product → Suppliers → [Supplier] → MOQ | Product "SKU-001" with Supplier "A" → MOQ: 100 |
-| **Lead Time** | Product → Suppliers → [Supplier] → Lead Time | Product "SKU-001" with Supplier "A" → Lead Time: 14 days |
-| **Safety Buffer** | Settings → Inventory Thresholds → Safety Buffer | Client-wide → Safety Buffer: 7 days |
+| Parameter | Level | Where to Set | Example |
+|-----------|-------|--------------|---------|
+| **MOQ** | Supplier (Default) | Purchase Orders → Suppliers → [Supplier] → Edit → Default MOQ | Supplier "A" → Default MOQ: 100 |
+| **MOQ** | Product (Override) | Purchase Orders → Suppliers → [Supplier] → Products → Edit MOQ | Product "SKU-001" with Supplier "A" → MOQ: 70 (overrides supplier default) |
+| **Lead Time** | Supplier (Default) | Purchase Orders → Suppliers → [Supplier] → Edit → Default Lead Time | Supplier "A" → Default Lead Time: 14 days |
+| **Lead Time** | Product (Override) | Purchase Orders → Suppliers → [Supplier] → Products → Edit MOQ | Product "SKU-001" with Supplier "A" → Lead Time: 21 days (overrides supplier default) |
+| **Safety Buffer** | Client (Global) | Settings → Inventory Thresholds → Safety Buffer | Client-wide → Safety Buffer: 7 days |
 
 ### Current Defaults
 
-| Parameter | Default Value | Can Be Changed |
-|-----------|---------------|-----------------|
-| MOQ | 0 | ✅ Yes (per product-supplier) |
-| Lead Time | 0 | ✅ Yes (per product-supplier) |
-| Safety Buffer | 7 days | ✅ Yes (per client) |
+| Parameter | Default Value | Can Be Changed At |
+|-----------|---------------|-------------------|
+| MOQ | 0 | ✅ Supplier level (default) or Product level (override) |
+| Lead Time | 14 days | ✅ Supplier level (default) or Product level (override) |
+| Safety Buffer | 7 days | ✅ Client level (global) |
+
+**Note:** Product-level MOQ/Lead Time overrides supplier defaults. See [`MOQ_MANAGEMENT_GUIDE.md`](./MOQ_MANAGEMENT_GUIDE.md) for details on how changes at supplier level affect product level.
 
 ---
 
@@ -297,6 +294,6 @@ See: `docs/backend/MOQ_LEAD_TIME_IMPROVEMENTS.md`
 
 ---
 
-**Last Updated:** 2025-12-10  
+**Last Updated:** 2025-12-15  
 **Status:** Current implementation documented
 

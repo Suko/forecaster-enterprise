@@ -265,42 +265,82 @@ async def update_product_supplier(
     """
     Update product-supplier conditions (MOQ, lead time, packaging).
     """
-    service = InventoryService(db)
+    try:
+        service = InventoryService(db)
 
-    condition = await service.update_product_supplier(
-        client_id=client.client_id,
-        item_id=item_id,
-        supplier_id=supplier_id,
-        moq=data.moq,
-        lead_time_days=data.lead_time_days,
-        supplier_cost=data.supplier_cost,
-        packaging_unit=data.packaging_unit,
-        packaging_qty=data.packaging_qty,
-        is_primary=data.is_primary,
-        notes=data.notes
-    )
-
-    if not condition:
-        raise HTTPException(
-            status_code=404,
-            detail=f"Product-supplier condition not found"
+        condition = await service.update_product_supplier(
+            client_id=client.client_id,
+            item_id=item_id,
+            supplier_id=supplier_id,
+            moq=data.moq,
+            lead_time_days=data.lead_time_days,
+            supplier_cost=data.supplier_cost,
+            packaging_unit=data.packaging_unit,
+            packaging_qty=data.packaging_qty,
+            is_primary=data.is_primary,
+            notes=data.notes
         )
 
-    # Get supplier info for response
-    from sqlalchemy import select
-    from models.supplier import Supplier
-    from schemas.inventory import SupplierInfo
+        if not condition:
+            raise HTTPException(
+                status_code=404,
+                detail=f"Product-supplier condition not found for item_id={item_id} and supplier_id={supplier_id}"
+            )
 
-    supplier_result = await db.execute(
-        select(Supplier).where(Supplier.id == condition.supplier_id)
-    )
-    supplier = supplier_result.scalar_one()
-    supplier_info = SupplierInfo.model_validate(supplier)
+        # Get supplier info for response
+        from sqlalchemy import select
+        from models.supplier import Supplier
+        from schemas.inventory import SupplierInfo
 
-    response = ProductSupplierResponse.model_validate(condition)
-    response.supplier = supplier_info
+        supplier_result = await db.execute(
+            select(Supplier).where(
+                Supplier.client_id == client.client_id,
+                Supplier.id == condition.supplier_id
+            )
+        )
+        supplier = supplier_result.scalar_one_or_none()
+        
+        if not supplier:
+            raise HTTPException(
+                status_code=404,
+                detail=f"Supplier with id {condition.supplier_id} not found"
+            )
+        
+        supplier_info = SupplierInfo.model_validate(supplier)
 
-    return response
+        # Build response dict with supplier info (matching add_product_supplier pattern)
+        response_dict = {
+            "id": condition.id,
+            "client_id": condition.client_id,
+            "item_id": condition.item_id,
+            "supplier_id": condition.supplier_id,
+            "supplier": supplier_info,
+            "moq": condition.moq,
+            "lead_time_days": condition.lead_time_days,
+            "supplier_cost": condition.supplier_cost,
+            "packaging_unit": condition.packaging_unit,
+            "packaging_qty": condition.packaging_qty,
+            "is_primary": condition.is_primary,
+            "notes": condition.notes,
+            "created_at": condition.created_at,
+            "updated_at": condition.updated_at,
+        }
+        response = ProductSupplierResponse.model_validate(response_dict)
+
+        return response
+    
+    except HTTPException:
+        raise
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+    except Exception as e:
+        import traceback
+        print(f"Error updating product-supplier condition: {e}")
+        print(traceback.format_exc())
+        raise HTTPException(
+            status_code=500,
+            detail=f"Internal server error: {str(e)}"
+        )
 
 
 @router.delete("/products/{item_id}/suppliers/{supplier_id}")

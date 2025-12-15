@@ -26,13 +26,8 @@ const typeOptions = [
   { label: "Work Orders (WO)", value: "WO" },
 ];
 
-const loadSuppliers = async (opts?: { reset?: boolean }) => {
-  const reset = opts?.reset ?? true;
+const loadSuppliers = async (targetPage: number = page.value) => {
   if (loading.value) return;
-
-  if (reset) {
-    page.value = 1;
-  }
 
   loading.value = true;
   error.value = null;
@@ -41,18 +36,14 @@ const loadSuppliers = async (opts?: { reset?: boolean }) => {
     const res = await fetchSuppliers({
       search: searchQuery.value || undefined,
       supplier_type: selectedType.value || undefined,
-      page: page.value,
+      page: targetPage,
       page_size: pageSize,
     });
 
+    suppliers.value = res.items || [];
     total.value = res.total;
     totalPages.value = res.total_pages;
-
-    if (reset) {
-      suppliers.value = res.items || [];
-    } else {
-      suppliers.value = suppliers.value.concat(res.items || []);
-    }
+    page.value = res.page || targetPage;
   } catch (err: any) {
     const wasAuthError = await handleAuthError(err);
     if (wasAuthError) return;
@@ -62,22 +53,63 @@ const loadSuppliers = async (opts?: { reset?: boolean }) => {
   }
 };
 
-const loadMore = async () => {
-  if (page.value >= totalPages.value) return;
-  page.value += 1;
-  await loadSuppliers({ reset: false });
+const goToPage = (targetPage: number) => {
+  if (targetPage >= 1 && targetPage <= totalPages.value && targetPage !== page.value) {
+    loadSuppliers(targetPage);
+  }
+};
+
+const getVisiblePages = (): number[] => {
+  const current = page.value;
+  const total = totalPages.value;
+  const pages: number[] = [];
+  
+  if (total <= 7) {
+    // Show all pages if 7 or fewer
+    for (let i = 1; i <= total; i++) {
+      pages.push(i);
+    }
+  } else {
+    // Show first page, pages around current, and last page
+    pages.push(1);
+    
+    if (current > 3) {
+      pages.push(-1); // Ellipsis marker
+    }
+    
+    const start = Math.max(2, current - 1);
+    const end = Math.min(total - 1, current + 1);
+    
+    for (let i = start; i <= end; i++) {
+      if (!pages.includes(i)) {
+        pages.push(i);
+      }
+    }
+    
+    if (current < total - 2) {
+      pages.push(-1); // Ellipsis marker
+    }
+    
+    if (!pages.includes(total)) {
+      pages.push(total);
+    }
+  }
+  
+  return pages;
 };
 
 let searchTimeout: ReturnType<typeof setTimeout> | null = null;
 watch(searchQuery, async () => {
   if (searchTimeout) clearTimeout(searchTimeout);
   searchTimeout = setTimeout(() => {
-    void loadSuppliers({ reset: true });
+    page.value = 1;
+    void loadSuppliers(1);
   }, 250);
 });
 
 watch(selectedType, async () => {
-  await loadSuppliers({ reset: true });
+  page.value = 1;
+  await loadSuppliers(1);
 });
 
 const badgeColorForType = (supplierType: string) => {
@@ -87,7 +119,7 @@ const badgeColorForType = (supplierType: string) => {
 };
 
 onMounted(async () => {
-  await loadSuppliers({ reset: true });
+  await loadSuppliers(1);
 });
 </script>
 
@@ -120,7 +152,7 @@ onMounted(async () => {
           icon="i-lucide-refresh-cw"
           variant="ghost"
           :loading="loading"
-          @click="loadSuppliers({ reset: true })"
+          @click="loadSuppliers(page)"
         >
           Refresh
         </UButton>
@@ -186,8 +218,26 @@ onMounted(async () => {
               {{ supplier.contact_phone }}
             </div>
             <div class="flex items-center gap-4 mt-2 text-xs text-muted">
-              <span>MOQ: {{ supplier.default_moq || 0 }}</span>
-              <span>Lead: {{ supplier.default_lead_time_days || 14 }}d</span>
+              <div class="flex items-center gap-1">
+                <span>MOQ:</span>
+                <span class="font-medium">{{ supplier.default_moq || 0 }}</span>
+                <span v-if="supplier.effective_moq_avg !== undefined && supplier.effective_moq_avg !== supplier.default_moq" class="text-primary">
+                  (avg: {{ supplier.effective_moq_avg }})
+                </span>
+                <span v-if="supplier.custom_moq_count && supplier.custom_moq_count > 0" class="text-blue-600">
+                  · {{ supplier.custom_moq_count }} custom
+                </span>
+              </div>
+              <div class="flex items-center gap-1">
+                <span>Lead:</span>
+                <span class="font-medium">{{ supplier.default_lead_time_days || 14 }}d</span>
+                <span v-if="supplier.effective_lead_time_avg !== undefined && supplier.effective_lead_time_avg !== supplier.default_lead_time_days" class="text-primary">
+                  (avg: {{ supplier.effective_lead_time_avg }}d)
+                </span>
+                <span v-if="supplier.custom_lead_time_count && supplier.custom_lead_time_count > 0" class="text-blue-600">
+                  · {{ supplier.custom_lead_time_count }} custom
+                </span>
+              </div>
               <span v-if="supplier.default_product_count !== undefined && supplier.default_product_count > 0">
                 {{ supplier.default_product_count }} product{{ supplier.default_product_count !== 1 ? 's' : '' }} (default)
               </span>
@@ -200,18 +250,59 @@ onMounted(async () => {
         </div>
       </UCard>
 
+      <!-- Pagination -->
       <div
-        v-if="page < totalPages"
-        class="pt-2"
+        v-if="totalPages > 1"
+        class="pt-4 border-t flex items-center justify-between"
       >
-        <UButton
-          :loading="loading"
-          variant="soft"
-          block
-          @click="loadMore"
-        >
-          Load more
-        </UButton>
+        <div class="text-sm text-muted">
+          Showing {{ (page - 1) * pageSize + 1 }} to
+          {{ Math.min(page * pageSize, total) }} of
+          {{ total }} suppliers
+        </div>
+        <div class="flex items-center gap-2">
+          <UButton
+            icon="i-lucide-chevron-left"
+            variant="ghost"
+            size="sm"
+            :disabled="page <= 1 || loading"
+            @click="goToPage(page - 1)"
+          >
+            Previous
+          </UButton>
+          <div class="flex items-center gap-1">
+            <template
+              v-for="pageNum in getVisiblePages()"
+              :key="pageNum"
+            >
+              <span
+                v-if="pageNum === -1"
+                class="px-2 text-sm text-muted"
+              >
+                ...
+              </span>
+              <UButton
+                v-else
+                :variant="pageNum === page ? 'solid' : 'ghost'"
+                size="sm"
+                :disabled="loading"
+                @click="goToPage(pageNum)"
+              >
+                {{ pageNum }}
+              </UButton>
+            </template>
+          </div>
+          <UButton
+            icon="i-lucide-chevron-right"
+            icon-position="right"
+            variant="ghost"
+            size="sm"
+            :disabled="page >= totalPages || loading"
+            @click="goToPage(page + 1)"
+          >
+            Next
+          </UButton>
+        </div>
       </div>
     </div>
   </div>

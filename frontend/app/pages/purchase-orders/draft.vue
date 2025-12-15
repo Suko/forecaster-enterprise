@@ -123,9 +123,16 @@ const onUpdateQuantity = async (item: CartItem) => {
   } catch (err: any) {
     const wasAuthError = await handleAuthError(err);
     if (wasAuthError) return;
+    // Extract error message from FastAPI error response (detail field) or other sources
+    const errorMessage =
+      err.data?.detail || // FastAPI error detail
+      err.data?.statusMessage || // Nuxt error statusMessage
+      err.data?.message || // Generic error message
+      err.message || // Error object message
+      "Failed to update item";
     toast.add({
       title: "Update failed",
-      description: err.message || "Failed to update item",
+      description: errorMessage,
       color: "red",
     });
   }
@@ -143,9 +150,15 @@ const onRemoveItem = async (item: CartItem) => {
   } catch (err: any) {
     const wasAuthError = await handleAuthError(err);
     if (wasAuthError) return;
+    const errorMessage =
+      err.data?.detail ||
+      err.data?.statusMessage ||
+      err.data?.message ||
+      err.message ||
+      "Failed to remove item";
     toast.add({
       title: "Remove failed",
-      description: err.message || "Failed to remove item",
+      description: errorMessage,
       color: "red",
     });
   }
@@ -188,9 +201,15 @@ const onCreatePoForSupplier = async (supplierId: string) => {
   } catch (err: any) {
     const wasAuthError = await handleAuthError(err);
     if (wasAuthError) return;
+    const errorMessage =
+      err.data?.detail ||
+      err.data?.statusMessage ||
+      err.data?.message ||
+      err.message ||
+      "Failed to create PO";
     toast.add({
       title: "Create PO failed",
-      description: err.message || "Failed to create PO",
+      description: errorMessage,
       color: "red",
     });
   } finally {
@@ -335,14 +354,24 @@ onMounted(async () => {
               </div>
             </div>
 
-            <div class="w-28">
-              <UInput
-                v-model.number="draftQuantities[keyFor(item)]"
-                type="number"
-                min="1"
-                step="1"
-                size="sm"
-              />
+            <div class="flex items-center gap-2">
+              <div class="w-28">
+                <UInput
+                  v-model.number="draftQuantities[keyFor(item)]"
+                  type="number"
+                  :min="item.moq > 0 ? item.moq : 1"
+                  step="1"
+                  size="sm"
+                  :class="Number(draftQuantities[keyFor(item)]) < item.moq && item.moq > 0 ? 'ring-2 ring-red-500' : ''"
+                />
+              </div>
+              <div
+                v-if="item.moq > 0"
+                class="text-xs whitespace-nowrap"
+                :class="Number(draftQuantities[keyFor(item)]) < item.moq ? 'text-red-600 dark:text-red-400 font-medium' : 'text-muted'"
+              >
+                MOQ: {{ item.moq }}
+              </div>
             </div>
 
             <UButton

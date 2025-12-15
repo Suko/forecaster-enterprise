@@ -125,7 +125,9 @@ async def get_cart(
     from sqlalchemy import select
     from models.product import Product
     from models.supplier import Supplier
+    from services.inventory_service import InventoryService
 
+    inventory_service = InventoryService(db)
     items_response = []
     suppliers_dict = {}
     total_value = Decimal("0.00")
@@ -141,6 +143,11 @@ async def get_cart(
         )
         supplier = supplier_result.scalar_one()
 
+        # Get effective MOQ for this product-supplier combination
+        effective_moq = await inventory_service.get_effective_moq(
+            client.client_id, item.item_id, item.supplier_id
+        )
+
         items_response.append(CartItemResponse(
             id=item.id,
             session_id=item.session_id,
@@ -154,6 +161,7 @@ async def get_cart(
             notes=item.notes,
             product_name=product.product_name,
             supplier_name=supplier.name,
+            moq=effective_moq,
             created_at=item.created_at.date(),
             updated_at=item.updated_at.date()
         ))
@@ -209,6 +217,7 @@ async def update_cart_item(
         from sqlalchemy import select
         from models.product import Product
         from models.supplier import Supplier
+        from services.inventory_service import InventoryService
 
         product_result = await db.execute(
             select(Product).where(Product.item_id == cart_item.item_id)
@@ -219,6 +228,12 @@ async def update_cart_item(
             select(Supplier).where(Supplier.id == cart_item.supplier_id)
         )
         supplier = supplier_result.scalar_one()
+
+        # Get effective MOQ for this product-supplier combination
+        inventory_service = InventoryService(db)
+        effective_moq = await inventory_service.get_effective_moq(
+            client.client_id, cart_item.item_id, cart_item.supplier_id
+        )
 
         return CartItemResponse(
             id=cart_item.id,
@@ -233,6 +248,7 @@ async def update_cart_item(
             notes=cart_item.notes,
             product_name=product.product_name,
             supplier_name=supplier.name,
+            moq=effective_moq,
             created_at=cart_item.created_at.date(),
             updated_at=cart_item.updated_at.date()
         )

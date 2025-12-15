@@ -43,6 +43,7 @@ class CartItemResponse(CartItemBase):
     packaging_qty: Optional[int] = None
     product_name: str
     supplier_name: str
+    moq: int = Field(0, description="Minimum Order Quantity for this product-supplier combination")
     created_at: datetime
     updated_at: datetime
 

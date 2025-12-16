@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import type { CartItem } from "~/types/order";
+import { logger } from "~~/server/utils/logger";
 
 definePageMeta({
   layout: "dashboard",
@@ -90,6 +91,7 @@ const loadCart = async () => {
     poDrafts.value = nextPoDrafts;
     persistDraftsToStorage();
   } catch (err: any) {
+    logger.error("Load cart error", { error: err });
     const wasAuthError = await handleAuthError(err);
     if (wasAuthError) return;
     error.value = err.message || "Failed to load cart";
@@ -121,6 +123,7 @@ const onUpdateQuantity = async (item: CartItem) => {
     });
     await loadCart();
   } catch (err: any) {
+    logger.error("Update cart quantity error", { error: err });
     const wasAuthError = await handleAuthError(err);
     if (wasAuthError) return;
     // Extract error message from FastAPI error response (detail field) or other sources
@@ -148,6 +151,7 @@ const onRemoveItem = async (item: CartItem) => {
     });
     await loadCart();
   } catch (err: any) {
+    logger.error("Remove cart item error", { error: err });
     const wasAuthError = await handleAuthError(err);
     if (wasAuthError) return;
     const errorMessage =
@@ -170,6 +174,7 @@ const onClearCart = async () => {
     toast.add({ title: "Cleared", description: "Cart cleared", color: "green" });
     await loadCart();
   } catch (err: any) {
+    logger.error("Clear cart error", { error: err });
     const wasAuthError = await handleAuthError(err);
     if (wasAuthError) return;
     toast.add({
@@ -199,6 +204,7 @@ const onCreatePoForSupplier = async (supplierId: string) => {
     await loadCart();
     await navigateTo(`/purchase-orders/${po.id}`);
   } catch (err: any) {
+    logger.error("Create purchase order error", { error: err });
     const wasAuthError = await handleAuthError(err);
     if (wasAuthError) return;
     const errorMessage =
@@ -362,13 +368,21 @@ onMounted(async () => {
                   :min="item.moq > 0 ? item.moq : 1"
                   step="1"
                   size="sm"
-                  :class="Number(draftQuantities[keyFor(item)]) < item.moq && item.moq > 0 ? 'ring-2 ring-red-500' : ''"
+                  :class="
+                    Number(draftQuantities[keyFor(item)]) < item.moq && item.moq > 0
+                      ? 'ring-2 ring-red-500'
+                      : ''
+                  "
                 />
               </div>
               <div
                 v-if="item.moq > 0"
                 class="text-xs whitespace-nowrap"
-                :class="Number(draftQuantities[keyFor(item)]) < item.moq ? 'text-red-600 dark:text-red-400 font-medium' : 'text-muted'"
+                :class="
+                  Number(draftQuantities[keyFor(item)]) < item.moq
+                    ? 'text-red-600 dark:text-red-400 font-medium'
+                    : 'text-muted'
+                "
               >
                 MOQ: {{ item.moq }}
               </div>

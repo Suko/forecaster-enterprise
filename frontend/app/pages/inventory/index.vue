@@ -123,11 +123,7 @@
 
         <template #footer>
           <div class="flex justify-end">
-            <UButton
-              @click="showColumnSelector = false"
-            >
-              Close
-            </UButton>
+            <UButton @click="showColumnSelector = false"> Close </UButton>
           </div>
         </template>
       </UCard>
@@ -142,6 +138,7 @@ import "ag-grid-community/styles/ag-grid.css";
 import "ag-grid-community/styles/ag-theme-alpine.css";
 import type { ColDef, GridReadyEvent } from "ag-grid-community";
 import type { Product } from "~/types/product";
+import { logger } from "~~/server/utils/logger";
 
 // Register AG Grid modules
 ModuleRegistry.registerModules([AllCommunityModule]);
@@ -153,7 +150,8 @@ definePageMeta({
 const { fetchProducts } = useAgGridProducts();
 const { fetchSettings } = useSettings();
 const { handleAuthError } = useAuthError();
-const { fetchPreferences, getInventoryColumnVisibility, setInventoryColumnVisibility } = useUserPreferences();
+const { fetchPreferences, getInventoryColumnVisibility, setInventoryColumnVisibility } =
+  useUserPreferences();
 const route = useRoute();
 
 const supplierId = computed(() =>
@@ -220,21 +218,24 @@ const baseColumnDefs: ColDef[] = [
     maxWidth: 400,
     hide: false,
     cellRenderer: (params: any) => {
-      const locations = params.value as Array<{ location_id: string; location_name: string; current_stock: number }> | null | undefined;
+      const locations = params.value as
+        | Array<{ location_id: string; location_name: string; current_stock: number }>
+        | null
+        | undefined;
       const itemId = params.data?.item_id;
       const isExpanded = expandedRows.value.has(`${itemId}_locations`);
-      
+
       if (!locations || locations.length === 0) {
         return '<span class="text-gray-400">No locations</span>';
       }
-      
+
       // Show first location by default
       const firstLocation = locations[0];
       const otherLocations = locations.slice(1);
       const hasMoreLocations = otherLocations.length > 0;
-      
+
       let html = '<div class="py-1 min-w-0">';
-      
+
       // Always show first location
       html += `
         <div class="flex items-center gap-1 flex-wrap">
@@ -242,11 +243,11 @@ const baseColumnDefs: ColDef[] = [
         </div>
         <div class="text-xs text-gray-500 dark:text-gray-400 mt-0.5">Stock: ${firstLocation.current_stock}</div>
       `;
-      
+
       // Show expand/collapse button if there are more locations
       if (hasMoreLocations) {
-        const expandIcon = isExpanded ? '▼' : '▶';
-        const expandText = isExpanded ? 'Show less' : `Show ${otherLocations.length} more`;
+        const expandIcon = isExpanded ? "▼" : "▶";
+        const expandText = isExpanded ? "Show less" : `Show ${otherLocations.length} more`;
         html += `
           <button 
             class="mt-1 text-xs text-blue-600 dark:text-blue-400 hover:underline flex items-center gap-1 location-expand-btn"
@@ -258,7 +259,7 @@ const baseColumnDefs: ColDef[] = [
           </button>
         `;
       }
-      
+
       // Show other locations if expanded
       if (isExpanded && hasMoreLocations) {
         html += '<div class="mt-2 pt-2 border-t border-gray-200 dark:border-gray-700 space-y-2">';
@@ -272,10 +273,10 @@ const baseColumnDefs: ColDef[] = [
             </div>
           `;
         });
-        html += '</div>';
+        html += "</div>";
       }
-      
-      html += '</div>';
+
+      html += "</div>";
       return html;
     },
     cellStyle: { overflow: "visible", padding: "8px", whiteSpace: "normal", lineHeight: "1.5" },
@@ -292,35 +293,39 @@ const baseColumnDefs: ColDef[] = [
     maxWidth: 400,
     hide: false,
     cellRenderer: (params: any) => {
-      const suppliers = params.value as Array<{ supplier_name: string; moq: number; lead_time_days: number; is_primary: boolean }> | null | undefined;
+      const suppliers = params.value as
+        | Array<{ supplier_name: string; moq: number; lead_time_days: number; is_primary: boolean }>
+        | null
+        | undefined;
       const itemId = params.data?.item_id;
       const isExpanded = expandedRows.value.has(`${itemId}_suppliers`);
-      
+
       if (!suppliers || suppliers.length === 0) {
         return '<span class="text-gray-400">No suppliers</span>';
       }
-      
+
       // Find primary supplier
-      const primarySupplier = suppliers.find(s => s.is_primary) || suppliers[0];
-      const otherSuppliers = suppliers.filter(s => s !== primarySupplier);
+      const primarySupplier = suppliers.find((s) => s.is_primary) || suppliers[0];
+      const otherSuppliers = suppliers.filter((s) => s !== primarySupplier);
       const hasMoreSuppliers = otherSuppliers.length > 0;
-      
+
       let html = '<div class="py-1 min-w-0">';
-      
+
       // Always show primary supplier
-      const primaryBadge = '<span class="inline-flex items-center px-1.5 py-0.5 rounded text-xs font-medium bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200 ml-1 whitespace-nowrap">Primary</span>';
+      const primaryBadge =
+        '<span class="inline-flex items-center px-1.5 py-0.5 rounded text-xs font-medium bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200 ml-1 whitespace-nowrap">Primary</span>';
       html += `
         <div class="flex items-center gap-1 flex-wrap">
           <span class="font-medium text-sm">${primarySupplier.supplier_name}</span>${primaryBadge}
         </div>
         <div class="text-xs text-gray-500 dark:text-gray-400 mt-0.5">MOQ: ${primarySupplier.moq} | Lead: ${primarySupplier.lead_time_days}d</div>
       `;
-      
+
       // Show expand/collapse button if there are more suppliers
       if (hasMoreSuppliers) {
-        const expandIcon = isExpanded ? '▼' : '▶';
-        const expandText = isExpanded ? 'Show less' : `Show ${otherSuppliers.length} more`;
-          html += `
+        const expandIcon = isExpanded ? "▼" : "▶";
+        const expandText = isExpanded ? "Show less" : `Show ${otherSuppliers.length} more`;
+        html += `
           <button 
             class="mt-1 text-xs text-blue-600 dark:text-blue-400 hover:underline flex items-center gap-1 supplier-expand-btn"
             data-item-id="${itemId}"
@@ -331,7 +336,7 @@ const baseColumnDefs: ColDef[] = [
           </button>
         `;
       }
-      
+
       // Show other suppliers if expanded
       if (isExpanded && hasMoreSuppliers) {
         html += '<div class="mt-2 pt-2 border-t border-gray-200 dark:border-gray-700 space-y-2">';
@@ -345,10 +350,10 @@ const baseColumnDefs: ColDef[] = [
             </div>
           `;
         });
-        html += '</div>';
+        html += "</div>";
       }
-      
-      html += '</div>';
+
+      html += "</div>";
       return html;
     },
     cellStyle: { overflow: "visible", padding: "8px", whiteSpace: "normal", lineHeight: "1.5" },
@@ -489,7 +494,7 @@ const toggleSupplierRow = (itemId: string, type: string = "suppliers") => {
 };
 
 // Expose toggle function to window for cell renderer
-if (typeof window !== 'undefined') {
+if (typeof window !== "undefined") {
   (window as any).toggleSupplierRow = toggleSupplierRow;
 }
 
@@ -500,9 +505,9 @@ const getRowHeight = (params: any) => {
   const itemId = params.data?.item_id;
   const isSuppliersExpanded = expandedRows.value.has(`${itemId}_suppliers`);
   const isLocationsExpanded = expandedRows.value.has(`${itemId}_locations`);
-  
+
   let height = 50; // Base height
-  
+
   // Calculate height for suppliers
   if (suppliers && Array.isArray(suppliers)) {
     if (isSuppliersExpanded) {
@@ -511,7 +516,7 @@ const getRowHeight = (params: any) => {
       height = Math.max(height, 80); // Primary supplier + expand button
     }
   }
-  
+
   // Calculate height for locations
   if (locations && Array.isArray(locations)) {
     if (isLocationsExpanded) {
@@ -520,7 +525,7 @@ const getRowHeight = (params: any) => {
       height = Math.max(height, 80); // First location + expand button
     }
   }
-  
+
   return height;
 };
 
@@ -570,7 +575,7 @@ const loadProducts = async () => {
       return;
     }
     error.value = err.message || "Failed to load products";
-    console.error("Products error:", err);
+    logger.error("Products error", { error: err });
   } finally {
     loading.value = false;
   }
@@ -582,10 +587,10 @@ const onPaginationChanged = () => {
 
 // Handle cell clicks for expand/collapse buttons
 const onCellClicked = (params: any) => {
-  const expandBtn = params.event?.target?.closest('.supplier-expand-btn, .location-expand-btn');
+  const expandBtn = params.event?.target?.closest(".supplier-expand-btn, .location-expand-btn");
   if (expandBtn) {
-    const itemId = expandBtn.getAttribute('data-item-id');
-    const type = expandBtn.getAttribute('data-type') || 'suppliers';
+    const itemId = expandBtn.getAttribute("data-item-id");
+    const type = expandBtn.getAttribute("data-type") || "suppliers";
     if (itemId) {
       toggleSupplierRow(itemId, type);
     }
@@ -599,7 +604,7 @@ const loadSettings = async () => {
   } catch (err: any) {
     const wasAuthError = await handleAuthError(err);
     if (!wasAuthError) {
-      console.error("Failed to load settings:", err);
+      logger.error("Failed to load settings", { error: err });
     }
   }
 };
@@ -608,21 +613,20 @@ const loadColumnPreferences = async () => {
   try {
     await fetchPreferences();
     const savedVisibility = getInventoryColumnVisibility();
-    
+
     // Initialize column visibility with saved preferences or defaults
     const visibility: { [field: string]: boolean } = {};
     baseColumnDefs.forEach((col) => {
       const field = col.field as string;
       // Use saved preference, or default to true (visible) for most columns
-      visibility[field] = savedVisibility[field] !== undefined 
-        ? savedVisibility[field] 
-        : col.hide !== true; // Default to visible unless explicitly hidden
+      visibility[field] =
+        savedVisibility[field] !== undefined ? savedVisibility[field] : col.hide !== true; // Default to visible unless explicitly hidden
     });
     columnVisibility.value = visibility;
   } catch (err: any) {
     const wasAuthError = await handleAuthError(err);
     if (!wasAuthError) {
-      console.error("Failed to load column preferences:", err);
+      logger.error("Failed to load column preferences", { error: err });
       // Set defaults if loading fails
       baseColumnDefs.forEach((col) => {
         const field = col.field as string;
@@ -637,7 +641,7 @@ const updateColumnVisibility = async () => {
     await setInventoryColumnVisibility(columnVisibility.value);
     // Grid will automatically update via computed columnDefs
   } catch (err: any) {
-    console.error("Failed to save column preferences:", err);
+    logger.error("Failed to save column preferences", { error: err });
   }
 };
 

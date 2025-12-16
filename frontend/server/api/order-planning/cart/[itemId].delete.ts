@@ -1,4 +1,5 @@
 import { authenticatedFetch } from "../../../utils/api";
+import { logger } from "~/server/utils/logger";
 
 /**
  * Remove a cart item
@@ -22,6 +23,7 @@ export default defineEventHandler(async (event) => {
     const endpoint = `/api/v1/order-planning/cart/${encodeURIComponent(itemId)}?supplier_id=${encodeURIComponent(supplierId)}`;
     return await authenticatedFetch(event, endpoint, { method: "DELETE" });
   } catch (error: any) {
+    logger.error("Delete cart item error", { error });
     if (error.statusCode === 401) {
       throw createError({ statusCode: 401, statusMessage: "Not authenticated" });
     }

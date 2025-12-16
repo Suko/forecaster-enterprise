@@ -1,3 +1,4 @@
+import { logger } from "~~/server/utils/logger";
 import { authenticatedFetch } from "../../../utils/api";
 
 /**
@@ -15,6 +16,7 @@ export default defineEventHandler(async (event) => {
       body,
     });
   } catch (error: any) {
+    logger.error("Update user preferences error", { error });
     if (error.statusCode === 401) {
       throw createError({ statusCode: 401, statusMessage: "Not authenticated" });
     }
@@ -24,4 +26,3 @@ export default defineEventHandler(async (event) => {
     });
   }
 });
-

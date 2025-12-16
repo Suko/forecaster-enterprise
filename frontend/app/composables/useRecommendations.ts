@@ -4,6 +4,7 @@
  */
 
 import type { Recommendation, RecommendationFilters } from "~/types/recommendation";
+import { logger } from "~~/server/utils/logger";
 
 export const useRecommendations = () => {
   /**
@@ -31,7 +32,7 @@ export const useRecommendations = () => {
     } catch (error: any) {
       // Re-throw 401 errors so they can be handled by the page
       // Other errors are also re-thrown
-      console.error("Error fetching recommendations:", error);
+      logger.error("Error fetching recommendations", { error });
       throw error;
     }
   };
@@ -52,7 +53,7 @@ export const useRecommendations = () => {
     } catch (error: any) {
       // Re-throw 401 errors so they can be handled by the page
       // Other errors are also re-thrown
-      console.error("Error adding to cart:", error);
+      logger.error("Error adding to cart", { error });
       throw error;
     }
   };

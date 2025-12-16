@@ -1,5 +1,6 @@
 import { readFile, stat } from "fs/promises";
 import { existsSync } from "fs";
+import { logger } from "../utils/logger";
 
 interface LicenseStatus {
   valid: boolean;
@@ -69,8 +70,9 @@ export default defineEventHandler(async (): Promise<LicenseStatus> => {
     const content = await readFile(statusFilePath, "utf-8");
     const status = JSON.parse(content) as LicenseStatus;
     return status;
-  } catch {
+  } catch (error) {
     // Error reading file - assume invalid to be safe
+    logger.error("Error reading license status file", { error });
     return {
       valid: false,
       reason: "license_check_error",

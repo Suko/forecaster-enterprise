@@ -1,5 +1,6 @@
 import { authenticatedFetch } from "../utils/api";
 import type { Recommendation } from "~/types/recommendation";
+import { logger } from "../utils/logger";
 
 /**
  * Fetch recommendations from backend
@@ -23,6 +24,7 @@ export default defineEventHandler(async (event) => {
 
     return recommendations.recommendations;
   } catch (error: any) {
+    logger.error("Recommendations fetch error", { error });
     if (error.statusCode === 401) {
       throw createError({
         statusCode: 401,

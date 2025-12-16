@@ -1,5 +1,6 @@
 import { authenticatedFetch } from "../utils/api";
 import type { LocationListResponse } from "~/types/location";
+import { logger } from "../utils/logger";
 
 /**
  * Fetch locations from backend
@@ -21,6 +22,7 @@ export default defineEventHandler(async (event) => {
       `/api/v1/locations${queryString ? `?${queryString}` : ""}`
     );
   } catch (error: any) {
+    logger.error("Fetch locations error", { error });
     if (error.statusCode === 401) {
       throw createError({ statusCode: 401, statusMessage: "Not authenticated" });
     }
@@ -30,4 +32,3 @@ export default defineEventHandler(async (event) => {
     });
   }
 });
-

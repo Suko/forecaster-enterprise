@@ -84,8 +84,7 @@ const retry = async () => {
     // If we get here, backend is back up - reload the page
     window.location.reload();
   } catch (error) {
-    // Still down
-    console.log("Backend still unavailable");
+    // Still down (expected during outage, debug level)
   } finally {
     checking.value = false;
   }

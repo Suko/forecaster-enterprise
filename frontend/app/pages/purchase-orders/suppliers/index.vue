@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import type { Supplier } from "~/types/supplier";
+import { logger } from "~~/server/utils/logger";
 
 definePageMeta({
   layout: "dashboard",
@@ -45,6 +46,7 @@ const loadSuppliers = async (targetPage: number = page.value) => {
     totalPages.value = res.total_pages;
     page.value = res.page || targetPage;
   } catch (err: any) {
+    logger.error("Load suppliers error", { error: err });
     const wasAuthError = await handleAuthError(err);
     if (wasAuthError) return;
     error.value = err.message || "Failed to load suppliers";
@@ -63,7 +65,7 @@ const getVisiblePages = (): number[] => {
   const current = page.value;
   const total = totalPages.value;
   const pages: number[] = [];
-  
+
   if (total <= 7) {
     // Show all pages if 7 or fewer
     for (let i = 1; i <= total; i++) {
@@ -72,29 +74,29 @@ const getVisiblePages = (): number[] => {
   } else {
     // Show first page, pages around current, and last page
     pages.push(1);
-    
+
     if (current > 3) {
       pages.push(-1); // Ellipsis marker
     }
-    
+
     const start = Math.max(2, current - 1);
     const end = Math.min(total - 1, current + 1);
-    
+
     for (let i = start; i <= end; i++) {
       if (!pages.includes(i)) {
         pages.push(i);
       }
     }
-    
+
     if (current < total - 2) {
       pages.push(-1); // Ellipsis marker
     }
-    
+
     if (!pages.includes(total)) {
       pages.push(total);
     }
   }
-  
+
   return pages;
 };
 
@@ -221,25 +223,50 @@ onMounted(async () => {
               <div class="flex items-center gap-1">
                 <span>MOQ:</span>
                 <span class="font-medium">{{ supplier.default_moq || 0 }}</span>
-                <span v-if="supplier.effective_moq_avg !== undefined && supplier.effective_moq_avg !== supplier.default_moq" class="text-primary">
+                <span
+                  v-if="
+                    supplier.effective_moq_avg !== undefined &&
+                    supplier.effective_moq_avg !== supplier.default_moq
+                  "
+                  class="text-primary"
+                >
                   (avg: {{ supplier.effective_moq_avg }})
                 </span>
-                <span v-if="supplier.custom_moq_count && supplier.custom_moq_count > 0" class="text-blue-600">
+                <span
+                  v-if="supplier.custom_moq_count && supplier.custom_moq_count > 0"
+                  class="text-blue-600"
+                >
                   · {{ supplier.custom_moq_count }} custom
                 </span>
               </div>
               <div class="flex items-center gap-1">
                 <span>Lead:</span>
                 <span class="font-medium">{{ supplier.default_lead_time_days || 14 }}d</span>
-                <span v-if="supplier.effective_lead_time_avg !== undefined && supplier.effective_lead_time_avg !== supplier.default_lead_time_days" class="text-primary">
+                <span
+                  v-if="
+                    supplier.effective_lead_time_avg !== undefined &&
+                    supplier.effective_lead_time_avg !== supplier.default_lead_time_days
+                  "
+                  class="text-primary"
+                >
                   (avg: {{ supplier.effective_lead_time_avg }}d)
                 </span>
-                <span v-if="supplier.custom_lead_time_count && supplier.custom_lead_time_count > 0" class="text-blue-600">
+                <span
+                  v-if="supplier.custom_lead_time_count && supplier.custom_lead_time_count > 0"
+                  class="text-blue-600"
+                >
                   · {{ supplier.custom_lead_time_count }} custom
                 </span>
               </div>
-              <span v-if="supplier.default_product_count !== undefined && supplier.default_product_count > 0">
-                {{ supplier.default_product_count }} product{{ supplier.default_product_count !== 1 ? 's' : '' }} (default)
+              <span
+                v-if="
+                  supplier.default_product_count !== undefined && supplier.default_product_count > 0
+                "
+              >
+                {{ supplier.default_product_count }} product{{
+                  supplier.default_product_count !== 1 ? "s" : ""
+                }}
+                (default)
               </span>
             </div>
           </div>
@@ -256,8 +283,7 @@ onMounted(async () => {
         class="pt-4 border-t flex items-center justify-between"
       >
         <div class="text-sm text-muted">
-          Showing {{ (page - 1) * pageSize + 1 }} to
-          {{ Math.min(page * pageSize, total) }} of
+          Showing {{ (page - 1) * pageSize + 1 }} to {{ Math.min(page * pageSize, total) }} of
           {{ total }} suppliers
         </div>
         <div class="flex items-center gap-2">

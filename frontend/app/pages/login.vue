@@ -27,6 +27,7 @@
 <script setup lang="ts">
 import * as z from "zod";
 import type { FormSubmitEvent, AuthFormField } from "@nuxt/ui";
+import { logger } from "~~/server/utils/logger";
 
 definePageMeta({
   layout: false,
@@ -97,6 +98,7 @@ async function handleLogin(payload: FormSubmitEvent<Schema>) {
     await refreshSession();
     await navigateTo(returnTo.value);
   } catch (err: any) {
+    logger.error("Login error", { error: err });
     // Extract error message from various possible error structures
     const errorMessage =
       err.data?.detail || // FastAPI error detail

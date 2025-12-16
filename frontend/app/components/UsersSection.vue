@@ -212,6 +212,7 @@
 <script setup lang="ts">
 import * as z from "zod";
 import type { FormSubmitEvent } from "#ui/types";
+import { logger } from "~~/server/utils/logger";
 
 const { apiCall } = useApi();
 
@@ -308,7 +309,7 @@ const fetchUsers = async () => {
   try {
     users.value = await apiCall<User[]>("/users");
   } catch (error: any) {
-    console.error("Failed to fetch users:", error);
+    logger.error("Failed to fetch users", { error });
   } finally {
     loading.value = false;
   }
@@ -374,7 +375,7 @@ const handleSubmit = async (event: FormSubmitEvent<any>) => {
     await fetchUsers();
     closeModal();
   } catch (error: any) {
-    console.error("Failed to save user:", error);
+    logger.error("Failed to save user", { error });
   } finally {
     submitting.value = false;
   }
@@ -397,7 +398,7 @@ const handleDelete = async () => {
     showDeleteModal.value = false;
     userToDelete.value = null;
   } catch (error: any) {
-    console.error("Failed to delete user:", error);
+    logger.error("Failed to delete user", { error });
   } finally {
     deleting.value = false;
   }
@@ -409,7 +410,7 @@ onMounted(() => {
   showDeleteModal.value = false;
   editingUser.value = null;
   userToDelete.value = null;
-  
+
   fetchUsers();
 });
 </script>

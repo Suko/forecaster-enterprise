@@ -4,6 +4,7 @@
  */
 
 import type { Product, ProductListResponse, ProductFilters } from "~/types/product";
+import { logger } from "~~/server/utils/logger";
 
 export const useAgGridProducts = () => {
   /**
@@ -72,7 +73,7 @@ export const useAgGridProducts = () => {
     } catch (error: any) {
       // Re-throw 401 errors so they can be handled by the page
       // Other errors are also re-thrown
-      console.error("Error fetching products:", error);
+      logger.error("Error fetching products", { error });
       throw error;
     }
   };

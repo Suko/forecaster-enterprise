@@ -2,6 +2,7 @@
 import type { Supplier } from "~/types/supplier";
 import type { Product, ProductListResponse } from "~/types/product";
 import type { ProductSupplierCondition } from "~/types/inventory";
+import { logger } from "~~/server/utils/logger";
 
 definePageMeta({
   layout: "dashboard",
@@ -44,7 +45,11 @@ const productsPageSize = ref(50);
 const productsTotalPages = ref(0);
 const productConditions = ref<Map<string, ProductSupplierCondition>>(new Map());
 const editingProductId = ref<string | null>(null);
-const editingProductForm = ref<{ moq: number; lead_time_days: number; is_primary?: boolean } | null>(null);
+const editingProductForm = ref<{
+  moq: number;
+  lead_time_days: number;
+  is_primary?: boolean;
+} | null>(null);
 const savingProduct = ref(false);
 
 const badgeColorForType = (supplierType: string) => {
@@ -60,6 +65,7 @@ const loadSupplier = async () => {
   try {
     supplier.value = await fetchSupplier(supplierId.value);
   } catch (err: any) {
+    logger.error("Load supplier error", { error: err });
     const wasAuthError = await handleAuthError(err);
     if (wasAuthError) return;
     error.value = err.message || "Failed to load supplier";
@@ -85,10 +91,11 @@ const loadProducts = async (page: number = productsPage.value) => {
     productsPage.value = res.page || 1;
     productsPageSize.value = res.page_size || 50;
     productsTotalPages.value = res.total_pages || 0;
-    
+
     // Load product-supplier conditions for each product
     await loadProductConditions();
   } catch (err: any) {
+    logger.error("Load products error", { error: err });
     const wasAuthError = await handleAuthError(err);
     if (wasAuthError) return;
     productsError.value = err.message || "Failed to load products";
@@ -107,7 +114,7 @@ const getVisiblePages = (): number[] => {
   const current = productsPage.value;
   const total = productsTotalPages.value;
   const pages: number[] = [];
-  
+
   if (total <= 7) {
     // Show all pages if 7 or fewer
     for (let i = 1; i <= total; i++) {
@@ -116,51 +123,51 @@ const getVisiblePages = (): number[] => {
   } else {
     // Show first page, pages around current, and last page
     pages.push(1);
-    
+
     if (current > 3) {
       pages.push(-1); // Ellipsis marker
     }
-    
+
     const start = Math.max(2, current - 1);
     const end = Math.min(total - 1, current + 1);
-    
+
     for (let i = start; i <= end; i++) {
       if (!pages.includes(i)) {
         pages.push(i);
       }
     }
-    
+
     if (current < total - 2) {
       pages.push(-1); // Ellipsis marker
     }
-    
+
     if (!pages.includes(total)) {
       pages.push(total);
     }
   }
-  
+
   return pages;
 };
 
 const loadProductConditions = async () => {
   if (!supplierId.value) return;
-  
+
   const conditionsMap = new Map<string, ProductSupplierCondition>();
-  
+
   for (const product of products.value) {
     try {
       const conditions = await getProductSuppliers(product.item_id);
       // Find condition for this supplier
-      const condition = conditions.find(c => c.supplier_id === supplierId.value);
+      const condition = conditions.find((c) => c.supplier_id === supplierId.value);
       if (condition) {
         conditionsMap.set(product.item_id, condition);
       }
     } catch (err) {
       // Silently fail for individual products
-      console.warn(`Failed to load conditions for product ${product.item_id}:`, err);
+      logger.warning(`Failed to load conditions for product ${product.item_id}`, { error: err });
     }
   }
-  
+
   productConditions.value = conditionsMap;
 };
 
@@ -168,12 +175,12 @@ const getProductCondition = (itemId: string): ProductSupplierCondition | null =>
   return productConditions.value.get(itemId) || null;
 };
 
-const isUsingSupplierDefault = (itemId: string, field: 'moq' | 'lead_time_days'): boolean => {
+const isUsingSupplierDefault = (itemId: string, field: "moq" | "lead_time_days"): boolean => {
   if (!supplier.value) return false;
   const condition = getProductCondition(itemId);
   if (!condition) return true; // No condition means using default
-  
-  if (field === 'moq') {
+
+  if (field === "moq") {
     return condition.moq === (supplier.value.default_moq || 0);
   } else {
     return condition.lead_time_days === (supplier.value.default_lead_time_days || 14);
@@ -197,50 +204,51 @@ const cancelEditingProduct = () => {
 
 const saveProductCondition = async (product: Product) => {
   if (!editingProductForm.value || !supplierId.value || savingProduct.value) return;
-  
+
   savingProduct.value = true;
   try {
     const condition = getProductCondition(product.item_id);
     let updated: ProductSupplierCondition;
-    
+
     // If condition doesn't exist, create it; otherwise update it
     if (!condition) {
-            updated = await addProductSupplier(product.item_id, {
-              supplier_id: supplierId.value,
-              moq: editingProductForm.value.moq,
-              lead_time_days: editingProductForm.value.lead_time_days,
-              is_primary: editingProductForm.value.is_primary ?? false,
-            });
-          } else {
-            updated = await updateProductSupplier(product.item_id, supplierId.value, {
-              moq: editingProductForm.value.moq,
-              lead_time_days: editingProductForm.value.lead_time_days,
-              is_primary: editingProductForm.value.is_primary,
-            });
-          }
-    
+      updated = await addProductSupplier(product.item_id, {
+        supplier_id: supplierId.value,
+        moq: editingProductForm.value.moq,
+        lead_time_days: editingProductForm.value.lead_time_days,
+        is_primary: editingProductForm.value.is_primary ?? false,
+      });
+    } else {
+      updated = await updateProductSupplier(product.item_id, supplierId.value, {
+        moq: editingProductForm.value.moq,
+        lead_time_days: editingProductForm.value.lead_time_days,
+        is_primary: editingProductForm.value.is_primary,
+      });
+    }
+
     // Update local state
     productConditions.value.set(product.item_id, updated);
-    
+
     toast.add({
       title: "Updated",
-      description: `MOQ and lead time ${condition ? 'updated' : 'set'} for ${product.product_name}`,
+      description: `MOQ and lead time ${condition ? "updated" : "set"} for ${product.product_name}`,
       color: "green",
     });
-    
+
     editingProductId.value = null;
     editingProductForm.value = null;
   } catch (err: any) {
+    logger.error("Save product condition error", { error: err });
     const wasAuthError = await handleAuthError(err);
     if (wasAuthError) return;
-    
+
     const errorMessage =
       err.data?.detail ||
       err.data?.statusMessage ||
       err.data?.message ||
       err.message ||
       "Failed to save product condition";
-    
+
     toast.add({
       title: "Save failed",
       description: errorMessage,
@@ -253,11 +261,11 @@ const saveProductCondition = async (product: Product) => {
 
 const resetToDefault = async (product: Product) => {
   if (!supplierId.value || !supplier.value || savingProduct.value) return;
-  
+
   savingProduct.value = true;
   try {
     const condition = getProductCondition(product.item_id);
-    
+
     // If no condition exists, nothing to reset
     if (!condition) {
       toast.add({
@@ -268,32 +276,33 @@ const resetToDefault = async (product: Product) => {
       savingProduct.value = false;
       return;
     }
-    
+
     // Update condition to match supplier defaults
     const updated = await updateProductSupplier(product.item_id, supplierId.value, {
       moq: supplier.value.default_moq || 0,
       lead_time_days: supplier.value.default_lead_time_days || 14,
     });
-    
+
     // Update local state
     productConditions.value.set(product.item_id, updated);
-    
+
     toast.add({
       title: "Reset to default",
       description: `${product.product_name} now uses supplier defaults`,
       color: "green",
     });
   } catch (err: any) {
+    logger.error("Reset product condition error", { error: err });
     const wasAuthError = await handleAuthError(err);
     if (wasAuthError) return;
-    
+
     const errorMessage =
       err.data?.detail ||
       err.data?.statusMessage ||
       err.data?.message ||
       err.message ||
       "Failed to reset to default";
-    
+
     toast.add({
       title: "Reset failed",
       description: errorMessage,
@@ -306,7 +315,9 @@ const resetToDefault = async (product: Product) => {
 
 const hasCustomValues = (itemId: string): boolean => {
   if (!supplier.value) return false;
-  return !isUsingSupplierDefault(itemId, 'moq') || !isUsingSupplierDefault(itemId, 'lead_time_days');
+  return (
+    !isUsingSupplierDefault(itemId, "moq") || !isUsingSupplierDefault(itemId, "lead_time_days")
+  );
 };
 
 const startEditing = () => {
@@ -331,11 +342,14 @@ const cancelEditing = () => {
   isEditing.value = false;
   applyToExisting.value = false;
   pendingChanges.value = null;
-  showApplyDialog.value = false;  // Ensure dialog is closed when canceling
-  saving.value = false;  // Reset saving state
+  showApplyDialog.value = false; // Ensure dialog is closed when canceling
+  saving.value = false; // Reset saving state
 };
 
-const checkForDefaultChanges = (): { default_moq?: number; default_lead_time_days?: number } | null => {
+const checkForDefaultChanges = (): {
+  default_moq?: number;
+  default_lead_time_days?: number;
+} | null => {
   if (!supplier.value) return null;
   const changes: { default_moq?: number; default_lead_time_days?: number } = {};
   if (editForm.value.default_moq !== (supplier.value.default_moq || 0)) {
@@ -367,7 +381,7 @@ const performSave = async (applyToExistingProducts: boolean) => {
 
   // Close modal first before setting saving to true
   showApplyDialog.value = false;
-  
+
   saving.value = true;
   error.value = null;
 
@@ -391,10 +405,11 @@ const performSave = async (applyToExistingProducts: boolean) => {
 
     // Reload products to show updated values
     await loadProducts();
-    
+
     // Reload product conditions in case they were affected
     await loadProductConditions();
   } catch (err: any) {
+    logger.error("Update supplier error", { error: err });
     const wasAuthError = await handleAuthError(err);
     if (wasAuthError) return;
     error.value = err.message || "Failed to update supplier";
@@ -416,7 +431,7 @@ onMounted(async () => {
   showApplyDialog.value = false;
   pendingChanges.value = null;
   isEditing.value = false;
-  
+
   await loadSupplier();
   await loadProducts();
 });
@@ -559,14 +574,13 @@ onMounted(async () => {
           </div>
           <div>
             <div class="text-xs text-muted">Default MOQ</div>
-            <div class="text-sm mt-1 font-medium">
-              {{ supplier.default_moq || 0 }} units
-            </div>
-            <div class="text-xs text-muted mt-1">
-              Used when linking products to this supplier
-            </div>
+            <div class="text-sm mt-1 font-medium">{{ supplier.default_moq || 0 }} units</div>
+            <div class="text-xs text-muted mt-1">Used when linking products to this supplier</div>
             <div
-              v-if="supplier.effective_moq_avg !== undefined && supplier.effective_moq_avg !== supplier.default_moq"
+              v-if="
+                supplier.effective_moq_avg !== undefined &&
+                supplier.effective_moq_avg !== supplier.default_moq
+              "
               class="text-xs text-primary mt-1"
             >
               Effective avg: {{ supplier.effective_moq_avg }} units
@@ -575,7 +589,10 @@ onMounted(async () => {
               v-if="supplier.custom_moq_count && supplier.custom_moq_count > 0"
               class="text-xs text-blue-600 mt-1"
             >
-              {{ supplier.custom_moq_count }} product{{ supplier.custom_moq_count !== 1 ? 's' : '' }} with custom MOQ
+              {{ supplier.custom_moq_count }} product{{
+                supplier.custom_moq_count !== 1 ? "s" : ""
+              }}
+              with custom MOQ
             </div>
           </div>
           <div>
@@ -583,11 +600,12 @@ onMounted(async () => {
             <div class="text-sm mt-1 font-medium">
               {{ supplier.default_lead_time_days || 14 }} days
             </div>
-            <div class="text-xs text-muted mt-1">
-              Used when linking products to this supplier
-            </div>
+            <div class="text-xs text-muted mt-1">Used when linking products to this supplier</div>
             <div
-              v-if="supplier.effective_lead_time_avg !== undefined && supplier.effective_lead_time_avg !== supplier.default_lead_time_days"
+              v-if="
+                supplier.effective_lead_time_avg !== undefined &&
+                supplier.effective_lead_time_avg !== supplier.default_lead_time_days
+              "
               class="text-xs text-primary mt-1"
             >
               Effective avg: {{ supplier.effective_lead_time_avg }} days
@@ -596,7 +614,10 @@ onMounted(async () => {
               v-if="supplier.custom_lead_time_count && supplier.custom_lead_time_count > 0"
               class="text-xs text-blue-600 mt-1"
             >
-              {{ supplier.custom_lead_time_count }} product{{ supplier.custom_lead_time_count !== 1 ? 's' : '' }} with custom lead time
+              {{ supplier.custom_lead_time_count }} product{{
+                supplier.custom_lead_time_count !== 1 ? "s" : ""
+              }}
+              with custom lead time
             </div>
           </div>
           <div class="md:col-span-2">
@@ -662,9 +683,7 @@ onMounted(async () => {
                 min="0"
                 placeholder="0"
               />
-              <template #hint>
-                Used when linking products to this supplier
-              </template>
+              <template #hint> Used when linking products to this supplier </template>
             </UFormField>
             <UFormField
               label="Default Lead Time (Days)"
@@ -676,9 +695,7 @@ onMounted(async () => {
                 min="0"
                 placeholder="14"
               />
-              <template #hint>
-                Used when linking products to this supplier
-              </template>
+              <template #hint> Used when linking products to this supplier </template>
             </UFormField>
             <UFormField
               label="Address"
@@ -711,7 +728,10 @@ onMounted(async () => {
           <div class="flex items-center justify-between">
             <h2 class="text-lg font-semibold">
               Products
-              <span v-if="productsTotal > 0" class="text-sm font-normal text-muted">
+              <span
+                v-if="productsTotal > 0"
+                class="text-sm font-normal text-muted"
+              >
                 ({{ productsTotal }} total)
               </span>
             </h2>
@@ -783,7 +803,7 @@ onMounted(async () => {
                   icon="i-lucide-edit"
                   @click="startEditingProduct(p)"
                 >
-                  {{ getProductCondition(p.item_id) ? 'Edit MOQ' : 'Set MOQ' }}
+                  {{ getProductCondition(p.item_id) ? "Edit MOQ" : "Set MOQ" }}
                 </UButton>
                 <UButton
                   size="sm"
@@ -794,7 +814,7 @@ onMounted(async () => {
                 </UButton>
               </div>
             </div>
-            
+
             <!-- Display MOQ and Lead Time -->
             <div
               v-if="editingProductId !== p.item_id"
@@ -821,9 +841,17 @@ onMounted(async () => {
                 <span class="text-muted">Lead Time:</span>
                 <span
                   class="font-medium"
-                  :class="isUsingSupplierDefault(p.item_id, 'lead_time_days') ? 'text-muted' : 'text-primary'"
+                  :class="
+                    isUsingSupplierDefault(p.item_id, 'lead_time_days')
+                      ? 'text-muted'
+                      : 'text-primary'
+                  "
                 >
-                  {{ getProductCondition(p.item_id)?.lead_time_days ?? (supplier?.default_lead_time_days || 14) }} days
+                  {{
+                    getProductCondition(p.item_id)?.lead_time_days ??
+                    (supplier?.default_lead_time_days || 14)
+                  }}
+                  days
                 </span>
                 <UBadge
                   v-if="!isUsingSupplierDefault(p.item_id, 'lead_time_days')"
@@ -847,7 +875,7 @@ onMounted(async () => {
                 </UBadge>
               </div>
             </div>
-            
+
             <!-- Edit Form -->
             <div
               v-else
@@ -864,9 +892,7 @@ onMounted(async () => {
                     min="0"
                     size="sm"
                   />
-                  <template #hint>
-                    Supplier default: {{ supplier?.default_moq || 0 }}
-                  </template>
+                  <template #hint> Supplier default: {{ supplier?.default_moq || 0 }} </template>
                 </UFormField>
                 <UFormField
                   label="Lead Time (Days)"
@@ -892,7 +918,8 @@ onMounted(async () => {
                   label="Set as primary supplier for this product"
                 />
                 <template #hint>
-                  Primary supplier is used for MOQ/lead time calculations. Only one supplier can be primary per product.
+                  Primary supplier is used for MOQ/lead time calculations. Only one supplier can be
+                  primary per product.
                 </template>
               </UFormField>
               <div class="flex items-center justify-between">
@@ -930,7 +957,7 @@ onMounted(async () => {
             </div>
           </div>
         </div>
-        
+
         <!-- Pagination -->
         <div
           v-if="productsTotalPages > 1"
@@ -998,7 +1025,8 @@ onMounted(async () => {
       <template #body>
         <div class="space-y-4">
           <p class="text-sm text-muted">
-            You've changed the supplier defaults. Would you like to apply these changes to existing products?
+            You've changed the supplier defaults. Would you like to apply these changes to existing
+            products?
           </p>
 
           <div
@@ -1017,7 +1045,8 @@ onMounted(async () => {
               class="text-sm"
             >
               <span class="font-medium">Lead Time:</span>
-              {{ supplier?.default_lead_time_days || 14 }} → {{ pendingChanges.default_lead_time_days }} days
+              {{ supplier?.default_lead_time_days || 14 }} →
+              {{ pendingChanges.default_lead_time_days }} days
             </div>
           </div>
 

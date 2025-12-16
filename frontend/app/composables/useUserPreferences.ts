@@ -1,3 +1,5 @@
+import { logger } from "~~/server/utils/logger";
+
 export interface UserPreferences {
   inventoryColumns?: {
     [field: string]: boolean; // true = visible, false = hidden
@@ -16,7 +18,7 @@ export const useUserPreferences = () => {
       preferences.value = response.preferences || {};
       return preferences.value;
     } catch (error: any) {
-      console.error("Failed to fetch preferences:", error);
+      logger.error("Failed to fetch preferences", { error });
       return {};
     } finally {
       loading.value = false;
@@ -32,7 +34,7 @@ export const useUserPreferences = () => {
       });
       preferences.value = response.preferences || {};
     } catch (error: any) {
-      console.error("Failed to update preferences:", error);
+      logger.error("Failed to update preferences", { error });
       throw error;
     } finally {
       loading.value = false;
@@ -43,7 +45,9 @@ export const useUserPreferences = () => {
     return preferences.value.inventoryColumns || {};
   };
 
-  const setInventoryColumnVisibility = async (columnVisibility: { [field: string]: boolean }): Promise<void> => {
+  const setInventoryColumnVisibility = async (columnVisibility: {
+    [field: string]: boolean;
+  }): Promise<void> => {
     const newPreferences = {
       ...preferences.value,
       inventoryColumns: columnVisibility,
@@ -60,4 +64,3 @@ export const useUserPreferences = () => {
     setInventoryColumnVisibility,
   };
 };
-

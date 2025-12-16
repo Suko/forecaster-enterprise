@@ -24,7 +24,8 @@
             placeholder="7"
           />
           <template #hint>
-            Extra days added to lead time to account for delays and demand variability. Used as default for all products unless overridden.
+            Extra days added to lead time to account for delays and demand variability. Used as
+            default for all products unless overridden.
           </template>
         </UFormField>
 
@@ -39,7 +40,8 @@
             placeholder="14"
           />
           <template #hint>
-            Products with DIR (Days of Inventory Remaining) below this threshold are considered understocked.
+            Products with DIR (Days of Inventory Remaining) below this threshold are considered
+            understocked.
           </template>
         </UFormField>
 
@@ -89,6 +91,8 @@
 </template>
 
 <script setup lang="ts">
+import { logger } from "~~/server/utils/logger";
+
 const { fetchSettings, updateSettings } = useSettings();
 const { handleAuthError } = useAuthError();
 
@@ -113,7 +117,7 @@ const loadSettings = async () => {
   } catch (err: any) {
     const wasAuthError = await handleAuthError(err);
     if (!wasAuthError) {
-      console.error("Failed to load settings:", err);
+      logger.error("Failed to load settings", { error: err });
     }
   } finally {
     loading.value = false;
@@ -122,7 +126,7 @@ const loadSettings = async () => {
 
 const saveSettings = async () => {
   if (saving.value) return;
-  
+
   saving.value = true;
   const toast = useToast();
   try {
@@ -154,4 +158,3 @@ onMounted(() => {
   loadSettings();
 });
 </script>
-

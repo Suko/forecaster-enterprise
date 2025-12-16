@@ -38,11 +38,19 @@
                 {{ [location.city, location.country].filter(Boolean).join(", ") }}
               </span>
               <span v-else-if="location.address">{{ location.address }}</span>
-              <span v-else class="text-gray-400">No address</span>
+              <span
+                v-else
+                class="text-gray-400"
+                >No address</span
+              >
             </div>
             <div class="text-xs text-gray-400 dark:text-gray-500 mt-0.5">
               ID: {{ location.location_id }}
-              <span v-if="location.is_synced" class="ml-2 text-blue-500">(Synced)</span>
+              <span
+                v-if="location.is_synced"
+                class="ml-2 text-blue-500"
+                >(Synced)</span
+              >
             </div>
           </div>
         </div>
@@ -184,8 +192,12 @@
           </template>
 
           <p class="text-gray-600 dark:text-gray-400">
-            Are you sure you want to delete "{{ locationToDelete?.name }}"? This action cannot be undone.
-            <span v-if="locationToDelete?.is_synced" class="block mt-2 text-sm text-red-600 dark:text-red-400">
+            Are you sure you want to delete "{{ locationToDelete?.name }}"? This action cannot be
+            undone.
+            <span
+              v-if="locationToDelete?.is_synced"
+              class="block mt-2 text-sm text-red-600 dark:text-red-400"
+            >
               Note: Synced locations cannot be deleted from the app.
             </span>
           </p>
@@ -218,6 +230,7 @@ import { ref, computed, onMounted } from "vue";
 import { useLocations } from "~/composables/useLocations";
 import { useAuthError } from "~/composables/useAuthError";
 import type { Location, LocationCreate, LocationUpdate } from "~/types/location";
+import { logger } from "~~/server/utils/logger";
 
 const toast = useToast();
 
@@ -286,7 +299,7 @@ const loadLocations = async () => {
   } catch (err: any) {
     const wasAuthError = await handleAuthError(err);
     if (!wasAuthError) {
-      console.error("Failed to load locations:", err);
+      logger.error("Failed to load locations", { error: err });
     }
   } finally {
     loading.value = false;
@@ -421,4 +434,3 @@ onMounted(() => {
   loadLocations();
 });
 </script>
-

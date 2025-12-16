@@ -1,4 +1,5 @@
 import { authenticatedFetch } from "../../../utils/api";
+import { logger } from "~/server/utils/logger";
 
 /**
  * Update a cart item
@@ -24,6 +25,7 @@ export default defineEventHandler(async (event) => {
 
     return await authenticatedFetch(event, endpoint, { method: "PUT", body });
   } catch (error: any) {
+    logger.error("Update cart item error", { error });
     if (error.statusCode === 401) {
       throw createError({ statusCode: 401, statusMessage: "Not authenticated" });
     }

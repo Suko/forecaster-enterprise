@@ -489,7 +489,7 @@ onMounted(async () => {
               </UBadge>
               <UBadge
                 v-if="supplier.is_synced"
-                color="green"
+                color="success"
                 variant="soft"
                 >Synced</UBadge
               >
@@ -810,7 +810,7 @@ onMounted(async () => {
                 </span>
                 <UBadge
                   v-if="!isUsingSupplierDefault(p.item_id, 'moq')"
-                  color="blue"
+                  color="info"
                   variant="soft"
                   size="xs"
                 >
@@ -827,7 +827,7 @@ onMounted(async () => {
                 </span>
                 <UBadge
                   v-if="!isUsingSupplierDefault(p.item_id, 'lead_time_days')"
-                  color="blue"
+                  color="info"
                   variant="soft"
                   size="xs"
                 >
@@ -839,7 +839,7 @@ onMounted(async () => {
                 class="flex items-center gap-2"
               >
                 <UBadge
-                  color="green"
+                  color="success"
                   variant="soft"
                   size="xs"
                 >

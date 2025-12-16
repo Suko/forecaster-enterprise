@@ -203,7 +203,7 @@ onMounted(async () => {
               </UBadge>
               <UBadge
                 v-if="supplier.is_synced"
-                color="green"
+                color="success"
                 variant="soft"
                 >Synced</UBadge
               >

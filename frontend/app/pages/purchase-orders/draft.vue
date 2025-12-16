@@ -244,7 +244,7 @@ onMounted(async () => {
       </UButton>
       <UButton
         icon="i-lucide-trash-2"
-        color="red"
+        color="error"
         variant="soft"
         :disabled="loading || items.length === 0"
         @click="onClearCart"
@@ -382,7 +382,7 @@ onMounted(async () => {
             >
             <UButton
               size="sm"
-              color="red"
+              color="error"
               variant="ghost"
               @click="onRemoveItem(item)"
               >Remove</UButton

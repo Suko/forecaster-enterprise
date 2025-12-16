@@ -87,146 +87,94 @@
       :description="error"
     />
 
-    <!-- Action Cards -->
-    <div
+    <!-- Recommendations List -->
+    <UCard
       v-else
-      class="grid grid-cols-1 lg:grid-cols-2 gap-4"
+      class="overflow-hidden"
     >
-      <UCard
-        v-for="rec in filteredRecommendations"
-        :key="`${rec.item_id}-${rec.type}`"
-        :class="getCardClass(rec)"
-        class="hover:shadow-lg transition-shadow cursor-pointer"
-        @click="handleViewDetails(rec)"
-      >
-        <div class="flex items-start justify-between gap-4">
-          <div class="flex-1 space-y-2">
-            <!-- Header with Type and Priority -->
-            <div class="flex items-center gap-2">
+      <div class="divide-y divide-gray-200 dark:divide-gray-800">
+        <div
+          v-for="rec in filteredRecommendations"
+          :key="`${rec.item_id}-${rec.type}`"
+          class="p-5 hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors"
+        >
+          <div class="flex items-start justify-between gap-6">
+            <!-- Left: Type, Product -->
+            <div class="flex items-start gap-4 flex-1 min-w-0">
               <UBadge
                 :color="getTypeColor(rec.type)"
                 variant="soft"
                 size="sm"
+                class="mt-0.5 flex-shrink-0"
               >
                 {{ getTypeLabel(rec.type) }}
               </UBadge>
-              <UBadge
-                v-if="rec.priority === 'high'"
-                color="red"
-                variant="soft"
-                size="sm"
-              >
-                High Priority
-              </UBadge>
-            </div>
-
-            <!-- Product Info -->
-            <div>
-              <h3 class="font-semibold text-lg">{{ rec.product_name }}</h3>
-              <p class="text-sm text-gray-500 dark:text-gray-400">{{ rec.item_id }}</p>
-            </div>
-
-            <!-- Reason with urgency details -->
-            <div class="space-y-1">
-              <p class="text-sm text-gray-600 dark:text-gray-300">
-                {{ rec.reason }}
-              </p>
-              <div
-                v-if="rec.urgencyDetails"
-                class="text-xs text-gray-500 dark:text-gray-400 flex items-center gap-2 flex-wrap"
-              >
-                <span
-                  v-if="rec.urgencyDetails.dir !== undefined"
-                  class="flex items-center gap-1"
-                >
-                  <UIcon
-                    name="i-lucide-calendar"
-                    class="w-3 h-3"
-                  />
-                  DIR: {{ rec.urgencyDetails.dir.toFixed(1) }}d
-                </span>
-                <span
-                  v-if="rec.urgencyDetails.leadTime"
-                  class="flex items-center gap-1"
-                >
-                  <UIcon
-                    name="i-lucide-clock"
-                    class="w-3 h-3"
-                  />
-                  Lead: {{ rec.urgencyDetails.leadTime }}d
-                </span>
-                <span
-                  v-if="rec.urgencyDetails.velocity"
-                  class="flex items-center gap-1"
-                >
-                  <UIcon
-                    name="i-lucide-trending-up"
-                    class="w-3 h-3"
-                  />
-                  Velocity: {{ rec.urgencyDetails.velocity }}
-                </span>
+              
+              <div class="flex-1 min-w-0">
+                <div class="font-semibold text-base text-gray-900 dark:text-gray-100 mb-1">
+                  {{ rec.product_name }}
+                </div>
+                <div class="text-sm text-gray-500 dark:text-gray-400">
+                  {{ rec.item_id }}
+                </div>
               </div>
             </div>
-
-            <!-- Revenue Impact -->
+            
+            <!-- Center: Revenue at Risk (prominent) -->
             <div
               v-if="getRevenueAtRisk(rec)"
-              class="flex items-center gap-2 text-sm font-medium text-red-700 dark:text-red-300"
+              class="flex-shrink-0"
             >
-              <UIcon
-                name="i-lucide-alert-circle"
-                class="w-4 h-4"
-              />
-              <span>Est. revenue at risk (next 14 days): €{{ getRevenueAtRisk(rec)?.toLocaleString() }}</span>
-            </div>
-
-            <!-- Action Details -->
-            <div class="flex items-center gap-4 text-sm">
-              <div
-                v-if="rec.suggested_quantity"
-                class="flex items-center gap-1"
+              <UBadge
+                color="red"
+                variant="soft"
+                size="md"
+                class="font-semibold"
               >
                 <UIcon
-                  name="i-lucide-package"
-                  class="w-4 h-4 text-gray-400"
+                  name="i-lucide-alert-circle"
+                  class="w-4 h-4 mr-1"
                 />
-                <span class="font-medium">Order {{ rec.suggested_quantity }} units</span>
+                €{{ getRevenueAtRisk(rec)?.toLocaleString() }} at risk
+              </UBadge>
+            </div>
+            
+            <!-- Right: Qty, Supplier, Actions -->
+            <div class="flex items-center gap-4 flex-shrink-0">
+              <div class="text-right">
+                <div class="text-sm font-semibold text-gray-900 dark:text-gray-100">
+                  {{ rec.suggested_quantity }} units
+                </div>
+                <div
+                  v-if="rec.supplier_name"
+                  class="text-xs text-gray-500 dark:text-gray-400 mt-0.5"
+                >
+                  {{ rec.supplier_name }}
+                </div>
               </div>
-              <div
-                v-if="rec.supplier_name"
-                class="flex items-center gap-1 text-gray-500"
-              >
-                <UIcon
-                  name="i-lucide-truck"
-                  class="w-4 h-4"
-                />
-                <span>{{ rec.supplier_name }}</span>
+              <div class="flex items-center gap-2">
+                <UButton
+                  icon="i-lucide-shopping-cart"
+                  color="primary"
+                  size="sm"
+                  @click="handleAddToCart(rec)"
+                >
+                  Add to Cart
+                </UButton>
+                <UButton
+                  icon="i-lucide-eye"
+                  variant="ghost"
+                  size="sm"
+                  @click="handleViewDetails(rec)"
+                >
+                  Details
+                </UButton>
               </div>
             </div>
-          </div>
-
-          <!-- Action Button -->
-          <div class="flex flex-col items-end gap-2">
-            <UButton
-              icon="i-lucide-shopping-cart"
-              color="primary"
-              size="sm"
-              @click.stop="handleAddToCart(rec)"
-            >
-              Add to Cart
-            </UButton>
-            <UButton
-              icon="i-lucide-eye"
-              variant="ghost"
-              size="xs"
-              @click.stop="handleViewDetails(rec)"
-            >
-              View Details
-            </UButton>
           </div>
         </div>
-      </UCard>
-    </div>
+      </div>
+    </UCard>
 
     <!-- Empty State -->
     <div
@@ -244,6 +192,154 @@
         All inventory levels are optimal
       </p>
     </div>
+
+    <!-- Recommendation Details Modal -->
+    <UModal
+      v-model:open="showDetailsModal"
+      :ui="{ width: 'sm:max-w-3xl' }"
+    >
+      <template #content>
+        <UCard
+          v-if="selectedRecommendation"
+        >
+          <template #header>
+            <div class="flex items-center justify-between">
+              <h3 class="text-xl font-semibold">{{ selectedRecommendation.product_name }}</h3>
+              <div class="flex items-center gap-2">
+                <UBadge
+                  :color="getTypeColor(selectedRecommendation.type)"
+                  variant="soft"
+                >
+                  {{ getTypeLabel(selectedRecommendation.type) }}
+                </UBadge>
+                <UBadge
+                  v-if="selectedRecommendation.priority === 'high'"
+                  color="red"
+                  variant="soft"
+                >
+                  High Priority
+                </UBadge>
+              </div>
+            </div>
+          </template>
+
+          <div class="space-y-6">
+            <!-- Product Info -->
+            <div>
+              <h4 class="text-sm font-medium text-gray-500 dark:text-gray-400 mb-2">Product ID</h4>
+              <p class="text-gray-900 dark:text-gray-100">{{ selectedRecommendation.item_id }}</p>
+            </div>
+
+            <!-- Reason -->
+            <div>
+              <h4 class="text-sm font-medium text-gray-500 dark:text-gray-400 mb-2">Reason</h4>
+              <p class="text-gray-900 dark:text-gray-100">{{ selectedRecommendation.reason }}</p>
+            </div>
+
+            <!-- Urgency Details -->
+            <div
+              v-if="selectedRecommendation.urgencyDetails"
+              class="grid grid-cols-2 md:grid-cols-4 gap-4"
+            >
+              <div
+                v-if="selectedRecommendation.urgencyDetails.dir !== undefined"
+                class="bg-gray-50 dark:bg-gray-800 p-3 rounded-lg"
+              >
+                <div class="text-xs text-gray-500 dark:text-gray-400 mb-1">Days Until Stockout</div>
+                <div class="text-lg font-semibold text-gray-900 dark:text-gray-100">
+                  {{ selectedRecommendation.urgencyDetails.dir.toFixed(1) }} days
+                </div>
+              </div>
+              <div
+                v-if="selectedRecommendation.urgencyDetails.leadTime"
+                class="bg-gray-50 dark:bg-gray-800 p-3 rounded-lg"
+              >
+                <div class="text-xs text-gray-500 dark:text-gray-400 mb-1">Lead Time</div>
+                <div class="text-lg font-semibold text-gray-900 dark:text-gray-100">
+                  {{ selectedRecommendation.urgencyDetails.leadTime }} days
+                </div>
+              </div>
+              <div
+                v-if="selectedRecommendation.urgencyDetails.velocity"
+                class="bg-gray-50 dark:bg-gray-800 p-3 rounded-lg"
+              >
+                <div class="text-xs text-gray-500 dark:text-gray-400 mb-1">Sales Velocity</div>
+                <div class="text-lg font-semibold text-gray-900 dark:text-gray-100 capitalize">
+                  {{ selectedRecommendation.urgencyDetails.velocity }}
+                </div>
+              </div>
+              <div
+                v-if="selectedRecommendation.urgencyDetails.riskScore"
+                class="bg-red-50 dark:bg-red-900/20 p-3 rounded-lg"
+              >
+                <div class="text-xs text-red-600 dark:text-red-400 mb-1">Risk Score</div>
+                <div class="text-lg font-semibold text-red-700 dark:text-red-300">
+                  {{ selectedRecommendation.urgencyDetails.riskScore.toFixed(0) }}%
+                </div>
+              </div>
+            </div>
+
+            <!-- Revenue Impact -->
+            <div
+              v-if="getRevenueAtRisk(selectedRecommendation)"
+              class="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-4"
+            >
+              <div class="flex items-center gap-2 mb-2">
+                <UIcon
+                  name="i-lucide-alert-circle"
+                  class="w-5 h-5 text-red-600 dark:text-red-400"
+                />
+                <h4 class="font-semibold text-red-900 dark:text-red-100">Revenue at Risk</h4>
+              </div>
+              <p class="text-lg font-bold text-red-700 dark:text-red-300">
+                €{{ getRevenueAtRisk(selectedRecommendation)?.toLocaleString() }}
+              </p>
+              <p class="text-sm text-red-600 dark:text-red-400 mt-1">
+                Estimated revenue at risk over the next 14 days
+              </p>
+            </div>
+
+            <!-- Action Details -->
+            <div class="grid grid-cols-2 gap-4">
+              <div class="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4">
+                <div class="text-xs text-blue-600 dark:text-blue-400 mb-1">Suggested Quantity</div>
+                <div class="text-2xl font-bold text-blue-900 dark:text-blue-100">
+                  {{ selectedRecommendation.suggested_quantity }}
+                </div>
+                <div class="text-sm text-blue-700 dark:text-blue-300 mt-1">units</div>
+              </div>
+              <div
+                v-if="selectedRecommendation.supplier_name"
+                class="bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg p-4"
+              >
+                <div class="text-xs text-gray-600 dark:text-gray-400 mb-1">Supplier</div>
+                <div class="text-lg font-semibold text-gray-900 dark:text-gray-100">
+                  {{ selectedRecommendation.supplier_name }}
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <template #footer>
+            <div class="flex items-center justify-end gap-2">
+              <UButton
+                variant="ghost"
+                @click="showDetailsModal = false"
+              >
+                Close
+              </UButton>
+              <UButton
+                icon="i-lucide-shopping-cart"
+                color="primary"
+                @click="handleAddToCartFromModal"
+              >
+                Add to Cart
+              </UButton>
+            </div>
+          </template>
+        </UCard>
+      </template>
+    </UModal>
   </div>
 </template>
 
@@ -271,6 +367,8 @@ const rowData = ref<DemoRecommendation[]>([]);
 const loading = ref(false);
 const error = ref<string | null>(null);
 const activeFilter = ref<'all' | 'urgent' | 'reorder'>('all');
+const showDetailsModal = ref(false);
+const selectedRecommendation = ref<DemoRecommendation | null>(null);
 
 // Filter counts
 const filterCounts = computed(() => {
@@ -380,8 +478,17 @@ const handleAddToCart = async (rec: Recommendation) => {
 };
 
 // Handle view details
-const handleViewDetails = (rec: Recommendation) => {
-  navigateTo(`/inventory?item=${rec.item_id}`);
+const handleViewDetails = (rec: DemoRecommendation) => {
+  selectedRecommendation.value = rec;
+  showDetailsModal.value = true;
+};
+
+// Handle add to cart from modal
+const handleAddToCartFromModal = async () => {
+  if (selectedRecommendation.value) {
+    await handleAddToCart(selectedRecommendation.value);
+    showDetailsModal.value = false;
+  }
 };
 
 // Demo recommendations data (hardcoded for demo branch)

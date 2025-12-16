@@ -1,0 +1,16 @@
+{
+  "buildCommand": "cd frontend && bun run build",
+  "outputDirectory": "frontend/.output/public",
+  "installCommand": "cd frontend && bun install",
+  "framework": "nuxtjs",
+  "rewrites": [
+    {
+      "source": "/(.*)",
+      "destination": "/index.html"
+    }
+  ],
+  "env": {
+    "NUXT_PUBLIC_DEMO_MODE": "true"
+  }
+}
+

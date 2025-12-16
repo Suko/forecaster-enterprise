@@ -28,6 +28,15 @@ export default defineNuxtConfig({
       },
     },
   },
+
+  sentry: {
+    org: "blaz-poklar",
+    project: "javascript-nuxt",
+  },
+
+  sourcemap: {
+    client: "hidden",
+  },
   // Note: nuxt-auth-utils automatically uses HttpOnly cookies
   // Session cookies are encrypted and secure by default
   // Configure via NUXT_SESSION_PASSWORD environment variable

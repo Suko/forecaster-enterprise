@@ -66,7 +66,7 @@ export function log(
       // Capture warnings and errors in Sentry
       if (level === "warning" || level === "error") {
         if (error instanceof Error) {
-          // Capture actual errors
+          // Capture actual errors with stack traces
           Sentry.captureException(error, {
             level: sentryLevel,
             contexts: {
@@ -77,20 +77,18 @@ export function log(
             },
           });
         } else {
-          // Capture messages
-          Sentry.captureMessage(message, {
-            level: sentryLevel,
-            contexts: {
-              log: context,
-            },
-            tags: {
-              log_level: level,
-            },
-            extra: {
-              error,
-            },
-          });
+          // Use Sentry.logger for structured logging
+          const attributes = { ...context, error };
+          if (level === "warning") {
+            Sentry.logger.warn(message, attributes);
+          } else {
+            Sentry.logger.error(message, attributes);
+          }
         }
+      } else if (level === "info") {
+        Sentry.logger.info(message, context);
+      } else if (level === "debug") {
+        Sentry.logger.debug(message, context);
       }
     } catch (err) {
       console.error("Failed to send log to Sentry:", err);

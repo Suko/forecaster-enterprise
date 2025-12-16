@@ -15,21 +15,28 @@ export default defineEventHandler((event) => {
     setHeader(event, "Strict-Transport-Security", "max-age=31536000; includeSubDomains; preload");
   }
 
-  // Content Security Policy
-  // Adjust based on your needs - this is a restrictive default
-  setHeader(
-    event,
-    "Content-Security-Policy",
-    [
-      "default-src 'self'",
-      "script-src 'self' 'unsafe-inline' 'unsafe-eval'", // Required for Nuxt/Vue in dev
-      "style-src 'self' 'unsafe-inline'",
-      "img-src 'self' data: https:",
-      "font-src 'self' data:",
-      "connect-src 'self'",
-      "frame-ancestors 'none'",
-    ].join("; ")
-  );
+  // Content Security Policy - different rules for dev vs prod
+  const cspDirectives = isProduction
+    ? [
+        "default-src 'self'",
+        "script-src 'self'",
+        "style-src 'self' 'unsafe-inline'", // unsafe-inline needed for dynamic styles
+        "img-src 'self' data: https:",
+        "font-src 'self' data:",
+        "connect-src 'self' https://*.ingest.sentry.io https://*.ingest.us.sentry.io", // Sentry only
+        "frame-ancestors 'none'",
+      ]
+    : [
+        "default-src 'self'",
+        "script-src 'self' 'unsafe-inline' 'unsafe-eval'", // Required for Vite HMR
+        "style-src 'self' 'unsafe-inline'",
+        "img-src 'self' data: https:",
+        "font-src 'self' data:",
+        "connect-src 'self' ws: wss: http://localhost:* https://*.ingest.sentry.io https://*.ingest.us.sentry.io", // Allow HMR + Sentry
+        "frame-ancestors 'none'",
+      ];
+
+  setHeader(event, "Content-Security-Policy", cspDirectives.join("; "));
 
   // Permissions Policy (formerly Feature Policy)
   setHeader(

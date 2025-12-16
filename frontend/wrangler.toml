@@ -1,0 +1,15 @@
+# Cloudflare Pages configuration for Nuxt.js
+# This file is optional - Cloudflare Pages can auto-detect Nuxt.js
+
+name = "forecaster-enterprise-demo"
+compatibility_date = "2024-01-01"
+
+[env.production]
+name = "forecaster-enterprise"
+
+[env.preview]
+name = "forecaster-enterprise-preview"
+
+# Build configuration (if using Cloudflare Workers for SSR)
+# For static sites, Cloudflare Pages handles this automatically
+

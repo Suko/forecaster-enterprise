@@ -4,9 +4,58 @@ This guide explains how to deploy the demo branch online for live demonstrations
 
 ## 🚀 Quick Deploy Options
 
-### Option 1: Vercel (Recommended - Easiest)
+### Option 1: Cloudflare Pages (Recommended)
 
-Vercel is the easiest option for Nuxt.js applications.
+Cloudflare Pages offers fast global CDN, free SSL, and excellent performance for Nuxt.js applications.
+
+#### Steps:
+
+1. **Go to [dash.cloudflare.com](https://dash.cloudflare.com)** and sign in
+2. **Navigate to**: Pages → Create a project
+3. **Connect to Git**: Select GitHub and authorize Cloudflare
+4. **Select repository**: `Suko/forecaster-enterprise`
+5. **Configure the project**:
+   - **Project name**: `forecaster-enterprise-demo`
+   - **Production branch**: `demo` (or `main` for production)
+   - **Framework preset**: Nuxt.js (auto-detected)
+   - **Build command**: `cd frontend && bun run build` (or `cd frontend && npm run build`)
+   - **Build output directory**: `frontend/.output/public`
+   - **Root directory**: Leave empty (or set to `frontend` if needed)
+6. **Environment Variables**:
+   - Click "Add variable"
+   - Add `NUXT_PUBLIC_DEMO_MODE` = `true`
+   - Add any other environment variables as needed
+7. **Deploy!**
+
+#### Branch-Specific Deployment:
+
+- **Production**: Deploy from `main` branch
+- **Demo**: Deploy from `demo` branch
+  - In Cloudflare Pages, go to Settings → Builds & deployments
+  - Configure branch deployments
+  - Each branch gets its own preview URL
+
+#### Custom Domain (Optional):
+
+- In Cloudflare Pages project → Custom domains
+- Add a custom domain like `demo.forecaster-enterprise.com`
+- Cloudflare automatically configures SSL
+
+#### Benefits of Cloudflare Pages:
+
+- ✅ **Free tier** with generous limits
+- ✅ **Global CDN** - fast worldwide
+- ✅ **Automatic HTTPS** - SSL certificates
+- ✅ **Preview deployments** - for every PR
+- ✅ **Instant rollbacks** - one-click revert
+- ✅ **Analytics** - built-in page views
+- ✅ **No credit card required** for free tier
+
+---
+
+### Option 2: Vercel
+
+Vercel is another excellent option for Nuxt.js applications.
 
 #### Steps:
 
@@ -23,22 +72,9 @@ Vercel is the easiest option for Nuxt.js applications.
    - `NUXT_PUBLIC_DEMO_MODE=true` (for demo mode)
 6. **Deploy!**
 
-#### Branch-Specific Deployment:
-
-- **Production**: Deploy from `main` branch
-- **Demo**: Deploy from `demo` branch
-  - In Vercel dashboard, go to Settings → Git
-  - Add `demo` branch for automatic deployments
-  - Or create a separate project for demo branch
-
-#### Custom Domain (Optional):
-
-- In Vercel project settings → Domains
-- Add a custom domain like `demo.forecaster-enterprise.com`
-
 ---
 
-### Option 2: Netlify
+### Option 3: Netlify
 
 1. **Go to [netlify.com](https://netlify.com)** and sign in with GitHub
 2. **Click "Add new site" → "Import an existing project"**
@@ -136,6 +172,7 @@ NUXT_PUBLIC_API_BASE_URL=https://api.example.com
 
 After deployment, you'll get URLs like:
 
+- **Cloudflare Pages**: `forecaster-enterprise-demo.pages.dev`
 - **Vercel**: `forecaster-enterprise-demo.vercel.app`
 - **Netlify**: `forecaster-enterprise-demo.netlify.app`
 - **Custom Domain**: `demo.forecaster-enterprise.com`
@@ -164,18 +201,28 @@ To update the live demo:
 - Check build logs in deployment platform
 - Test build locally: `cd frontend && bun run build`
 - Ensure all dependencies are in `package.json`
+- **Cloudflare Pages**: Check that build command includes `cd frontend` if root is repo root
 
 ### App Doesn't Load
 
 - Check browser console for errors
 - Verify environment variables are set
 - Check if demo mode is enabled
+- **Cloudflare Pages**: Verify `_redirects` file is in output directory for SPA routing
 
 ### API Errors
 
 - Ensure API endpoints are accessible
 - Check CORS settings if using external APIs
 - Verify API base URL in environment variables
+
+### Cloudflare Pages Specific
+
+- **Build timeout**: Cloudflare Pages has a 15-minute build limit (free tier)
+- **Output directory**: Ensure `.output/public` is correct for Nuxt 3
+- **Environment variables**: Must be set in Cloudflare Pages dashboard (not in code)
+- **Custom domain**: DNS must point to Cloudflare (use Cloudflare nameservers)
+- **Preview deployments**: Each branch/PR gets a unique URL automatically
 
 ---
 
@@ -190,15 +237,19 @@ To update the live demo:
 
 ## 🎯 Recommended Setup
 
-For best results, use **Vercel** with:
+For best results, use **Cloudflare Pages** with:
 - Automatic deployments from `demo` branch
 - Custom domain (optional)
 - Preview deployments for PRs
 - Environment variables configured
 
 This gives you:
-- ✅ Fast global CDN
-- ✅ Automatic HTTPS
-- ✅ Easy rollbacks
-- ✅ Preview URLs for testing
+- ✅ Fast global CDN (Cloudflare's network)
+- ✅ Automatic HTTPS (free SSL certificates)
+- ✅ Easy rollbacks (one-click revert)
+- ✅ Preview URLs for testing (every PR gets a URL)
+- ✅ Free tier with generous limits
+- ✅ Built-in analytics
+- ✅ DDoS protection included
+- ✅ No credit card required
 

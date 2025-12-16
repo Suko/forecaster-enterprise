@@ -31,7 +31,7 @@ export default defineEventHandler(async (event) => {
       // Log token validation failure
       logSecurityEvent({
         type: "token_validation_failure",
-        email: user?.email,
+        email: (user as any)?.email,
         ip: clientIP,
         userAgent: userAgent,
         details: { reason: "Token invalid or expired" },

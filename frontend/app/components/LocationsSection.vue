@@ -58,7 +58,7 @@
           <UDropdownMenu :items="getLocationActions(location)">
             <UButton
               icon="i-lucide-more-vertical"
-              color="gray"
+              color="neutral"
               variant="ghost"
               size="sm"
             />
@@ -211,7 +211,7 @@
                 Cancel
               </UButton>
               <UButton
-                color="red"
+                color="error"
                 :loading="deleting"
                 @click="confirmDelete"
               >
@@ -352,7 +352,7 @@ const handleSubmit = async () => {
     toast.add({
       title: "Validation Error",
       description: "Location ID and Name are required",
-      color: "red",
+      color: "error",
     });
     return;
   }
@@ -394,7 +394,7 @@ const handleSubmit = async () => {
       toast.add({
         title: "Error",
         description: err.data?.detail || err.message || "Failed to save location",
-        color: "red",
+        color: "error",
       });
     }
   } finally {
@@ -422,7 +422,7 @@ const confirmDelete = async () => {
       toast.add({
         title: "Error",
         description: err.data?.detail || err.message || "Failed to delete location",
-        color: "red",
+        color: "error",
       });
     }
   } finally {

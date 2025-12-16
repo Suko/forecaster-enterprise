@@ -52,12 +52,6 @@ const editingProductForm = ref<{
 } | null>(null);
 const savingProduct = ref(false);
 
-const badgeColorForType = (supplierType: string) => {
-  if (supplierType === "PO") return "blue";
-  if (supplierType === "WO") return "purple";
-  return "gray";
-};
-
 const loadSupplier = async () => {
   if (!supplierId.value) return;
   loading.value = true;
@@ -232,7 +226,7 @@ const saveProductCondition = async (product: Product) => {
     toast.add({
       title: "Updated",
       description: `MOQ and lead time ${condition ? "updated" : "set"} for ${product.product_name}`,
-      color: "green",
+      color: "success",
     });
 
     editingProductId.value = null;
@@ -252,7 +246,7 @@ const saveProductCondition = async (product: Product) => {
     toast.add({
       title: "Save failed",
       description: errorMessage,
-      color: "red",
+      color: "error",
     });
   } finally {
     savingProduct.value = false;
@@ -271,7 +265,7 @@ const resetToDefault = async (product: Product) => {
       toast.add({
         title: "Already using defaults",
         description: `${product.product_name} is already using supplier defaults`,
-        color: "blue",
+        color: "info",
       });
       savingProduct.value = false;
       return;
@@ -289,7 +283,7 @@ const resetToDefault = async (product: Product) => {
     toast.add({
       title: "Reset to default",
       description: `${product.product_name} now uses supplier defaults`,
-      color: "green",
+      color: "success",
     });
   } catch (err: any) {
     logger.error("Reset product condition error", { error: err });
@@ -306,7 +300,7 @@ const resetToDefault = async (product: Product) => {
     toast.add({
       title: "Reset failed",
       description: errorMessage,
-      color: "red",
+      color: "error",
     });
   } finally {
     savingProduct.value = false;
@@ -418,6 +412,12 @@ const performSave = async (applyToExistingProducts: boolean) => {
   }
 };
 
+const badgeColorForType = (supplierType: string) => {
+  if (supplierType === "PO") return "info";
+  if (supplierType === "WO") return "primary";
+  return "neutral";
+};
+
 const confirmApplyToExisting = () => {
   performSave(true);
 };
@@ -504,7 +504,7 @@ onMounted(async () => {
               </UBadge>
               <UBadge
                 v-if="supplier.is_synced"
-                color="green"
+                color="success"
                 variant="soft"
                 >Synced</UBadge
               >
@@ -522,7 +522,7 @@ onMounted(async () => {
                 v-if="isEditing"
                 icon="i-lucide-x"
                 variant="soft"
-                color="gray"
+                color="neutral"
                 @click="cancelEditing"
               >
                 Cancel
@@ -739,7 +739,7 @@ onMounted(async () => {
               icon="i-lucide-refresh-cw"
               variant="ghost"
               :loading="productsLoading"
-              @click="loadProducts"
+              @click="() => loadProducts()"
             >
               Refresh
             </UButton>
@@ -789,7 +789,7 @@ onMounted(async () => {
                   v-if="editingProductId !== p.item_id && hasCustomValues(p.item_id)"
                   size="sm"
                   variant="ghost"
-                  color="gray"
+                  color="neutral"
                   icon="i-lucide-rotate-ccw"
                   :disabled="savingProduct"
                   @click="resetToDefault(p)"
@@ -830,7 +830,7 @@ onMounted(async () => {
                 </span>
                 <UBadge
                   v-if="!isUsingSupplierDefault(p.item_id, 'moq')"
-                  color="blue"
+                  color="info"
                   variant="soft"
                   size="xs"
                 >
@@ -855,7 +855,7 @@ onMounted(async () => {
                 </span>
                 <UBadge
                   v-if="!isUsingSupplierDefault(p.item_id, 'lead_time_days')"
-                  color="blue"
+                  color="info"
                   variant="soft"
                   size="xs"
                 >
@@ -867,7 +867,7 @@ onMounted(async () => {
                 class="flex items-center gap-2"
               >
                 <UBadge
-                  color="green"
+                  color="success"
                   variant="soft"
                   size="xs"
                 >
@@ -927,7 +927,7 @@ onMounted(async () => {
                   v-if="hasCustomValues(p.item_id)"
                   size="sm"
                   variant="ghost"
-                  color="gray"
+                  color="neutral"
                   icon="i-lucide-rotate-ccw"
                   :disabled="savingProduct"
                   @click="resetToDefault(p)"
@@ -1020,7 +1020,7 @@ onMounted(async () => {
       v-model:open="showApplyDialog"
       :dismissible="!saving"
       title="Apply Default Changes to Existing Products?"
-      :ui="{ width: 'sm:max-w-md', footer: 'justify-end' }"
+      :ui="{ footer: 'justify-end' }"
     >
       <template #body>
         <div class="space-y-4">
@@ -1051,7 +1051,7 @@ onMounted(async () => {
           </div>
 
           <UAlert
-            color="amber"
+            color="warning"
             variant="soft"
             title="Note"
             description="This will only update products that are currently using the supplier defaults. Products with explicit overrides will remain unchanged."

@@ -85,7 +85,7 @@ const onSaveStatus = async () => {
   try {
     const updated = await updatePurchaseOrderStatus(po.value.id, selectedStatus.value);
     po.value = updated;
-    toast.add({ title: "Status updated", description: updated.status, color: "green" });
+    toast.add({ title: "Status updated", description: updated.status, color: "success" });
   } catch (err: any) {
     logger.error("Update purchase order status error", { error: err });
     const wasAuthError = await handleAuthError(err);
@@ -93,7 +93,7 @@ const onSaveStatus = async () => {
     toast.add({
       title: "Update failed",
       description: err.message || "Failed to update status",
-      color: "red",
+      color: "error",
     });
   } finally {
     saving.value = false;

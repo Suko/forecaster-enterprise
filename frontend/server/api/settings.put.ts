@@ -14,7 +14,7 @@ export default defineEventHandler(async (event) => {
   try {
     return await authenticatedFetch<ClientSettings>(event, `/api/v1/settings`, {
       method: "PUT",
-      body,
+      body: JSON.stringify(body),
     });
   } catch (error: any) {
     logger.error("Update settings error", { error });

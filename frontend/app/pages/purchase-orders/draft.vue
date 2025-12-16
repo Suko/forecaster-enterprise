@@ -110,7 +110,7 @@ const onUpdateQuantity = async (item: CartItem) => {
   const nextQty = Number(draftQuantities.value[key]);
 
   if (!Number.isFinite(nextQty) || nextQty <= 0) {
-    toast.add({ title: "Invalid quantity", description: "Quantity must be >= 1", color: "red" });
+    toast.add({ title: "Invalid quantity", description: "Quantity must be >= 1", color: "error" });
     return;
   }
 
@@ -119,7 +119,7 @@ const onUpdateQuantity = async (item: CartItem) => {
     toast.add({
       title: "Updated",
       description: `${item.product_name} quantity updated`,
-      color: "green",
+      color: "success",
     });
     await loadCart();
   } catch (err: any) {
@@ -136,7 +136,7 @@ const onUpdateQuantity = async (item: CartItem) => {
     toast.add({
       title: "Update failed",
       description: errorMessage,
-      color: "red",
+      color: "error",
     });
   }
 };
@@ -147,7 +147,7 @@ const onRemoveItem = async (item: CartItem) => {
     toast.add({
       title: "Removed",
       description: `${item.product_name} removed from cart`,
-      color: "green",
+      color: "success",
     });
     await loadCart();
   } catch (err: any) {
@@ -163,7 +163,7 @@ const onRemoveItem = async (item: CartItem) => {
     toast.add({
       title: "Remove failed",
       description: errorMessage,
-      color: "red",
+      color: "error",
     });
   }
 };
@@ -171,7 +171,7 @@ const onRemoveItem = async (item: CartItem) => {
 const onClearCart = async () => {
   try {
     await clearCart();
-    toast.add({ title: "Cleared", description: "Cart cleared", color: "green" });
+    toast.add({ title: "Cleared", description: "Cart cleared", color: "success" });
     await loadCart();
   } catch (err: any) {
     logger.error("Clear cart error", { error: err });
@@ -180,7 +180,7 @@ const onClearCart = async () => {
     toast.add({
       title: "Clear failed",
       description: err.message || "Failed to clear cart",
-      color: "red",
+      color: "error",
     });
   }
 };
@@ -200,7 +200,7 @@ const onCreatePoForSupplier = async (supplierId: string) => {
     });
     poDrafts.value[supplierId] = {};
     persistDraftsToStorage();
-    toast.add({ title: "Purchase order created", description: po.po_number, color: "green" });
+    toast.add({ title: "Purchase order created", description: po.po_number, color: "success" });
     await loadCart();
     await navigateTo(`/purchase-orders/${po.id}`);
   } catch (err: any) {
@@ -216,7 +216,7 @@ const onCreatePoForSupplier = async (supplierId: string) => {
     toast.add({
       title: "Create PO failed",
       description: errorMessage,
-      color: "red",
+      color: "error",
     });
   } finally {
     creatingPoSupplierId.value = null;
@@ -250,7 +250,7 @@ onMounted(async () => {
       </UButton>
       <UButton
         icon="i-lucide-trash-2"
-        color="red"
+        color="error"
         variant="soft"
         :disabled="loading || items.length === 0"
         @click="onClearCart"
@@ -329,17 +329,17 @@ onMounted(async () => {
         <div class="p-4 space-y-3">
           <div class="grid grid-cols-1 md:grid-cols-3 gap-2">
             <UInput
-              v-model="poDrafts[group.supplier_id].shipping_method"
+              v-model="poDrafts[group.supplier_id]!.shipping_method"
               placeholder="Shipping method (optional)"
               size="sm"
             />
             <UInput
-              v-model="poDrafts[group.supplier_id].shipping_unit"
+              v-model="poDrafts[group.supplier_id]!.shipping_unit"
               placeholder="Shipping unit (optional)"
               size="sm"
             />
             <UInput
-              v-model="poDrafts[group.supplier_id].notes"
+              v-model="poDrafts[group.supplier_id]!.notes"
               placeholder="Notes (optional)"
               size="sm"
             />
@@ -396,7 +396,7 @@ onMounted(async () => {
             >
             <UButton
               size="sm"
-              color="red"
+              color="error"
               variant="ghost"
               @click="onRemoveItem(item)"
               >Remove</UButton

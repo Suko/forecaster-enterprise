@@ -49,7 +49,7 @@
           <UDropdownMenu :items="getUserActions(user)">
             <UButton
               icon="i-lucide-more-vertical"
-              color="gray"
+              color="neutral"
               variant="ghost"
               size="sm"
             />
@@ -152,7 +152,7 @@
           <template #footer>
             <div class="flex justify-end gap-2">
               <UButton
-                color="gray"
+                color="neutral"
                 variant="ghost"
                 @click="closeModal"
               >
@@ -195,7 +195,7 @@
                 Cancel
               </UButton>
               <UButton
-                color="red"
+                color="error"
                 :loading="deleting"
                 @click="handleDelete"
               >

@@ -12,11 +12,11 @@ export async function getAccessToken(event: H3Event): Promise<string | null> {
  * Make an authenticated request to the FastAPI backend
  * Automatically adds the JWT token from the session
  */
-export async function authenticatedFetch(
+export async function authenticatedFetch<T = any>(
   event: H3Event,
   endpoint: string,
   options: RequestInit = {}
-): Promise<any> {
+): Promise<T> {
   const config = useRuntimeConfig();
   // Use private apiBaseUrl for server-side calls (reaches backend via Docker network)
   const apiBaseUrl = config.apiBaseUrl;
@@ -41,7 +41,7 @@ export async function authenticatedFetch(
     headers,
   } as any);
 
-  return response;
+  return response as T;
 }
 
 /**

@@ -146,7 +146,7 @@ const saveSettings = async () => {
       toast.add({
         title: "Error",
         description: err.message || "Failed to save settings",
-        color: "red",
+        color: "error",
       });
     }
   } finally {

@@ -1,5 +1,5 @@
+import { logger } from "~~/server/utils/logger";
 import { authenticatedFetch } from "../../../utils/api";
-import { logger } from "~/server/utils/logger";
 
 /**
  * Update a cart item

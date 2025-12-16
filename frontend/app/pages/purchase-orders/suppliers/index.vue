@@ -115,9 +115,9 @@ watch(selectedType, async () => {
 });
 
 const badgeColorForType = (supplierType: string) => {
-  if (supplierType === "PO") return "blue";
-  if (supplierType === "WO") return "purple";
-  return "gray";
+  if (supplierType === "PO") return "info";
+  if (supplierType === "WO") return "primary";
+  return "neutral";
 };
 
 onMounted(async () => {
@@ -205,7 +205,7 @@ onMounted(async () => {
               </UBadge>
               <UBadge
                 v-if="supplier.is_synced"
-                color="green"
+                color="success"
                 variant="soft"
                 >Synced</UBadge
               >

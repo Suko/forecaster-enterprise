@@ -57,12 +57,12 @@ const loadOrders = async () => {
 };
 
 const badgeColorForStatus = (status: string) => {
-  if (status === "pending") return "yellow";
-  if (status === "confirmed") return "blue";
-  if (status === "shipped") return "purple";
-  if (status === "received") return "green";
-  if (status === "cancelled") return "red";
-  return "gray";
+  if (status === "pending") return "warning";
+  if (status === "confirmed") return "info";
+  if (status === "shipped") return "primary";
+  if (status === "received") return "success";
+  if (status === "cancelled") return "error";
+  return "neutral";
 };
 
 watch(selectedStatus, async () => {

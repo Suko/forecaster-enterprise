@@ -29,8 +29,8 @@ export const useAgGridProducts = () => {
 
       // Add sorting
       if (params.sortModel && params.sortModel.length > 0) {
-        queryParams.sort = params.sortModel[0].colId;
-        queryParams.order = params.sortModel[0].sort;
+        queryParams.sort = params.sortModel[0]!.colId;
+        queryParams.order = params.sortModel[0]!.sort;
       }
 
       // Add filters (simplified - can be expanded)

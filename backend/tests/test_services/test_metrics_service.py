@@ -113,7 +113,9 @@ async def test_calculate_stockout_risk(db_session, test_client_obj):
     )
 
     # DIR (5) < lead_time (14) + buffer (7) = 21, so high risk
-    assert risk > Decimal("0.5")  # High risk
+    # Stockout risk is now 0-1 range (not 0-100)
+    assert risk > Decimal("0.5")  # High risk (0.5 = 50%)
+    assert risk <= Decimal("1.0"), f"Risk should be <= 1.0, got {risk}"
 
 
 @pytest.mark.asyncio

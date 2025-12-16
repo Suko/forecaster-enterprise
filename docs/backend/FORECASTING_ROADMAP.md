@@ -1,7 +1,7 @@
 # Forecasting Module Roadmap
 
-**Last Updated:** 2025-12-09  
-**Current Status:** Production Ready (85%)
+**Last Updated:** 2025-12-16  
+**Current Status:** Production Ready (85%), Integration Needed
 
 > **Note:** This document focuses on the **forecasting engine** specifically.  
 > For the complete backend system roadmap (APIs, ETL, inventory management), see [BACKEND_ROADMAP.md](./BACKEND_ROADMAP.md)
@@ -12,7 +12,32 @@
 
 ## Current Development Todos
 
-### Production Readiness (Immediate)
+### ⚠️ Forecasting Integration Gap (HIGH PRIORITY)
+
+**Problem:** Forecasting works but is **not integrated** into regular inventory endpoints.
+
+| Endpoint | Uses Forecasts? | Status |
+|----------|-----------------|--------|
+| `POST /api/v1/forecast/inventory/calculate` | ✅ Yes | Works |
+| `GET /api/v1/dashboard` | ❌ No (uses historical) | Needs work |
+| `GET /api/v1/inventory/products` | ❌ No (uses historical) | Needs work |
+| Recommendations | ❌ No (uses historical) | Needs work |
+
+**Impact:** Dashboard and products show backward-looking metrics (past 30 days) instead of forward-looking forecasts.
+
+**Solution:** See `docs/backend/FORECASTING_INTEGRATION.md` for implementation plan.
+
+| Task | Status | Priority |
+|------|--------|----------|
+| Integrate forecasts in InventoryService | ⏳ Pending | 🔴 High |
+| Integrate forecasts in DashboardService | ⏳ Pending | 🔴 High |
+| Add forecast freshness check | ⏳ Pending | 🟡 Medium |
+| Add forecast validation | ⏳ Pending | 🟡 Medium |
+| Scheduled forecast generation | ⏳ Pending | 🟢 Low |
+
+---
+
+### Production Readiness
 
 | Task | Status | Priority |
 |------|--------|----------|
@@ -196,6 +221,7 @@
 ## Related Documentation
 
 - [forecasting/README.md](./forecasting/README.md) - Module status
+- [FORECASTING_INTEGRATION.md](./FORECASTING_INTEGRATION.md) - Integration gap analysis
 - [ARCHITECTURE.md](./ARCHITECTURE.md) - System architecture
 - [../standards/STANDARDS.md](../standards/STANDARDS.md) - Project standards
 

@@ -1,6 +1,6 @@
 # Next Steps - Development Priorities
 
-**Last Updated:** 2025-01-27  
+**Last Updated:** 2025-12-16  
 **Status:** Active Development Plan  
 **Scope:** Post-MVP completion priorities
 
@@ -14,38 +14,65 @@ The backend MVP (Phases 1-4) is **complete** ✅, and the frontend MVP is **~87%
 
 ## Priority Order
 
-### 1. Empty State Handling (Backend + Frontend) - **WEEK 1**
-**Goal:** Unblock onboarding and improve first-time user experience
+### 1. Data Validation - **COMPLETED** ✅
+**Goal:** Ensure data quality, completeness, and accuracy of computed metrics shown on frontend
 
-**Why First:** When users first start the application, they see empty states. Without proper handling, this creates confusion and poor UX.
+**Status:** All validation tasks completed and tested.
 
-**Backend Tasks:**
-- [ ] Create system status endpoint: `GET /api/v1/system/status`
-  - Returns: `initialized`, `has_products`, `has_locations`, `has_suppliers`, `has_sales_data`, `setup_instructions`
-  - Helps frontend detect empty state
-- [ ] Enhance API responses with helpful messages when data is empty
-  - Dashboard: "No inventory data yet. Import your data or run setup.sh to get started."
-  - Products: "No products found. Sync your product catalog or run setup.sh for test data."
-  - Recommendations: "No recommendations available. Ensure you have products and inventory data."
+**Completed:**
+- ✅ `services/data_validation_service.py` - Unified validation service
+- ✅ `POST /api/v1/etl/validate` - Validation endpoint with full report
+- ✅ `GET /api/v1/system/status` - System status endpoint
+- ✅ Raw data quality checks (dates, formats, ranges)
+- ✅ Data completeness checks (relationships, orphans)
+- ✅ Computed metrics validation (DIR, stockout risk, status, inventory value)
+- ✅ Frontend-backend consistency checks (format, range validation)
+- ✅ Stockout risk range fix: Backend returns 0-1 (frontend multiplies by 100)
+- ✅ Unit tests + Integration tests + Real data tests
 
-**Frontend Tasks:**
-- [ ] Create reusable `EmptyState.vue` component
-- [ ] Add empty states to Dashboard, Inventory, and Recommendations pages
-- [ ] Implement onboarding flow for first-time users
-- [ ] Add help tooltips and setup guidance
-- [ ] Call system status API to detect initialization state
+**Documentation:**
+- `docs/backend/DATA_VALIDATION_API.md` - API reference
+- `docs/backend/VALIDATION_USAGE_GUIDE.md` - Usage guide
+- `docs/backend/VALIDATION_PROOF.md` - Proof & guarantees
 
-**Deliverables:**
-- System status endpoint working
-- Empty state components in all pages
-- Onboarding flow functional
-- Clear guidance for first-time users
-
-**Estimated Time:** 1 week
+**Key Files:**
+- `backend/services/data_validation_service.py`
+- `backend/api/etl.py` (validation endpoint)
+- `backend/api/monitoring.py` (system status endpoint)
+- `backend/schemas/monitoring.py`
+- `backend/tests/test_services/test_data_validation_service.py`
+- `backend/tests/test_services/test_validation_real_data.py`
 
 ---
 
-### 2. Frontend Polish (Charts, Row Actions, Filters) - **WEEK 2**
+### 2. Forecasting Integration - **WEEK 2** (HIGH PRIORITY)
+**Goal:** Use forecasts in regular inventory endpoints (dashboard, products, recommendations)
+
+**Problem:** 
+- Forecasting works, but only used in `/api/v1/forecast/inventory/calculate`
+- Dashboard and product list use **historical data only** (last 30 days)
+- Not using forward-looking forecasts for planning
+
+**Tasks:**
+- [ ] Add `_get_latest_forecast_demand()` to `InventoryService`
+- [ ] Modify `get_products_with_metrics()` to use forecasts when available
+- [ ] Modify `DashboardService.get_dashboard_data()` to use forecasts
+- [ ] Add indicator in API response: "using_forecast" vs "using_historical"
+- [ ] Add forecast freshness check (use forecast if < 7 days old)
+- [ ] Add forecast validation to `DataValidationService`
+
+**Files to Modify:**
+- `backend/services/inventory_service.py`
+- `backend/services/dashboard_service.py`
+- `backend/services/data_validation_service.py`
+
+**Documentation:** `docs/backend/FORECASTING_INTEGRATION.md`
+
+**Estimated Time:** 3-5 days
+
+---
+
+### 3. Frontend Polish (Charts, Row Actions, Filters) - **WEEK 3** (OPTIONAL)
 **Goal:** Complete MVP UX and user-facing features
 
 **Why Second:** These are visible user-facing features that complete the MVP experience. Users interact with these daily.
@@ -85,43 +112,54 @@ The backend MVP (Phases 1-4) is **complete** ✅, and the frontend MVP is **~87%
 
 ---
 
-### 3. Data Validation - **WEEK 3**
-**Goal:** Ensure data quality and completeness
+### 2. Empty State Handling (Backend + Frontend) - **WEEK 2** ⬇️ (DEFERRED)
+**Goal:** Unblock onboarding and improve first-time user experience
 
-**Why Third:** Data quality is critical before production. Need to validate data before setting up automated ETL.
+**Why Second:** When users first start the application, they see empty states. Without proper handling, this creates confusion and poor UX. **Note:** Frontend tasks are optional if frontend is not a priority.
 
 **Backend Tasks:**
-- [ ] **Data Quality Checks:**
-  - Validate date ranges (min 3 weeks, max 2 years)
-  - Validate SKU format (alphanumeric + underscores, 1-255 chars)
-  - Check for missing required fields
-  - Validate numeric ranges (quantity >= 0, cost >= 0)
-  - Detect and flag outliers
-- [ ] **Data Completeness Checks:**
-  - Ensure all `item_id` in `ts_demand_daily` exist in products
-  - Ensure all `location_id` in `ts_demand_daily` exist in locations (if location_id column exists)
-  - Flag orphaned records
-  - Check for missing supplier assignments
-- [ ] **Data Validation Service:**
-  - Create `services/data_validation_service.py`
-  - Reuse patterns from `forecasting/services/data_validator.py`
-  - Endpoint: `POST /api/v1/etl/validate` (returns validation report)
-- [ ] **Validation Reports:**
-  - JSON response with validation results
-  - Categorize issues (errors, warnings, info)
-  - Provide actionable recommendations
+- [ ] Create system status endpoint: `GET /api/v1/system/status`
+  - **Authentication:** Requires JWT token (`Authorization: Bearer <token>`)
+  - **Access:** Authenticated users only (uses `get_current_client` dependency)
+  - **Response Schema:**
 
-**Frontend Tasks:**
-- [ ] Data validation UI (if needed)
-  - Show validation status
-  - Display validation errors/warnings
-  - Provide fix suggestions
+    ```python
+    class SystemStatusResponse(BaseModel):
+        initialized: bool  # True if any data exists
+        has_products: bool  # True if products table has records
+        has_locations: bool  # True if locations table has records
+        has_suppliers: bool  # True if suppliers table has records
+        has_sales_data: bool  # True if ts_demand_daily has records
+        has_stock_levels: bool  # True if stock_levels has records
+        setup_instructions: Optional[str] = None  # Guidance for first-time setup
+        data_quality: Optional[Dict[str, Any]] = None  # Basic data quality metrics
+    ```
+
+  - **Implementation:** Check each table for existence of records filtered by `client_id`
+  - **Location:** Add to `backend/api/monitoring.py` or create `backend/api/system.py`
+  - **Schema File:** Add `SystemStatusResponse` to `backend/schemas/monitoring.py` or new schema file
+- [ ] Enhance API responses with helpful messages when data is empty
+  - Dashboard: "No inventory data yet. Set up ETL sync to connect your data source."
+  - Products: "No products found. Configure ETL sync to import your product catalog."
+  - Recommendations: "No recommendations available. Ensure ETL sync is running and data is loaded."
+
+**Frontend Tasks:** (OPTIONAL - Skip if frontend not a priority)
+- [ ] Create reusable `EmptyState.vue` component
+- [ ] Add empty states to Dashboard, Inventory, and Recommendations pages
+  - Show clear message: "No data available. Set up ETL sync to connect your data source."
+  - Link to ETL configuration page (if exists) or show setup instructions
+  - Display sync status if ETL is configured but not yet synced
+- [ ] Add contextual help messages (not full onboarding flow)
+  - Tooltips explaining what each section needs
+  - Link to [Data Requirements](../DATA_REQUIREMENTS.md) documentation
+  - Show "Waiting for sync" status when ETL is configured but no data yet
+- [ ] Call system status API to detect initialization state
 
 **Deliverables:**
-- Data validation service implemented
-- Validation endpoint working
-- Validation reports generated
-- Data quality checks automated
+- System status endpoint working
+- Empty state components in all pages with ETL-focused messaging (frontend optional)
+- Contextual help and setup guidance (no complex onboarding flow)
+- Clear messaging about ETL sync status
 
 **Estimated Time:** 1 week
 
@@ -133,6 +171,24 @@ The backend MVP (Phases 1-4) is **complete** ✅, and the frontend MVP is **~87%
 **Why Fourth:** After data validation is in place, we can safely set up automated ETL. This enables production deployment.
 
 **Backend Tasks:**
+- [ ] **Fix Critical ETL Bug - location_id Missing in Sales History Sync:**
+  - **Issue:** `ETLService.sync_sales_history()` does not include `location_id` in insert query
+  - **Impact:** Will cause database constraint violations (primary key includes `location_id`)
+  - **Location:** `backend/services/etl/etl_service.py` line 121-131
+  - **Fix Required:**
+    1. Extract `location_id` from external data (map from `row.get("location_id")` or default to "UNSPECIFIED")
+    2. Include `location_id` in validated_row dict (line 74-83)
+    3. Add `location_id` to INSERT statement (line 122-124)
+    4. Update ON CONFLICT clause to include `location_id` in primary key constraint (line 125)
+  - **Reference:** Migration `1a2b3c4d5e6f_add_location_id_to_ts_demand_daily.py` shows primary key is `(client_id, item_id, location_id, date_local)`
+- [ ] **Complete Connector Implementations:**
+  - **Issue:** BigQuery and SQL connectors have placeholder `TODO` implementations
+  - **Location:** `backend/services/etl/connectors.py`
+  - **Fix Required:**
+    - Implement actual queries in `BigQueryConnector.fetch_sales_history()`, `fetch_products()`, `fetch_stock_levels()`, `fetch_locations()`
+    - Implement actual queries in `SQLConnector.fetch_sales_history()`, `fetch_products()`, `fetch_stock_levels()`, `fetch_locations()`
+    - Ensure all methods return proper data structures matching expected schema
+    - Add proper error handling and connection management
 - [ ] **ETL Scheduling Setup:**
   - Choose scheduling solution (Celery + Redis/RabbitMQ OR cron + background tasks)
   - Set up task queue infrastructure
@@ -175,9 +231,9 @@ The backend MVP (Phases 1-4) is **complete** ✅, and the frontend MVP is **~87%
 
 | Week | Focus | Deliverables |
 |------|-------|--------------|
-| **Week 1** | Empty State Handling | System status endpoint, empty state components, onboarding flow |
-| **Week 2** | Frontend Polish | Charts with real data, complete inventory features, cart integration |
-| **Week 3** | Data Validation | Validation service, quality checks, completeness checks |
+| **Week 1** | Data Validation | Validation service, quality checks, completeness checks, **computed metrics validation (DIR, stockout risk, status)** |
+| **Week 2** | Empty State Handling | System status endpoint, empty state components (frontend optional) |
+| **Week 3** | Frontend Polish (Optional) | Charts with real data, complete inventory features, cart integration |
 | **Week 4** | ETL Scheduling | Automated daily sync, status tracking, error handling |
 
 **Total Timeline:** 4 weeks to production-ready MVP
@@ -186,24 +242,26 @@ The backend MVP (Phases 1-4) is **complete** ✅, and the frontend MVP is **~87%
 
 ## Success Criteria
 
-### Week 1: Empty State Handling
-- ✅ System status endpoint returns accurate initialization state
-- ✅ All pages show helpful empty states when no data exists
-- ✅ First-time users see clear onboarding guidance
-- ✅ Setup instructions are accessible from UI
+### Week 1: Data Validation
+- ✅ Data quality checks catch common issues
+- ✅ Completeness checks identify orphaned records
+- ✅ **Computed metrics validation ensures DIR, stockout risk, status, and inventory value are calculated correctly**
+- ✅ **Frontend-backend consistency checks verify displayed values match API responses**
+- ✅ Validation reports are actionable with computed metrics validation results
+- ✅ Validation can be run on-demand
 
-### Week 2: Frontend Polish
+### Week 2: Empty State Handling
+- ✅ System status endpoint returns accurate initialization state
+- ✅ All pages show helpful empty states when no data exists (frontend optional)
+- ✅ Clear messaging about ETL sync setup (no complex onboarding flow needed)
+- ✅ Setup instructions and data requirements accessible from UI (frontend optional)
+
+### Week 3: Frontend Polish (Optional)
 - ✅ Dashboard charts display real trend data
 - ✅ Inventory table has all actions (view, edit, add to cart)
 - ✅ Export functionality works
 - ✅ Cart badge shows item count
 - ✅ Navigation is seamless
-
-### Week 3: Data Validation
-- ✅ Data quality checks catch common issues
-- ✅ Completeness checks identify orphaned records
-- ✅ Validation reports are actionable
-- ✅ Validation can be run on-demand
 
 ### Week 4: ETL Scheduling
 - ✅ Daily sync runs automatically
@@ -244,14 +302,15 @@ After completing the above priorities, consider:
 - [User Stories](USER_STORIES.md) - Feature requirements
 - [Workflows](WORKFLOWS.md) - System workflows and decision loops
 - [Quick Start](QUICK_START.md) - Setup instructions
+- [Data Requirements](DATA_REQUIREMENTS.md) - **User-facing guide** on what data is required vs. app-managed
 
 ---
 
 ## Notes
 
-- **Empty State Handling** is prioritized first because it unblocks onboarding and improves first-time user experience
-- **Frontend Polish** comes second because these are visible, user-facing features that complete the MVP
-- **Data Validation** is done before ETL Scheduling to ensure data quality before automation
+- **Data Validation** is prioritized first because it's backend-only, critical for data integrity, and required before ETL automation
+- **Empty State Handling** is second - backend system status endpoint is useful, frontend tasks are optional if frontend is not a priority
+- **Frontend Polish** is optional - can be deferred if frontend is not a priority
 - **ETL Scheduling** is last because it requires data validation to be in place first
 
 ---
@@ -259,4 +318,3 @@ After completing the above priorities, consider:
 **Document Owner:** Development Team  
 **Last Updated:** 2025-01-27  
 **Next Review:** After Week 1 completion
-

@@ -195,7 +195,7 @@
                 Cancel
               </UButton>
               <UButton
-                color="red"
+                color="error"
                 :loading="deleting"
                 @click="handleDelete"
               >

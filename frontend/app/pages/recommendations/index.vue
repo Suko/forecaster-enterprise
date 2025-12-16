@@ -107,6 +107,7 @@ import "ag-grid-community/styles/ag-grid.css";
 import "ag-grid-community/styles/ag-theme-alpine.css";
 import type { ColDef, GridReadyEvent } from "ag-grid-community";
 import type { Recommendation, RecommendationType } from "~/types/recommendation";
+import { logger } from "~~/server/utils/logger";
 
 // Register AG Grid modules
 ModuleRegistry.registerModules([AllCommunityModule]);
@@ -276,7 +277,7 @@ const onCellClicked = async (params: any) => {
         // Redirect is handled, just return
         return;
       }
-      console.error("Failed to add to cart:", err);
+      logger.error("Failed to add to cart", { error: err });
       const toast = useToast();
       toast.add({
         title: "Error",
@@ -309,7 +310,7 @@ const loadRecommendations = async () => {
       return;
     }
     error.value = err.message || "Failed to load recommendations";
-    console.error("Recommendations error:", err);
+    logger.error("Recommendations error", { error: err });
   } finally {
     loading.value = false;
   }
@@ -331,14 +332,13 @@ const handleAIQuery = async () => {
   aiLoading.value = true;
   try {
     // TODO: Implement AG Grid AI Toolkit integration
-    // For now, just show a message
-    console.log("AI Query:", aiQuery.value);
+    // For now, just show a message (logging intentionally removed - not needed)
     // In the future, this will use gridApi.getStructuredSchema() and send to LLM
     alert(
       "AI Toolkit integration coming soon! This will use AG Grid AI Toolkit to process natural language queries."
     );
   } catch (err) {
-    console.error("AI Query error:", err);
+    logger.error("AI Query error", { error: err });
   } finally {
     aiLoading.value = false;
   }

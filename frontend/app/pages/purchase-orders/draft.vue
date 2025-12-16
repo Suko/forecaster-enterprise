@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import type { CartItem } from "~/types/order";
+import { logger } from "~~/server/utils/logger";
 
 definePageMeta({
   layout: "dashboard",
@@ -90,6 +91,7 @@ const loadCart = async () => {
     poDrafts.value = nextPoDrafts;
     persistDraftsToStorage();
   } catch (err: any) {
+    logger.error("Load cart error", { error: err });
     const wasAuthError = await handleAuthError(err);
     if (wasAuthError) return;
     error.value = err.message || "Failed to load cart";
@@ -108,7 +110,7 @@ const onUpdateQuantity = async (item: CartItem) => {
   const nextQty = Number(draftQuantities.value[key]);
 
   if (!Number.isFinite(nextQty) || nextQty <= 0) {
-    toast.add({ title: "Invalid quantity", description: "Quantity must be >= 1", color: "red" });
+    toast.add({ title: "Invalid quantity", description: "Quantity must be >= 1", color: "error" });
     return;
   }
 
@@ -117,10 +119,11 @@ const onUpdateQuantity = async (item: CartItem) => {
     toast.add({
       title: "Updated",
       description: `${item.product_name} quantity updated`,
-      color: "green",
+      color: "success",
     });
     await loadCart();
   } catch (err: any) {
+    logger.error("Update cart quantity error", { error: err });
     const wasAuthError = await handleAuthError(err);
     if (wasAuthError) return;
     // Extract error message from FastAPI error response (detail field) or other sources
@@ -133,7 +136,7 @@ const onUpdateQuantity = async (item: CartItem) => {
     toast.add({
       title: "Update failed",
       description: errorMessage,
-      color: "red",
+      color: "error",
     });
   }
 };
@@ -144,10 +147,11 @@ const onRemoveItem = async (item: CartItem) => {
     toast.add({
       title: "Removed",
       description: `${item.product_name} removed from cart`,
-      color: "green",
+      color: "success",
     });
     await loadCart();
   } catch (err: any) {
+    logger.error("Remove cart item error", { error: err });
     const wasAuthError = await handleAuthError(err);
     if (wasAuthError) return;
     const errorMessage =
@@ -159,7 +163,7 @@ const onRemoveItem = async (item: CartItem) => {
     toast.add({
       title: "Remove failed",
       description: errorMessage,
-      color: "red",
+      color: "error",
     });
   }
 };
@@ -167,15 +171,16 @@ const onRemoveItem = async (item: CartItem) => {
 const onClearCart = async () => {
   try {
     await clearCart();
-    toast.add({ title: "Cleared", description: "Cart cleared", color: "green" });
+    toast.add({ title: "Cleared", description: "Cart cleared", color: "success" });
     await loadCart();
   } catch (err: any) {
+    logger.error("Clear cart error", { error: err });
     const wasAuthError = await handleAuthError(err);
     if (wasAuthError) return;
     toast.add({
       title: "Clear failed",
       description: err.message || "Failed to clear cart",
-      color: "red",
+      color: "error",
     });
   }
 };
@@ -195,10 +200,11 @@ const onCreatePoForSupplier = async (supplierId: string) => {
     });
     poDrafts.value[supplierId] = {};
     persistDraftsToStorage();
-    toast.add({ title: "Purchase order created", description: po.po_number, color: "green" });
+    toast.add({ title: "Purchase order created", description: po.po_number, color: "success" });
     await loadCart();
     await navigateTo(`/purchase-orders/${po.id}`);
   } catch (err: any) {
+    logger.error("Create purchase order error", { error: err });
     const wasAuthError = await handleAuthError(err);
     if (wasAuthError) return;
     const errorMessage =
@@ -210,7 +216,7 @@ const onCreatePoForSupplier = async (supplierId: string) => {
     toast.add({
       title: "Create PO failed",
       description: errorMessage,
-      color: "red",
+      color: "error",
     });
   } finally {
     creatingPoSupplierId.value = null;
@@ -323,17 +329,17 @@ onMounted(async () => {
         <div class="p-4 space-y-3">
           <div class="grid grid-cols-1 md:grid-cols-3 gap-2">
             <UInput
-              v-model="poDrafts[group.supplier_id].shipping_method"
+              v-model="poDrafts[group.supplier_id]!.shipping_method"
               placeholder="Shipping method (optional)"
               size="sm"
             />
             <UInput
-              v-model="poDrafts[group.supplier_id].shipping_unit"
+              v-model="poDrafts[group.supplier_id]!.shipping_unit"
               placeholder="Shipping unit (optional)"
               size="sm"
             />
             <UInput
-              v-model="poDrafts[group.supplier_id].notes"
+              v-model="poDrafts[group.supplier_id]!.notes"
               placeholder="Notes (optional)"
               size="sm"
             />
@@ -362,13 +368,21 @@ onMounted(async () => {
                   :min="item.moq > 0 ? item.moq : 1"
                   step="1"
                   size="sm"
-                  :class="Number(draftQuantities[keyFor(item)]) < item.moq && item.moq > 0 ? 'ring-2 ring-red-500' : ''"
+                  :class="
+                    Number(draftQuantities[keyFor(item)]) < item.moq && item.moq > 0
+                      ? 'ring-2 ring-red-500'
+                      : ''
+                  "
                 />
               </div>
               <div
                 v-if="item.moq > 0"
                 class="text-xs whitespace-nowrap"
-                :class="Number(draftQuantities[keyFor(item)]) < item.moq ? 'text-red-600 dark:text-red-400 font-medium' : 'text-muted'"
+                :class="
+                  Number(draftQuantities[keyFor(item)]) < item.moq
+                    ? 'text-red-600 dark:text-red-400 font-medium'
+                    : 'text-muted'
+                "
               >
                 MOQ: {{ item.moq }}
               </div>

@@ -1,5 +1,6 @@
 import { authenticatedFetch } from "../utils/api";
 import type { DashboardResponse } from "~/types/dashboard";
+import { logger } from "../utils/logger";
 
 /**
  * Fetch dashboard data from backend
@@ -13,6 +14,7 @@ export default defineEventHandler(async (event) => {
 
     return dashboardData;
   } catch (error: any) {
+    logger.error("Dashboard fetch error", { error });
     if (error.statusCode === 401) {
       throw createError({
         statusCode: 401,

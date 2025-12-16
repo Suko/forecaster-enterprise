@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import type { PurchaseOrderListItem } from "~/types/order";
+import { logger } from "~~/server/utils/logger";
 
 definePageMeta({
   layout: "dashboard",
@@ -46,6 +47,7 @@ const loadOrders = async () => {
     });
     orders.value = res.items || [];
   } catch (err: any) {
+    logger.error("Load purchase orders error", { error: err });
     const wasAuthError = await handleAuthError(err);
     if (wasAuthError) return;
     error.value = err.message || "Failed to load purchase orders";
@@ -55,12 +57,12 @@ const loadOrders = async () => {
 };
 
 const badgeColorForStatus = (status: string) => {
-  if (status === "pending") return "yellow";
-  if (status === "confirmed") return "blue";
-  if (status === "shipped") return "purple";
-  if (status === "received") return "green";
-  if (status === "cancelled") return "red";
-  return "gray";
+  if (status === "pending") return "warning";
+  if (status === "confirmed") return "info";
+  if (status === "shipped") return "primary";
+  if (status === "received") return "success";
+  if (status === "cancelled") return "error";
+  return "neutral";
 };
 
 watch(selectedStatus, async () => {

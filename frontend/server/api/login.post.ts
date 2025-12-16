@@ -1,5 +1,6 @@
 import { z } from "zod";
 import { logSecurityEvent, getClientIP, getUserAgent } from "../utils/security-logger";
+import { logger } from "../utils/logger";
 
 const bodySchema = z.object({
   email: z.string().email(),
@@ -31,7 +32,12 @@ export default defineEventHandler(async (event) => {
       body: formData.toString(),
     });
 
-    if (response && "access_token" in response) {
+    if (
+      response &&
+      typeof response === "object" &&
+      response !== null &&
+      "access_token" in response
+    ) {
       const accessToken = (response as any).access_token;
 
       // Fetch user info from backend using the token
@@ -45,7 +51,7 @@ export default defineEventHandler(async (event) => {
         userInfo = userResponse as any;
       } catch (err) {
         // If /auth/me fails, continue with email only
-        // Error logged server-side without exposing details to client
+        logger.warning("Failed to fetch user info", { error: err });
       }
 
       // Store token and user info in session using nuxt-auth-utils
@@ -77,34 +83,51 @@ export default defineEventHandler(async (event) => {
       statusCode: 401,
       statusMessage: "Authentication failed",
     });
-  } catch (error: any) {
-    // Log login failure with error details
-    if (error.statusCode === 401 || error.statusCode === 429) {
+  } catch (error: unknown) {
+    // Type-safe error handling
+    const statusCode =
+      error && typeof error === "object" && "statusCode" in error
+        ? (error as any).statusCode
+        : undefined;
+    const errorData =
+      error && typeof error === "object" && "data" in error ? (error as any).data : undefined;
+    const errorMessage =
+      error && typeof error === "object" && "statusMessage" in error
+        ? (error as any).statusMessage
+        : undefined;
+
+    // Log security events for authentication failures
+    if (statusCode === 401 || statusCode === 429) {
       logSecurityEvent({
-        type: error.statusCode === 429 ? "rate_limit" : "login_failure",
-        email: error.data?.email,
+        type: statusCode === 429 ? "rate_limit" : "login_failure",
+        email: errorData?.email,
         ip: clientIP,
         userAgent: userAgent,
         details: {
-          statusCode: error.statusCode,
-          message: error.data?.detail || error.statusMessage,
+          statusCode,
+          message: errorData?.detail || errorMessage,
         },
       });
     }
 
-    if (error.statusCode) {
+    // Re-throw if it's already a proper error with status code
+    if (statusCode) {
       throw error;
     }
 
     // Handle FastAPI error responses
-    if (error.data) {
+    if (errorData) {
       throw createError({
-        statusCode: error.statusCode || 401,
-        statusMessage: error.data?.detail || "Login failed",
-        data: error.data,
+        statusCode: statusCode || 401,
+        statusMessage: errorData?.detail || "Login failed",
+        data: errorData,
       });
     }
 
+    // Log unexpected errors for debugging
+    logger.error("Unexpected login error", { error });
+
+    // Generic error response
     throw createError({
       statusCode: 500,
       statusMessage: "Internal server error",

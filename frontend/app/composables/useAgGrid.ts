@@ -4,6 +4,7 @@
  */
 
 import type { Product, ProductListResponse, ProductFilters } from "~/types/product";
+import { logger } from "~~/server/utils/logger";
 
 export const useAgGridProducts = () => {
   /**
@@ -28,8 +29,8 @@ export const useAgGridProducts = () => {
 
       // Add sorting
       if (params.sortModel && params.sortModel.length > 0) {
-        queryParams.sort = params.sortModel[0].colId;
-        queryParams.order = params.sortModel[0].sort;
+        queryParams.sort = params.sortModel[0]!.colId;
+        queryParams.order = params.sortModel[0]!.sort;
       }
 
       // Add filters (simplified - can be expanded)
@@ -72,7 +73,7 @@ export const useAgGridProducts = () => {
     } catch (error: any) {
       // Re-throw 401 errors so they can be handled by the page
       // Other errors are also re-thrown
-      console.error("Error fetching products:", error);
+      logger.error("Error fetching products", { error });
       throw error;
     }
   };

@@ -1,3 +1,4 @@
+import { logger } from "~~/server/utils/logger";
 import { authenticatedFetch } from "../../utils/api";
 import type { Location } from "~/types/location";
 
@@ -12,6 +13,7 @@ export default defineEventHandler(async (event) => {
   try {
     return await authenticatedFetch<Location>(event, `/api/v1/locations/${encodeURIComponent(id)}`);
   } catch (error: any) {
+    logger.error("Fetch location error", { error });
     if (error.statusCode === 401) {
       throw createError({ statusCode: 401, statusMessage: "Not authenticated" });
     }
@@ -21,4 +23,3 @@ export default defineEventHandler(async (event) => {
     });
   }
 });
-

@@ -1,3 +1,4 @@
+import { logger } from "~~/server/utils/logger";
 import { authenticatedFetch } from "../../../../utils/api";
 
 /**
@@ -9,7 +10,7 @@ export default defineEventHandler(async (event) => {
 
   const itemId = event.context.params?.itemId;
   const supplierId = event.context.params?.supplierId;
-  
+
   if (!itemId) {
     throw createError({ statusCode: 400, statusMessage: "Missing itemId" });
   }
@@ -29,6 +30,7 @@ export default defineEventHandler(async (event) => {
       }
     );
   } catch (error: any) {
+    logger.error("Update product-supplier conditions error", { error });
     if (error.statusCode === 401) {
       throw createError({ statusCode: 401, statusMessage: "Not authenticated" });
     }

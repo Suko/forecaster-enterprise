@@ -1,6 +1,9 @@
+import * as Sentry from "@sentry/nuxt";
+import { logger } from "./logger";
+
 /**
  * Security event logging utility
- * Logs security-related events for audit purposes
+ * Logs security-related events for audit purposes and Sentry monitoring
  */
 
 interface SecurityEvent {
@@ -19,8 +22,27 @@ interface SecurityEvent {
 }
 
 /**
+ * Get log level based on event type
+ */
+function getLogLevel(eventType: SecurityEvent["type"]): "info" | "warning" | "error" {
+  switch (eventType) {
+    case "unauthorized_access":
+    case "auth_failure":
+      return "error";
+    case "login_failure":
+    case "rate_limit":
+    case "token_validation_failure":
+      return "warning";
+    case "login_success":
+      return "info";
+    default:
+      return "info";
+  }
+}
+
+/**
  * Log a security event
- * In production, this should integrate with your logging system (e.g., Winston, Pino, CloudWatch)
+ * Uses centralized logger for consistent dev/prod behavior
  */
 export function logSecurityEvent(event: Omit<SecurityEvent, "timestamp">): void {
   const securityEvent: SecurityEvent = {
@@ -28,15 +50,61 @@ export function logSecurityEvent(event: Omit<SecurityEvent, "timestamp">): void 
     timestamp: new Date(),
   };
 
-  // In development, log to console with structured format
-  // In production, send to your logging service
-  if (process.env.NODE_ENV === "development") {
-    console.log("[SECURITY]", JSON.stringify(securityEvent, null, 2));
-  } else {
-    // TODO: Integrate with production logging service
-    // Example: logger.info('security_event', securityEvent)
-    // For now, we'll use console but in production you should use a proper logger
-    console.log("[SECURITY]", JSON.stringify(securityEvent));
+  const logLevel = getLogLevel(event.type);
+
+  // Log using centralized logger (handles dev vs prod automatically)
+  logger[logLevel](`Security Event: ${event.type}`, {
+    event_type: event.type,
+    email: event.email,
+    ip: event.ip,
+    userAgent: event.userAgent,
+    timestamp: securityEvent.timestamp.toISOString(),
+    ...event.details,
+  });
+
+  // Additional Sentry context for security events (production only)
+  if (process.env.NODE_ENV !== "development") {
+    try {
+      // Set user context if email is available
+      if (event.email) {
+        Sentry.setUser({
+          email: event.email,
+          ip_address: event.ip,
+        });
+      }
+
+      // Capture security failures with fingerprinting for grouping
+      if (
+        event.type === "login_failure" ||
+        event.type === "auth_failure" ||
+        event.type === "unauthorized_access" ||
+        event.type === "rate_limit" ||
+        event.type === "token_validation_failure"
+      ) {
+        Sentry.captureMessage(`Security Event: ${event.type}`, {
+          level: logLevel === "error" ? "error" : "warning",
+          contexts: {
+            security: {
+              event_type: event.type,
+              ip: event.ip,
+              userAgent: event.userAgent,
+              timestamp: securityEvent.timestamp.toISOString(),
+            },
+          },
+          tags: {
+            security_event: event.type,
+          },
+          extra: {
+            ...event.details,
+            full_event: securityEvent,
+          },
+          // Fingerprint for grouping similar events
+          fingerprint: ["security-event", event.type, event.email || "anonymous"],
+        });
+      }
+    } catch (err) {
+      console.error("Failed to send security event to Sentry:", err);
+    }
   }
 }
 

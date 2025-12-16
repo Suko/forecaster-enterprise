@@ -2,7 +2,7 @@
 export default defineNuxtConfig({
   compatibilityDate: "2025-07-15",
   devtools: { enabled: true },
-  modules: ["@nuxt/ui", "nuxt-auth-utils"],
+  modules: ["@nuxt/ui", "nuxt-auth-utils", "@sentry/nuxt/module"],
   css: ["~/assets/css/main.css"],
   colorMode: {
     preference: "system", // default to system preference
@@ -22,6 +22,10 @@ export default defineNuxtConfig({
     // Override at runtime with NUXT_PUBLIC_API_BASE_URL env var
     public: {
       apiBaseUrl: "http://localhost:8000",
+      sentry: {
+        dsn: process.env.NUXT_PUBLIC_SENTRY_DSN,
+        authToken: process.env.SENTRY_AUTH_TOKEN,
+      },
     },
   },
   // Note: nuxt-auth-utils automatically uses HttpOnly cookies

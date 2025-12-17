@@ -24,6 +24,16 @@ const MAX_STATUS_AGE_MS = GRACE_PERIOD_SECONDS * 1000;
  * Development mode: Bypass license check when running locally (not in Docker).
  */
 export default defineEventHandler(async (): Promise<LicenseStatus> => {
+  const config = useRuntimeConfig();
+  
+  // Bypass license check in demo mode
+  if (config.public.demoMode === true) {
+    return {
+      valid: true,
+      checkedAt: new Date().toISOString(),
+    };
+  }
+
   // Bypass license check in development/local mode
   const isDevelopment =
     process.env.NODE_ENV === "development" ||

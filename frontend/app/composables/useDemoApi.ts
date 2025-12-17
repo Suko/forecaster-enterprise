@@ -373,6 +373,76 @@ export const useDemoApi = () => {
   };
 
   /**
+   * Update cart item (demo - uses localStorage)
+   */
+  const updateCartItem = async (
+    itemId: string,
+    supplierId: string,
+    updates: { quantity?: number; notes?: string }
+  ): Promise<CartResponse> => {
+    await simulateDelay(200);
+    
+    const cart = await getCart();
+    const item = cart.items?.find(
+      item => item.item_id === itemId && item.supplier_id === supplierId
+    );
+    
+    if (!item) {
+      throw createError({
+        statusCode: 404,
+        statusMessage: `Cart item not found: ${itemId}`,
+      });
+    }
+    
+    if (updates.quantity !== undefined) {
+      item.quantity = updates.quantity;
+      item.total_price = (parseFloat(String(item.unit_cost)) * item.quantity).toFixed(2);
+    }
+    
+    if (updates.notes !== undefined) {
+      item.notes = updates.notes;
+    }
+    
+    item.updated_at = new Date().toISOString();
+    
+    // Update totals
+    cart.total_items = cart.items.reduce((sum, item) => sum + item.quantity, 0);
+    cart.total_value = cart.items.reduce(
+      (sum, item) => sum + parseFloat(String(item.total_price || item.total_cost || 0)),
+      0
+    ).toFixed(2);
+    
+    // Save to localStorage
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('demo-cart', JSON.stringify(cart));
+      window.dispatchEvent(new CustomEvent('cart-updated'));
+    }
+    
+    return cart;
+  };
+
+  /**
+   * Clear cart (demo - uses localStorage)
+   */
+  const clearCart = async (): Promise<CartResponse> => {
+    await simulateDelay(150);
+    
+    const emptyCart: CartResponse = {
+      items: [],
+      total_items: 0,
+      total_value: "0.00",
+    };
+    
+    // Save to localStorage
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('demo-cart', JSON.stringify(emptyCart));
+      window.dispatchEvent(new CustomEvent('cart-updated'));
+    }
+    
+    return emptyCart;
+  };
+
+  /**
    * Get forecast data for a product
    */
   const getForecast = async (itemId: string): Promise<{
@@ -653,7 +723,9 @@ export const useDemoApi = () => {
     getRecommendations,
     getCart,
     addToCart,
+    updateCartItem,
     removeFromCart,
+    clearCart,
     getForecast,
     getTrends,
     getSuppliers,

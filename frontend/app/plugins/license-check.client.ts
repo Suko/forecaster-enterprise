@@ -26,6 +26,12 @@ interface LicenseStatus {
 
 export default defineNuxtPlugin((nuxtApp) => {
   const router = useRouter();
+  const { isDemoMode } = useDemoMode();
+
+  // Skip license check entirely in demo mode
+  if (isDemoMode.value) {
+    return;
+  }
 
   let intervalId: ReturnType<typeof setInterval> | null = null;
   let lastCheckTime = 0;

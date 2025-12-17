@@ -96,10 +96,8 @@ bun run preview
    Use these exact settings:
    
    - **Framework preset:** `Nuxt.js`
-   - **Build command:** 
-     - If demo data is committed: `bun run build`
-     - If generating during build: `bun run demo:data && bun run build`
-   - **Build output directory:** `.output/public`
+   - **Build command:** `bun install && bun run build`
+   - **Build output directory:** `dist`
    - **Root directory:** `frontend`
    - **Environment variables:**
      - `NUXT_PUBLIC_DEMO_MODE` = `true`
@@ -134,12 +132,12 @@ When connecting via Git, use these build settings:
 | Setting | Value |
 |---------|-------|
 | **Framework preset** | Nuxt.js |
-| **Build command** | `bun run build` (or `bun run demo:data && bun run build` if generating during build) |
-| **Build output directory** | `.output/public` |
+| **Build command** | `bun install && bun run build` |
+| **Build output directory** | `dist` |
 | **Root directory** | `frontend` |
 | **Environment variable** | `NUXT_PUBLIC_DEMO_MODE=true` |
 
-**Note:** If demo data files are already committed to git, use `bun run build`. If you want to generate data during build, use `bun run demo:data && bun run build`.
+**Note:** The build command includes `bun install` to ensure dependencies are installed. Demo data files should already be committed to git in `frontend/public/demo-data/`.
 
 ### Environment Variables
 
@@ -214,8 +212,8 @@ const demoUser = {
 - **Alternative:** Use `npm run build` if bun is not available
 
 **Issue:** Output directory not found
-- **Solution:** Verify build output directory is `.output/public`
-- **Check:** Run `bun run generate` locally and verify `.output/public/` exists
+- **Solution:** Verify build output directory is `dist` (Nuxt with cloudflare-pages preset outputs to `dist`, not `.output/public`)
+- **Check:** The build log should show "Generated dist/_routes.json" if successful
 
 ### Demo Data Not Loading
 

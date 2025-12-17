@@ -1,16 +1,27 @@
 import type { Supplier, SupplierListResponse } from "~/types/supplier";
 
 export const useSuppliers = () => {
+  const { isDemoMode } = useDemoMode();
+  const demoApi = isDemoMode.value ? useDemoApi() : null;
+
   const fetchSuppliers = async (params?: {
     search?: string;
     supplier_type?: string;
     page?: number;
     page_size?: number;
   }): Promise<SupplierListResponse> => {
+    // Use demo API if in demo mode
+    if (isDemoMode.value && demoApi) {
+      return await demoApi.getSuppliers(params);
+    }
     return await $fetch<SupplierListResponse>("/api/suppliers", { query: params });
   };
 
   const fetchSupplier = async (id: string): Promise<Supplier> => {
+    // Use demo API if in demo mode
+    if (isDemoMode.value && demoApi) {
+      return await demoApi.getSupplier(id);
+    }
     return await $fetch<Supplier>(`/api/suppliers/${encodeURIComponent(id)}`);
   };
 

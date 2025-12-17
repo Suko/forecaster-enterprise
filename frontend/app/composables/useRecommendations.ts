@@ -6,6 +6,9 @@
 import type { Recommendation, RecommendationFilters } from "~/types/recommendation";
 
 export const useRecommendations = () => {
+  const { isDemoMode } = useDemoMode();
+  const demoApi = isDemoMode.value ? useDemoApi() : null;
+
   /**
    * Fetch recommendations with filters
    */
@@ -13,6 +16,11 @@ export const useRecommendations = () => {
     filters?: RecommendationFilters
   ): Promise<Recommendation[]> => {
     try {
+      // Use demo API if in demo mode
+      if (isDemoMode.value && demoApi) {
+        return await demoApi.getRecommendations(filters);
+      }
+
       const queryParams = new URLSearchParams();
 
       if (filters?.recommendation_type) {
@@ -41,6 +49,12 @@ export const useRecommendations = () => {
    */
   const addToCart = async (itemId: string, supplierId?: string, quantity?: number) => {
     try {
+      // Use demo API if in demo mode
+      if (isDemoMode.value && demoApi) {
+        await demoApi.addToCart(itemId, quantity || 1, supplierId);
+        return;
+      }
+
       await $fetch("/api/order-planning/cart/add", {
         method: "POST",
         body: {

@@ -105,6 +105,13 @@ services:
       - license_data:/data
       - license_data:/license-data
 
+  cloudflared:
+    image: cloudflare/cloudflared
+    container_name: cloudflare-tunnel
+    restart: unless-stopped
+    command: tunnel run
+    environment:
+      - TUNNEL_TOKEN=${TUNNEL_TOKEN}
 volumes:
   postgres_data:
   license_data:

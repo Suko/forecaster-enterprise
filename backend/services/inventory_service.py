@@ -5,7 +5,7 @@ Business logic for inventory management operations.
 """
 from typing import Optional, List, Dict, Tuple
 from uuid import UUID
-from datetime import date, timedelta, datetime
+from datetime import date, timedelta, datetime, timezone
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, and_, or_, func, text
 from sqlalchemy.sql import desc, asc
@@ -25,6 +25,11 @@ from schemas.inventory import ProductFilters, ProductResponse, ProductDetailResp
 
 logger = logging.getLogger(__name__)
 
+# Module-level task tracking (shared across all service instances)
+# Key: f"{client_id}:refresh", Value: asyncio.Task
+_forecast_refresh_tasks: Dict[str, asyncio.Task] = {}
+_forecast_refresh_lock = asyncio.Lock()
+
 
 class InventoryService:
     """Service for inventory management operations"""
@@ -32,7 +37,6 @@ class InventoryService:
     def __init__(self, db: AsyncSession):
         self.db = db
         self.metrics_service = MetricsService(db)
-        self._forecast_refresh_tasks: Dict[str, asyncio.Task] = {}  # Track background refresh tasks
 
     async def get_primary_supplier_id(
         self,
@@ -175,23 +179,23 @@ class InventoryService:
         # System default
         return 7
 
-    async def _get_latest_forecast_demand(
+    async def _batch_get_latest_forecast_demand(
         self,
         client_id: UUID,
-        item_id: str,
+        item_ids: List[str],
         max_age_days: int = 7
-    ) -> Tuple[Optional[Decimal], bool]:
+    ) -> Dict[str, Tuple[Optional[Decimal], bool]]:
         """
-        Get latest forecast demand for an item.
+        Batch get latest forecast demand for multiple items.
         
         Returns:
-            Tuple of (forecasted_demand_30d, is_fresh)
-            - forecasted_demand_30d: Total forecasted demand for next 30 days, or None if no forecast
-            - is_fresh: True if forecast is < max_age_days old, False if stale or missing
+            Dict mapping item_id to (forecasted_demand_30d, is_fresh)
         """
+        result = {}
+        
         try:
             # Find latest forecast run for this client
-            cutoff_date = datetime.utcnow() - timedelta(days=max_age_days)
+            cutoff_date = datetime.now(timezone.utc) - timedelta(days=max_age_days)
             
             forecast_run_result = await self.db.execute(
                 select(ForecastRun)
@@ -208,26 +212,24 @@ class InventoryService:
             forecast_run = forecast_run_result.scalar_one_or_none()
             
             if not forecast_run:
-                return None, False
+                # No fresh forecast - return None for all items
+                return {item_id: (None, False) for item_id in item_ids}
             
-            # Check if this item is in the forecast run
-            item_ids = forecast_run.item_ids or []
-            if item_id not in item_ids:
-                return None, False
+            # Check which items are in the forecast run
+            forecast_item_ids = set(forecast_run.item_ids or [])
             
-            # Get forecast results for this item (next 30 days from today)
+            # Get forecast results for all items (next 30 days from today)
             today = date.today()
             end_date = today + timedelta(days=30)
-            
-            # Use recommended method or primary model
             method = forecast_run.recommended_method or forecast_run.primary_model
             
+            # Batch query forecast results
             forecast_results = await self.db.execute(
                 select(ForecastResult)
                 .where(
                     and_(
                         ForecastResult.forecast_run_id == forecast_run.forecast_run_id,
-                        ForecastResult.item_id == item_id,
+                        ForecastResult.item_id.in_(item_ids),
                         ForecastResult.method == method,
                         ForecastResult.date >= today,
                         ForecastResult.date < end_date
@@ -236,17 +238,45 @@ class InventoryService:
             )
             results = forecast_results.scalars().all()
             
-            if not results:
-                return None, False
+            # Group by item_id and sum
+            forecast_by_item: Dict[str, List[Decimal]] = {}
+            for r in results:
+                if r.item_id not in forecast_by_item:
+                    forecast_by_item[r.item_id] = []
+                forecast_by_item[r.item_id].append(Decimal(str(r.point_forecast)))
             
-            # Sum forecasted demand for next 30 days
-            total_demand = sum(Decimal(str(r.point_forecast)) for r in results)
-            
-            return total_demand, True
-            
+            # Build result dict
+            for item_id in item_ids:
+                if item_id in forecast_item_ids and item_id in forecast_by_item:
+                    total_demand = sum(forecast_by_item[item_id])
+                    result[item_id] = (total_demand, True)
+                else:
+                    result[item_id] = (None, False)
+                    
         except Exception as e:
-            logger.warning(f"Error getting forecast demand for {item_id}: {e}")
-            return None, False
+            logger.warning(f"Error batch getting forecast demand: {e}")
+            # Return None for all items on error
+            return {item_id: (None, False) for item_id in item_ids}
+        
+        return result
+
+    async def _get_latest_forecast_demand(
+        self,
+        client_id: UUID,
+        item_id: str,
+        max_age_days: int = 7
+    ) -> Tuple[Optional[Decimal], bool]:
+        """
+        Get latest forecast demand for an item.
+        
+        Returns:
+            Tuple of (forecasted_demand_30d, is_fresh)
+            - forecasted_demand_30d: Total forecasted demand for next 30 days, or None if no forecast
+            - is_fresh: True if forecast is < max_age_days old, False if stale or missing
+        """
+        # Use batch method for single item
+        batch_result = await self._batch_get_latest_forecast_demand(client_id, [item_id], max_age_days)
+        return batch_result.get(item_id, (None, False))
 
     async def _trigger_forecast_refresh(
         self,
@@ -257,41 +287,54 @@ class InventoryService:
         """
         Trigger background forecast refresh for items.
         Non-blocking - runs in background task.
+        Uses module-level task tracking to prevent duplicates across concurrent requests.
         """
-        # Check if refresh already in progress for this client
         task_key = f"{client_id}:refresh"
-        if task_key in self._forecast_refresh_tasks:
-            task = self._forecast_refresh_tasks[task_key]
-            if not task.done():
-                logger.info(f"Forecast refresh already in progress for client {client_id}")
-                return
+        
+        # Check if refresh already in progress (thread-safe)
+        async with _forecast_refresh_lock:
+            if task_key in _forecast_refresh_tasks:
+                task = _forecast_refresh_tasks[task_key]
+                if not task.done():
+                    logger.info(f"Forecast refresh already in progress for client {client_id}")
+                    return
+                # Task is done but not cleaned up - remove it
+                del _forecast_refresh_tasks[task_key]
         
         # Create background task
         async def refresh_task():
-            try:
-                from forecasting.services.forecast_service import ForecastService
-                forecast_service = ForecastService(self.db)
-                
-                logger.info(f"Starting background forecast refresh for {len(item_ids)} items")
-                await forecast_service.generate_forecast(
-                    client_id=str(client_id),
-                    user_id=user_id,
-                    item_ids=item_ids,
-                    prediction_length=30,
-                    primary_model="chronos-2",
-                    include_baseline=False
-                )
-                logger.info(f"Forecast refresh completed for client {client_id}")
-            except Exception as e:
-                logger.error(f"Forecast refresh failed for client {client_id}: {e}")
-            finally:
-                # Clean up task tracking
-                if task_key in self._forecast_refresh_tasks:
-                    del self._forecast_refresh_tasks[task_key]
+            # Create new database session for background task
+            from models.database import get_async_session_local
+            session_local = get_async_session_local()
+            async with session_local() as db_session:
+                try:
+                    from forecasting.services.forecast_service import ForecastService
+                    forecast_service = ForecastService(db_session)
+                    
+                    logger.info(f"Starting background forecast refresh for {len(item_ids)} items")
+                    await forecast_service.generate_forecast(
+                        client_id=str(client_id),
+                        user_id=user_id,
+                        item_ids=item_ids,
+                        prediction_length=30,
+                        primary_model="chronos-2",
+                        include_baseline=False
+                    )
+                    logger.info(f"Forecast refresh completed for client {client_id}")
+                except Exception as e:
+                    logger.error(f"Forecast refresh failed for client {client_id}: {e}")
+                finally:
+                    # Clean up task tracking (thread-safe)
+                    async with _forecast_refresh_lock:
+                        if task_key in _forecast_refresh_tasks:
+                            del _forecast_refresh_tasks[task_key]
         
         # Start background task (fire and forget)
         task = asyncio.create_task(refresh_task())
-        self._forecast_refresh_tasks[task_key] = task
+        
+        # Register task (thread-safe)
+        async with _forecast_refresh_lock:
+            _forecast_refresh_tasks[task_key] = task
 
     async def get_products(
         self,
@@ -368,11 +411,8 @@ class InventoryService:
 
         # Batch check for stale forecasts and trigger refresh if needed
         item_ids_list = [p.item_id for p in products]
-        stale_items = []
-        for item_id in item_ids_list:
-            _, is_fresh = await self._get_latest_forecast_demand(client_id, item_id)
-            if not is_fresh:
-                stale_items.append(item_id)
+        forecast_demands = await self._batch_get_latest_forecast_demand(client_id, item_ids_list)
+        stale_items = [item_id for item_id, (_, is_fresh) in forecast_demands.items() if not is_fresh]
         
         # Trigger background refresh for stale items (non-blocking)
         if stale_items:
@@ -381,10 +421,8 @@ class InventoryService:
         # Compute metrics for each product
         items_with_metrics = []
         for product in products:
-            # Get forecast demand if available
-            forecast_demand, using_forecast = await self._get_latest_forecast_demand(
-                client_id, product.item_id
-            )
+            # Get forecast demand if available (from batch result)
+            forecast_demand, using_forecast = forecast_demands.get(product.item_id, (None, False))
             
             # Get metrics for this product (will use forecast if provided)
             metrics = await self.metrics_service.compute_product_metrics(

@@ -9,7 +9,7 @@ Reuses:
 """
 from typing import Dict, List, Any, Optional, Tuple
 from uuid import UUID
-from datetime import date, timedelta
+from datetime import date, timedelta, datetime, timezone
 from decimal import Decimal
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, func, text, and_
@@ -544,7 +544,7 @@ class DataValidationService:
             }
         
         # Check for latest forecast run
-        cutoff_date = datetime.utcnow() - timedelta(days=7)
+        cutoff_date = datetime.now(timezone.utc) - timedelta(days=7)
         forecast_run_result = await self.db.execute(
             select(ForecastRun)
             .where(
@@ -571,7 +571,7 @@ class DataValidationService:
             }
         
         # Check forecast age
-        forecast_age_days = (datetime.utcnow() - forecast_run.created_at).days
+        forecast_age_days = (datetime.now(timezone.utc) - forecast_run.created_at).days
         if forecast_age_days >= 7:
             warnings.append(
                 f"Forecast is {forecast_age_days} days old (recommended: < 7 days). "

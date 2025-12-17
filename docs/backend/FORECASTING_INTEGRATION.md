@@ -368,8 +368,11 @@ async def get_products(...):
 **Next Steps**:
 1. ✅ Integrate forecasts into product endpoints (Priority 1) - **COMPLETED**
 2. ✅ Integrate forecasts into dashboard endpoint (Priority 1) - **COMPLETED**
-3. ✅ Add forecast validation (Priority 2) - **COMPLETED**
-4. ⏳ Set up scheduled forecast generation (Priority 3) - **TODO** (Optional - auto-refresh handles it)
+3. ✅ Integrate forecasts into recommendations endpoint (Priority 1) - **COMPLETED**
+4. ✅ Add forecast validation (Priority 2) - **COMPLETED**
+5. ✅ Create integration tests (Priority 1) - **COMPLETED**
+6. ✅ Define accuracy tracking approach - **COMPLETED**
+7. ⏳ Set up scheduled forecast generation (Priority 3) - **TODO** (Optional - auto-refresh handles it)
 
 **Auto-Refresh Feature**:
 - ✅ Detects stale forecasts (>7 days old)
@@ -377,4 +380,59 @@ async def get_products(...):
 - ✅ API returns immediately with historical data
 - ✅ Next request uses fresh forecast
 - ✅ Prevents duplicate refresh tasks
+
+---
+
+## Testing
+
+**Integration Tests Created:**
+- ✅ `test_services/test_forecast_integration.py` - Comprehensive integration tests
+  - Tests InventoryService using forecasts
+  - Tests DashboardService using forecasts
+  - Tests RecommendationsService using forecasts
+  - Tests auto-refresh behavior
+  - Tests fallback to historical data
+  - Tests accuracy tracking structure
+
+**Run Tests:**
+```bash
+# Run all forecast integration tests
+pytest backend/tests/test_services/test_forecast_integration.py -v
+
+# Run specific test
+pytest backend/tests/test_services/test_forecast_integration.py::test_inventory_service_uses_forecast_when_available -v
+```
+
+---
+
+## Accuracy Tracking
+
+**Documentation:** [Forecast Accuracy Tracking](./FORECAST_ACCURACY_TRACKING.md)
+
+**How to Track Accuracy:**
+1. Generate forecast → Store predictions (actual_value = NULL)
+2. Wait for actual sales → ETL sync loads real sales data
+3. Backfill actuals → `POST /api/v1/forecast/forecasts/actuals`
+4. Calculate accuracy → `GET /api/v1/forecast/forecasts/quality/{item_id}`
+
+**Metrics Available:**
+- MAPE (Mean Absolute Percentage Error)
+- MAE (Mean Absolute Error)
+- RMSE (Root Mean Squared Error)
+- Bias (systematic over/under-forecasting)
+
+**Use Cases:**
+- Compare forecasting methods (Chronos-2 vs MA7)
+- Identify products with poor accuracy
+- Track accuracy trends over time
+- Inform model selection per SKU
+
+---
+
+## Related Documentation
+
+- [Forecast Accuracy Tracking](./FORECAST_ACCURACY_TRACKING.md) - How to track and measure forecast accuracy
+- [Forecasting Testing & Frequency](./FORECASTING_TESTING_AND_FREQUENCY.md) - Testing guide and forecast frequency recommendations
+- [Forecasting Performance](./FORECASTING_PERFORMANCE.md) - Performance analysis and optimization
+- [Data Validation API](./DATA_VALIDATION_API.md) - Validation endpoints including forecast validation
 

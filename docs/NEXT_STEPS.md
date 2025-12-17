@@ -66,7 +66,10 @@ The backend MVP (Phases 1-4) is **complete** ✅, and the frontend MVP is **~87%
 - [x] Add indicator in API response: `using_forecast` field ✅ **COMPLETED - 2025-12-17**
 - [x] Add forecast freshness check (use forecast if < 7 days old) ✅ **COMPLETED - 2025-12-17**
 - [x] Modify `DashboardService.get_dashboard_data()` to use forecasts ✅ **COMPLETED - 2025-12-17**
+- [x] Modify `RecommendationsService.get_recommendations()` to use forecasts ✅ **COMPLETED - 2025-12-17**
 - [x] Add forecast validation to `DataValidationService` ✅ **COMPLETED - 2025-12-17**
+- [x] Create integration tests for forecast usage ✅ **COMPLETED - 2025-12-17**
+- [x] Define accuracy tracking approach ✅ **COMPLETED - 2025-12-17**
 
 **Files to Modify:**
 - `backend/services/inventory_service.py`
@@ -88,11 +91,16 @@ The backend MVP (Phases 1-4) is **complete** ✅, and the frontend MVP is **~87%
 **Files Modified:**
 - ✅ `backend/services/inventory_service.py` - Forecast integration + auto-refresh
 - ✅ `backend/services/dashboard_service.py` - Forecast integration + auto-refresh
+- ✅ `backend/services/recommendations_service.py` - Forecast integration + auto-refresh
 - ✅ `backend/services/data_validation_service.py` - Forecast validation
 - ✅ `backend/schemas/inventory.py` - Added `using_forecast` field
+- ✅ `backend/tests/test_services/test_forecast_integration.py` - Integration tests
+
+**Documentation Created:**
+- ✅ `docs/backend/FORECAST_ACCURACY_TRACKING.md` - Accuracy tracking guide
 
 **Estimated Time:** 3-5 days  
-**Status:** ✅ **100% COMPLETE** - All forecast integration tasks completed
+**Status:** ✅ **100% COMPLETE** - All forecast integration tasks completed, including testing and accuracy tracking
 
 ---
 

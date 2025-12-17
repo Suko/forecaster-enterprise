@@ -169,14 +169,15 @@ async def print_comparison(before: dict, after: dict):
     risk_before = before['stockout_risk']
     risk_after = after['stockout_risk']
     risk_change = ""
+    # Initialize percentage variables to avoid NameError if risk values are None
+    risk_before_pct = risk_before * 100 if risk_before is not None else None
+    risk_after_pct = risk_after * 100 if risk_after is not None else None
     if risk_before is not None and risk_after is not None:
         change = risk_after - risk_before
-        risk_before_pct = risk_before * 100
-        risk_after_pct = risk_after * 100
         change_pct = change * 100
         risk_change = f"{change_pct:+.1f}% ({risk_after_pct:.1f}% vs {risk_before_pct:.1f}%)"
     
-    print(f"{'Stockout Risk':<20} {f'{risk_before_pct:.1f}%' if risk_before else 'N/A':<25} {f'{risk_after_pct:.1f}%' if risk_after else 'N/A':<25} {risk_change:<15}")
+    print(f"{'Stockout Risk':<20} {f'{risk_before_pct:.1f}%' if risk_before_pct is not None else 'N/A':<25} {f'{risk_after_pct:.1f}%' if risk_after_pct is not None else 'N/A':<25} {risk_change:<15}")
     
     # Status comparison
     status_before = before['status']

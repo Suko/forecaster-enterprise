@@ -5,7 +5,7 @@ Calculates dashboard KPIs and aggregates.
 """
 from typing import List, Dict, Optional, Tuple
 from uuid import UUID
-from datetime import date, timedelta, datetime
+from datetime import date, timedelta, datetime, timezone
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, func, and_, or_, text
 from decimal import Decimal
@@ -22,6 +22,11 @@ from schemas.inventory import DashboardMetrics, TopProduct, DashboardResponse
 
 logger = logging.getLogger(__name__)
 
+# Module-level task tracking (shared across all service instances)
+# Key: f"{client_id}:refresh", Value: asyncio.Task
+_forecast_refresh_tasks: Dict[str, asyncio.Task] = {}
+_forecast_refresh_lock = asyncio.Lock()
+
 
 class DashboardService:
     """Service for dashboard calculations"""
@@ -29,7 +34,6 @@ class DashboardService:
     def __init__(self, db: AsyncSession):
         self.db = db
         self.metrics_service = MetricsService(db)
-        self._forecast_refresh_tasks: Dict[str, asyncio.Task] = {}  # Track background refresh tasks
 
     async def _batch_get_latest_forecast_demand(
         self,
@@ -47,7 +51,7 @@ class DashboardService:
         
         try:
             # Find latest forecast run for this client
-            cutoff_date = datetime.utcnow() - timedelta(days=max_age_days)
+            cutoff_date = datetime.now(timezone.utc) - timedelta(days=max_age_days)
             
             forecast_run_result = await self.db.execute(
                 select(ForecastRun)
@@ -121,41 +125,54 @@ class DashboardService:
         """
         Trigger background forecast refresh for items.
         Non-blocking - runs in background task.
+        Uses module-level task tracking to prevent duplicates across concurrent requests.
         """
-        # Check if refresh already in progress for this client
         task_key = f"{client_id}:refresh"
-        if task_key in self._forecast_refresh_tasks:
-            task = self._forecast_refresh_tasks[task_key]
-            if not task.done():
-                logger.info(f"Forecast refresh already in progress for client {client_id}")
-                return
+        
+        # Check if refresh already in progress (thread-safe)
+        async with _forecast_refresh_lock:
+            if task_key in _forecast_refresh_tasks:
+                task = _forecast_refresh_tasks[task_key]
+                if not task.done():
+                    logger.info(f"Forecast refresh already in progress for client {client_id}")
+                    return
+                # Task is done but not cleaned up - remove it
+                del _forecast_refresh_tasks[task_key]
         
         # Create background task
         async def refresh_task():
-            try:
-                from forecasting.services.forecast_service import ForecastService
-                forecast_service = ForecastService(self.db)
-                
-                logger.info(f"Starting background forecast refresh for {len(item_ids)} items")
-                await forecast_service.generate_forecast(
-                    client_id=str(client_id),
-                    user_id=user_id,
-                    item_ids=item_ids,
-                    prediction_length=30,
-                    primary_model="chronos-2",
-                    include_baseline=False
-                )
-                logger.info(f"Forecast refresh completed for client {client_id}")
-            except Exception as e:
-                logger.error(f"Forecast refresh failed for client {client_id}: {e}")
-            finally:
-                # Clean up task tracking
-                if task_key in self._forecast_refresh_tasks:
-                    del self._forecast_refresh_tasks[task_key]
+            # Create new database session for background task
+            from models.database import get_async_session_local
+            session_local = get_async_session_local()
+            async with session_local() as db_session:
+                try:
+                    from forecasting.services.forecast_service import ForecastService
+                    forecast_service = ForecastService(db_session)
+                    
+                    logger.info(f"Starting background forecast refresh for {len(item_ids)} items")
+                    await forecast_service.generate_forecast(
+                        client_id=str(client_id),
+                        user_id=user_id,
+                        item_ids=item_ids,
+                        prediction_length=30,
+                        primary_model="chronos-2",
+                        include_baseline=False
+                    )
+                    logger.info(f"Forecast refresh completed for client {client_id}")
+                except Exception as e:
+                    logger.error(f"Forecast refresh failed for client {client_id}: {e}")
+                finally:
+                    # Clean up task tracking (thread-safe)
+                    async with _forecast_refresh_lock:
+                        if task_key in _forecast_refresh_tasks:
+                            del _forecast_refresh_tasks[task_key]
         
         # Start background task (fire and forget)
         task = asyncio.create_task(refresh_task())
-        self._forecast_refresh_tasks[task_key] = task
+        
+        # Register task (thread-safe)
+        async with _forecast_refresh_lock:
+            _forecast_refresh_tasks[task_key] = task
 
     async def get_dashboard_data(self, client_id: UUID) -> DashboardResponse:
         """

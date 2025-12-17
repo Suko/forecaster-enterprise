@@ -28,6 +28,5 @@ export default defineNuxtConfig({
   sentry: {
     org: "forecaster-4b",
     project: "forecast-frontend",
-    authToken: process.env.SENTRY_AUTH_TOKEN,
   },
 });

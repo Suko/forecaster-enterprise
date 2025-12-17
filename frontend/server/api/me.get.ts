@@ -26,7 +26,6 @@ export default defineEventHandler(async (event) => {
 
     return userInfo;
   } catch (error: any) {
-    logger.error("Fetch user info error", { error });
     if (error.statusCode === 401) {
       // Log token validation failure
       logSecurityEvent({

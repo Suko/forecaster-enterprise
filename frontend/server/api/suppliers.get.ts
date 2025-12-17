@@ -22,7 +22,6 @@ export default defineEventHandler(async (event) => {
       `/api/v1/suppliers${queryString ? `?${queryString}` : ""}`
     );
   } catch (error: any) {
-    logger.error("Fetch suppliers error", { error });
     if (error.statusCode === 401) {
       throw createError({ statusCode: 401, statusMessage: "Not authenticated" });
     }

@@ -24,7 +24,6 @@ export default defineEventHandler(async (event) => {
 
     return recommendations.recommendations;
   } catch (error: any) {
-    logger.error("Recommendations fetch error", { error });
     if (error.statusCode === 401) {
       throw createError({
         statusCode: 401,

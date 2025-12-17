@@ -78,8 +78,6 @@ export default defineEventHandler(async (): Promise<LicenseStatus> => {
 
     return status;
   } catch (error) {
-    // Error reading file - assume invalid to be safe
-    logger.error("Error reading license status file", { error });
     return {
       valid: false,
       reason: "license_check_error",

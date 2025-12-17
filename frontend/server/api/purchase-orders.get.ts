@@ -18,7 +18,6 @@ export default defineEventHandler(async (event) => {
 
     return await authenticatedFetch(event, `/api/v1/purchase-orders${qs ? `?${qs}` : ""}`);
   } catch (error: any) {
-    logger.error("Fetch purchase orders error", { error });
     if (error.statusCode === 401) {
       throw createError({ statusCode: 401, statusMessage: "Not authenticated" });
     }

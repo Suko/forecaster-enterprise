@@ -24,7 +24,6 @@ export default defineEventHandler(async (event) => {
 
     return products;
   } catch (error: any) {
-    logger.error("Products fetch error", { error });
     if (error.statusCode === 401) {
       throw createError({
         statusCode: 401,

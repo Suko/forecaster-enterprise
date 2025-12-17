@@ -111,9 +111,6 @@ export default defineEventHandler(async (event) => {
       });
     }
 
-    // Log unexpected errors for debugging
-    logger.error("Unexpected login error", { error });
-
     // Generic error response
     throw createError({
       statusCode: 500,

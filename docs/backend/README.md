@@ -49,6 +49,8 @@ uv run pytest tests/test_api/test_inventory_api.py -v
 | **[BACKEND_ROADMAP.md](./BACKEND_ROADMAP.md)** | Implementation history (Phases 1-4) |
 | **[FORECASTING_ROADMAP.md](./FORECASTING_ROADMAP.md)** | Forecasting module roadmap |
 | **[FORECASTING_INTEGRATION.md](./FORECASTING_INTEGRATION.md)** | Forecasting integration gap analysis |
+| **[FORECASTING_PERFORMANCE.md](./FORECASTING_PERFORMANCE.md)** | Performance impact analysis |
+| **[FORECASTING_TESTING_AND_FREQUENCY.md](./FORECASTING_TESTING_AND_FREQUENCY.md)** | Testing & frequency recommendations |
 | **[SUPPLIER_MANAGEMENT_GUIDE.md](./SUPPLIER_MANAGEMENT_GUIDE.md)** | Supplier & MOQ management |
 | **[TEST_PLAN.md](./TEST_PLAN.md)** | Testing strategy and coverage |
 

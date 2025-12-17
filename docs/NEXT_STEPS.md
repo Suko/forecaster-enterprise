@@ -45,7 +45,7 @@ The backend MVP (Phases 1-4) is **complete** ✅, and the frontend MVP is **~87%
 
 ---
 
-### 2. Forecasting Integration - **WEEK 2** (HIGH PRIORITY)
+### 2. Forecasting Integration - **WEEK 2** ✅ **COMPLETED - 2025-12-17** (HIGH PRIORITY)
 **Goal:** Use forecasts in regular inventory endpoints (dashboard, products, recommendations)
 
 **Problem:** 
@@ -53,22 +53,54 @@ The backend MVP (Phases 1-4) is **complete** ✅, and the frontend MVP is **~87%
 - Dashboard and product list use **historical data only** (last 30 days)
 - Not using forward-looking forecasts for planning
 
+**Completed Testing:**
+- ✅ Manual forecast test script (`scripts/manual_forecast_test.py`) - Tests forecast generation and metrics comparison
+- ✅ Forecast validation script (`scripts/validate_forecast_results.py`) - Validates forecast integrity
+- ✅ Verified metrics calculation with forecast data (DIR, stockout risk)
+- ✅ Confirmed forecast results are stored correctly in database
+
 **Tasks:**
-- [ ] Add `_get_latest_forecast_demand()` to `InventoryService`
-- [ ] Modify `get_products_with_metrics()` to use forecasts when available
-- [ ] Modify `DashboardService.get_dashboard_data()` to use forecasts
-- [ ] Add indicator in API response: "using_forecast" vs "using_historical"
-- [ ] Add forecast freshness check (use forecast if < 7 days old)
-- [ ] Add forecast validation to `DataValidationService`
+- [x] Add `_get_latest_forecast_demand()` to `InventoryService` ✅ **COMPLETED - 2025-12-17**
+- [x] Modify `get_products()` to use forecasts when available ✅ **COMPLETED - 2025-12-17**
+- [x] Add auto-refresh logic (background forecast if stale) ✅ **COMPLETED - 2025-12-17**
+- [x] Add indicator in API response: `using_forecast` field ✅ **COMPLETED - 2025-12-17**
+- [x] Add forecast freshness check (use forecast if < 7 days old) ✅ **COMPLETED - 2025-12-17**
+- [x] Modify `DashboardService.get_dashboard_data()` to use forecasts ✅ **COMPLETED - 2025-12-17**
+- [x] Modify `RecommendationsService.get_recommendations()` to use forecasts ✅ **COMPLETED - 2025-12-17**
+- [x] Add forecast validation to `DataValidationService` ✅ **COMPLETED - 2025-12-17**
+- [x] Create integration tests for forecast usage ✅ **COMPLETED - 2025-12-17**
+- [x] Define accuracy tracking approach ✅ **COMPLETED - 2025-12-17**
 
 **Files to Modify:**
 - `backend/services/inventory_service.py`
 - `backend/services/dashboard_service.py`
 - `backend/services/data_validation_service.py`
 
-**Documentation:** `docs/backend/FORECASTING_INTEGRATION.md`
+**Documentation:** 
+- `docs/backend/FORECASTING_INTEGRATION.md` - Integration plan ✅ **UPDATED**
+- `docs/backend/FORECASTING_TESTING_AND_FREQUENCY.md` - Testing & frequency guide
 
-**Estimated Time:** 3-5 days
+**Implementation Details:**
+- ✅ `_get_latest_forecast_demand()` - Checks forecast freshness (<7 days) in InventoryService
+- ✅ `_batch_get_latest_forecast_demand()` - Batch forecast lookup in DashboardService
+- ✅ `_trigger_forecast_refresh()` - Background forecast refresh (non-blocking) in both services
+- ✅ Auto-refresh: Detects stale forecasts and triggers refresh automatically
+- ✅ `using_forecast` field in `ProductResponse` schema
+- ✅ `_validate_forecasts()` - Comprehensive forecast validation in DataValidationService
+
+**Files Modified:**
+- ✅ `backend/services/inventory_service.py` - Forecast integration + auto-refresh
+- ✅ `backend/services/dashboard_service.py` - Forecast integration + auto-refresh
+- ✅ `backend/services/recommendations_service.py` - Forecast integration + auto-refresh
+- ✅ `backend/services/data_validation_service.py` - Forecast validation
+- ✅ `backend/schemas/inventory.py` - Added `using_forecast` field
+- ✅ `backend/tests/test_services/test_forecast_integration.py` - Integration tests
+
+**Documentation Created:**
+- ✅ `docs/backend/FORECAST_ACCURACY_TRACKING.md` - Accuracy tracking guide
+
+**Estimated Time:** 3-5 days  
+**Status:** ✅ **100% COMPLETE** - All forecast integration tasks completed, including testing and accuracy tracking
 
 ---
 
@@ -171,16 +203,16 @@ The backend MVP (Phases 1-4) is **complete** ✅, and the frontend MVP is **~87%
 **Why Fourth:** After data validation is in place, we can safely set up automated ETL. This enables production deployment.
 
 **Backend Tasks:**
-- [ ] **Fix Critical ETL Bug - location_id Missing in Sales History Sync:**
-  - **Issue:** `ETLService.sync_sales_history()` does not include `location_id` in insert query
-  - **Impact:** Will cause database constraint violations (primary key includes `location_id`)
-  - **Location:** `backend/services/etl/etl_service.py` line 121-131
-  - **Fix Required:**
-    1. Extract `location_id` from external data (map from `row.get("location_id")` or default to "UNSPECIFIED")
-    2. Include `location_id` in validated_row dict (line 74-83)
-    3. Add `location_id` to INSERT statement (line 122-124)
-    4. Update ON CONFLICT clause to include `location_id` in primary key constraint (line 125)
-  - **Reference:** Migration `1a2b3c4d5e6f_add_location_id_to_ts_demand_daily.py` shows primary key is `(client_id, item_id, location_id, date_local)`
+- [x] **Fix Critical ETL Bug - location_id Missing in Sales History Sync:** ✅ **FIXED - 2025-12-17**
+  - **Issue:** `ETLService.sync_sales_history()` did not include `location_id` in insert query
+  - **Impact:** Would cause database constraint violations (primary key includes `location_id`)
+  - **Location:** `backend/services/etl/etl_service.py`
+  - **Fix Applied:**
+    1. ✅ Extract `location_id` from external data (line 76: defaults to "UNSPECIFIED")
+    2. ✅ Include `location_id` in validated_row dict
+    3. ✅ Add `location_id` to INSERT statement (line 124)
+    4. ✅ Update ON CONFLICT clause to use correct primary key: `(client_id, item_id, location_id, date_local)` (line 126)
+  - **Reference:** Migration `1a2b3c4d5e6f_add_location_id_to_ts_demand_daily.py` defines primary key as `(client_id, item_id, location_id, date_local)`
 - [ ] **Complete Connector Implementations:**
   - **Issue:** BigQuery and SQL connectors have placeholder `TODO` implementations
   - **Location:** `backend/services/etl/connectors.py`
@@ -316,5 +348,5 @@ After completing the above priorities, consider:
 ---
 
 **Document Owner:** Development Team  
-**Last Updated:** 2025-01-27  
-**Next Review:** After Week 1 completion
+**Last Updated:** 2025-12-17  
+**Next Review:** After Week 2 completion (Forecast Integration ✅ Complete)

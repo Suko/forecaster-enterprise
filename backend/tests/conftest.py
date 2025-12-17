@@ -206,17 +206,19 @@ async def populate_test_data(db_session, test_client_obj, test_data_loader):
     if not table_exists:
         # Table doesn't exist - create it (simplified schema for tests)
         # In production, this would be created by migrations/ETL
+        # NOTE: Primary key includes location_id (after ETL fix)
         create_table = text("""
             CREATE TABLE IF NOT EXISTS ts_demand_daily (
+                client_id VARCHAR(36) NOT NULL,
                 item_id VARCHAR(255) NOT NULL,
+                location_id VARCHAR(50) NOT NULL DEFAULT 'UNSPECIFIED',
                 date_local DATE NOT NULL,
                 units_sold NUMERIC(18, 2) NOT NULL DEFAULT 0,
-                client_id VARCHAR(36) NOT NULL,
                 promotion_flag BOOLEAN DEFAULT FALSE,
                 holiday_flag BOOLEAN DEFAULT FALSE,
                 is_weekend BOOLEAN DEFAULT FALSE,
                 marketing_spend NUMERIC(18, 2) DEFAULT 0,
-                PRIMARY KEY (item_id, date_local, client_id)
+                PRIMARY KEY (client_id, item_id, location_id, date_local)
             );
         """)
         await db_session.execute(create_table)
@@ -235,16 +237,17 @@ async def populate_test_data(db_session, test_client_obj, test_data_loader):
         for _, row in df.iterrows():
             insert_query = text("""
                 INSERT INTO ts_demand_daily
-                (item_id, date_local, units_sold, client_id, promotion_flag, holiday_flag, is_weekend, marketing_spend)
-                VALUES (:item_id, :date_local, :units_sold, :client_id, :promo_flag, :holiday_flag, :is_weekend, :marketing_spend)
-                ON CONFLICT (item_id, date_local, client_id) DO NOTHING
+                (client_id, item_id, location_id, date_local, units_sold, promotion_flag, holiday_flag, is_weekend, marketing_spend)
+                VALUES (:client_id, :item_id, :location_id, :date_local, :units_sold, :promo_flag, :holiday_flag, :is_weekend, :marketing_spend)
+                ON CONFLICT (client_id, item_id, location_id, date_local) DO NOTHING
             """)
 
             await db_session.execute(insert_query, {
+                "client_id": str(client_id),
                 "item_id": str(row.get("sku", "")),
+                "location_id": str(row.get("location_id", "UNSPECIFIED")),  # Match production: ETL uses 'UNSPECIFIED'
                 "date_local": row.get("date").date() if hasattr(row.get("date"), "date") else row.get("date"),
                 "units_sold": float(row.get("sales_qty", 0)),
-                "client_id": str(client_id),
                 "promo_flag": bool(row.get("promo_flag", False)),
                 "holiday_flag": bool(row.get("holiday_flag", False)),
                 "is_weekend": bool(row.get("is_weekend", False)),
@@ -265,16 +268,17 @@ async def populate_test_data(db_session, test_client_obj, test_data_loader):
             for item_id in test_items:
                 insert_query = text("""
                     INSERT INTO ts_demand_daily
-                    (item_id, date_local, units_sold, client_id, promotion_flag, holiday_flag, is_weekend, marketing_spend)
-                    VALUES (:item_id, :date_local, :units_sold, :client_id, :promo_flag, :holiday_flag, :is_weekend, :marketing_spend)
-                    ON CONFLICT (item_id, date_local, client_id) DO NOTHING
+                    (client_id, item_id, location_id, date_local, units_sold, promotion_flag, holiday_flag, is_weekend, marketing_spend)
+                    VALUES (:client_id, :item_id, :location_id, :date_local, :units_sold, :promo_flag, :holiday_flag, :is_weekend, :marketing_spend)
+                    ON CONFLICT (client_id, item_id, location_id, date_local) DO NOTHING
                 """)
 
                 await db_session.execute(insert_query, {
+                    "client_id": str(client_id),
                     "item_id": item_id,
+                    "location_id": "UNSPECIFIED",  # Match production: ETL uses 'UNSPECIFIED'
                     "date_local": current_date,
                     "units_sold": float(random.randint(10, 100)),
-                    "client_id": str(client_id),
                     "promo_flag": False,
                     "holiday_flag": False,
                     "is_weekend": current_date.weekday() >= 5,

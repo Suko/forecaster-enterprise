@@ -28,6 +28,8 @@
 | `test_production_readiness.py` | Production readiness checks |
 | `test_m5_forecast_accuracy.py` | Forecast accuracy testing |
 | `test_classification_endpoint.py` | Classification API test |
+| `manual_forecast_test.py` | **NEW:** Run forecast and compare metrics before/after |
+| `validate_forecast_results.py` | **NEW:** Validate forecast run and results integrity |
 | **Utilities** | |
 | `check_data_completeness.py` | Verify data completeness |
 | `check_inventory_data.py` | Check inventory data |

@@ -73,6 +73,7 @@ class ETLService:
                 # Map external fields to internal schema
                 validated_row = {
                     "item_id": str(row.get("item_id") or row.get("sku", "")),
+                    "location_id": str(row.get("location_id", "UNSPECIFIED")),
                     "date_local": row.get("date_local") or row.get("date"),
                     "units_sold": float(row.get("units_sold") or row.get("quantity", 0)),
                     "client_id": str(client_id),
@@ -120,9 +121,9 @@ class ETLService:
         # Upsert data
         insert_query = text("""
             INSERT INTO ts_demand_daily
-            (item_id, date_local, units_sold, client_id, promotion_flag, holiday_flag, is_weekend, marketing_spend)
-            VALUES (:item_id, :date_local, :units_sold, :client_id, :promotion_flag, :holiday_flag, :is_weekend, :marketing_spend)
-            ON CONFLICT (item_id, date_local, client_id) DO UPDATE
+            (client_id, item_id, location_id, date_local, units_sold, promotion_flag, holiday_flag, is_weekend, marketing_spend)
+            VALUES (:client_id, :item_id, :location_id, :date_local, :units_sold, :promotion_flag, :holiday_flag, :is_weekend, :marketing_spend)
+            ON CONFLICT (client_id, item_id, location_id, date_local) DO UPDATE
             SET units_sold = EXCLUDED.units_sold,
                 promotion_flag = EXCLUDED.promotion_flag,
                 holiday_flag = EXCLUDED.holiday_flag,

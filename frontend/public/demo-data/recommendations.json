@@ -1,0 +1,468 @@
+[
+  {
+    "type": "DEAD_STOCK",
+    "priority": "high",
+    "item_id": "M5_FOODS_1_154",
+    "product_name": "Product M5_FOODS_1_154",
+    "reason": "No sales in last 90 days, DIR 201.7 days",
+    "supplier_id": "SUPPLIER_5",
+    "supplier_name": "Supplier 5"
+  },
+  {
+    "type": "REDUCE_ORDER",
+    "priority": "high",
+    "item_id": "M5_HOBBIES_1_193",
+    "product_name": "Product M5_HOBBIES_1_193",
+    "reason": "Excess inventory, DIR 238.3 days",
+    "supplier_id": "SUPPLIER_4",
+    "supplier_name": "Supplier 4"
+  },
+  {
+    "type": "DEAD_STOCK",
+    "priority": "low",
+    "item_id": "M5_HOBBIES_1_053",
+    "product_name": "Product M5_HOBBIES_1_053",
+    "reason": "No sales in last 90 days, DIR 231.3 days",
+    "supplier_id": "SUPPLIER_4",
+    "supplier_name": "Supplier 4"
+  },
+  {
+    "type": "REDUCE_ORDER",
+    "priority": "low",
+    "item_id": "M5_ELECTRONICS_1_151",
+    "product_name": "Product M5_ELECTRONICS_1_151",
+    "reason": "Excess inventory, DIR 287.2 days",
+    "supplier_id": "SUPPLIER_2",
+    "supplier_name": "Supplier 2"
+  },
+  {
+    "type": "URGENT",
+    "priority": "low",
+    "item_id": "M5_ELECTRONICS_1_015",
+    "product_name": "Product M5_ELECTRONICS_1_015",
+    "reason": "Stockout risk 43.7%, DIR 27.5 days",
+    "suggested_quantity": 884,
+    "supplier_id": "SUPPLIER_1",
+    "supplier_name": "Supplier 1"
+  },
+  {
+    "type": "DEAD_STOCK",
+    "priority": "high",
+    "item_id": "M5_ELECTRONICS_1_063",
+    "product_name": "Product M5_ELECTRONICS_1_063",
+    "reason": "No sales in last 90 days, DIR 115.1 days",
+    "supplier_id": "SUPPLIER_4",
+    "supplier_name": "Supplier 4"
+  },
+  {
+    "type": "REDUCE_ORDER",
+    "priority": "low",
+    "item_id": "M5_ELECTRONICS_1_087",
+    "product_name": "Product M5_ELECTRONICS_1_087",
+    "reason": "Excess inventory, DIR 118.3 days",
+    "supplier_id": "SUPPLIER_3",
+    "supplier_name": "Supplier 3"
+  },
+  {
+    "type": "DEAD_STOCK",
+    "priority": "high",
+    "item_id": "M5_HOUSEHOLD_1_008",
+    "product_name": "Product M5_HOUSEHOLD_1_008",
+    "reason": "No sales in last 90 days, DIR 4.3 days",
+    "supplier_id": "SUPPLIER_4",
+    "supplier_name": "Supplier 4"
+  },
+  {
+    "type": "DEAD_STOCK",
+    "priority": "medium",
+    "item_id": "M5_FOODS_1_194",
+    "product_name": "Product M5_FOODS_1_194",
+    "reason": "No sales in last 90 days, DIR 278.6 days",
+    "supplier_id": "SUPPLIER_5",
+    "supplier_name": "Supplier 5"
+  },
+  {
+    "type": "PROMOTE",
+    "priority": "high",
+    "item_id": "M5_HOUSEHOLD_1_172",
+    "product_name": "Product M5_HOUSEHOLD_1_172",
+    "reason": "Low sales velocity, consider promotion",
+    "supplier_id": "SUPPLIER_3",
+    "supplier_name": "Supplier 3"
+  },
+  {
+    "type": "PROMOTE",
+    "priority": "high",
+    "item_id": "M5_HOBBIES_1_061",
+    "product_name": "Product M5_HOBBIES_1_061",
+    "reason": "Low sales velocity, consider promotion",
+    "supplier_id": "SUPPLIER_2",
+    "supplier_name": "Supplier 2"
+  },
+  {
+    "type": "URGENT",
+    "priority": "low",
+    "item_id": "M5_HOBBIES_1_029",
+    "product_name": "Product M5_HOBBIES_1_029",
+    "reason": "Stockout risk 9.4%, DIR 52.6 days",
+    "suggested_quantity": 338,
+    "supplier_id": "SUPPLIER_5",
+    "supplier_name": "Supplier 5"
+  },
+  {
+    "type": "REDUCE_ORDER",
+    "priority": "low",
+    "item_id": "M5_ELECTRONICS_1_107",
+    "product_name": "Product M5_ELECTRONICS_1_107",
+    "reason": "Excess inventory, DIR 291.5 days",
+    "supplier_id": "SUPPLIER_3",
+    "supplier_name": "Supplier 3"
+  },
+  {
+    "type": "URGENT",
+    "priority": "low",
+    "item_id": "M5_ELECTRONICS_1_195",
+    "product_name": "Product M5_ELECTRONICS_1_195",
+    "reason": "Stockout risk 18.4%, DIR 113.4 days",
+    "suggested_quantity": 460,
+    "supplier_id": "SUPPLIER_1",
+    "supplier_name": "Supplier 1"
+  },
+  {
+    "type": "URGENT",
+    "priority": "low",
+    "item_id": "M5_FOODS_1_094",
+    "product_name": "Product M5_FOODS_1_094",
+    "reason": "Stockout risk 15.0%, DIR 102.2 days",
+    "suggested_quantity": 306,
+    "supplier_id": "SUPPLIER_5",
+    "supplier_name": "Supplier 5"
+  },
+  {
+    "type": "URGENT",
+    "priority": "medium",
+    "item_id": "M5_HOBBIES_1_193",
+    "product_name": "Product M5_HOBBIES_1_193",
+    "reason": "Stockout risk 0.9%, DIR 238.3 days",
+    "suggested_quantity": 1066,
+    "supplier_id": "SUPPLIER_4",
+    "supplier_name": "Supplier 4"
+  },
+  {
+    "type": "REORDER",
+    "priority": "high",
+    "item_id": "M5_FOODS_1_190",
+    "product_name": "Product M5_FOODS_1_190",
+    "reason": "Stockout risk 3.7%, DIR 133.6 days",
+    "suggested_quantity": 240,
+    "supplier_id": "SUPPLIER_1",
+    "supplier_name": "Supplier 1"
+  },
+  {
+    "type": "PROMOTE",
+    "priority": "low",
+    "item_id": "M5_FOODS_1_102",
+    "product_name": "Product M5_FOODS_1_102",
+    "reason": "Low sales velocity, consider promotion",
+    "supplier_id": "SUPPLIER_3",
+    "supplier_name": "Supplier 3"
+  },
+  {
+    "type": "REORDER",
+    "priority": "low",
+    "item_id": "M5_HOBBIES_1_013",
+    "product_name": "Product M5_HOBBIES_1_013",
+    "reason": "Stockout risk 3.0%, DIR 56.2 days",
+    "suggested_quantity": 1098,
+    "supplier_id": "SUPPLIER_4",
+    "supplier_name": "Supplier 4"
+  },
+  {
+    "type": "REORDER",
+    "priority": "low",
+    "item_id": "M5_ELECTRONICS_1_183",
+    "product_name": "Product M5_ELECTRONICS_1_183",
+    "reason": "Stockout risk 11.6%, DIR 190.5 days",
+    "suggested_quantity": 802,
+    "supplier_id": "SUPPLIER_4",
+    "supplier_name": "Supplier 4"
+  },
+  {
+    "type": "DEAD_STOCK",
+    "priority": "medium",
+    "item_id": "M5_HOUSEHOLD_1_068",
+    "product_name": "Product M5_HOUSEHOLD_1_068",
+    "reason": "No sales in last 90 days, DIR 254.5 days",
+    "supplier_id": "SUPPLIER_4",
+    "supplier_name": "Supplier 4"
+  },
+  {
+    "type": "DEAD_STOCK",
+    "priority": "low",
+    "item_id": "M5_HOBBIES_1_157",
+    "product_name": "Product M5_HOBBIES_1_157",
+    "reason": "No sales in last 90 days, DIR 152.2 days",
+    "supplier_id": "SUPPLIER_3",
+    "supplier_name": "Supplier 3"
+  },
+  {
+    "type": "URGENT",
+    "priority": "high",
+    "item_id": "M5_ELECTRONICS_1_131",
+    "product_name": "Product M5_ELECTRONICS_1_131",
+    "reason": "Stockout risk 5.0%, DIR 245.3 days",
+    "suggested_quantity": 332,
+    "supplier_id": "SUPPLIER_2",
+    "supplier_name": "Supplier 2"
+  },
+  {
+    "type": "DEAD_STOCK",
+    "priority": "low",
+    "item_id": "M5_HOUSEHOLD_1_112",
+    "product_name": "Product M5_HOUSEHOLD_1_112",
+    "reason": "No sales in last 90 days, DIR 152.5 days",
+    "supplier_id": "SUPPLIER_3",
+    "supplier_name": "Supplier 3"
+  },
+  {
+    "type": "URGENT",
+    "priority": "high",
+    "item_id": "M5_FOODS_1_150",
+    "product_name": "Product M5_FOODS_1_150",
+    "reason": "Stockout risk 9.3%, DIR 271.0 days",
+    "suggested_quantity": 198,
+    "supplier_id": "SUPPLIER_1",
+    "supplier_name": "Supplier 1"
+  },
+  {
+    "type": "PROMOTE",
+    "priority": "low",
+    "item_id": "M5_FOODS_1_050",
+    "product_name": "Product M5_FOODS_1_050",
+    "reason": "Low sales velocity, consider promotion",
+    "supplier_id": "SUPPLIER_1",
+    "supplier_name": "Supplier 1"
+  },
+  {
+    "type": "REORDER",
+    "priority": "medium",
+    "item_id": "M5_HOUSEHOLD_1_004",
+    "product_name": "Product M5_HOUSEHOLD_1_004",
+    "reason": "Stockout risk 81.8%, DIR 4.0 days",
+    "suggested_quantity": 600,
+    "supplier_id": "SUPPLIER_5",
+    "supplier_name": "Supplier 5"
+  },
+  {
+    "type": "DEAD_STOCK",
+    "priority": "high",
+    "item_id": "M5_ELECTRONICS_1_015",
+    "product_name": "Product M5_ELECTRONICS_1_015",
+    "reason": "No sales in last 90 days, DIR 27.5 days",
+    "supplier_id": "SUPPLIER_1",
+    "supplier_name": "Supplier 1"
+  },
+  {
+    "type": "DEAD_STOCK",
+    "priority": "low",
+    "item_id": "M5_ELECTRONICS_1_083",
+    "product_name": "Product M5_ELECTRONICS_1_083",
+    "reason": "No sales in last 90 days, DIR 220.5 days",
+    "supplier_id": "SUPPLIER_4",
+    "supplier_name": "Supplier 4"
+  },
+  {
+    "type": "PROMOTE",
+    "priority": "high",
+    "item_id": "M5_ELECTRONICS_1_091",
+    "product_name": "Product M5_ELECTRONICS_1_091",
+    "reason": "Low sales velocity, consider promotion",
+    "supplier_id": "SUPPLIER_2",
+    "supplier_name": "Supplier 2"
+  },
+  {
+    "type": "REDUCE_ORDER",
+    "priority": "low",
+    "item_id": "M5_ELECTRONICS_1_135",
+    "product_name": "Product M5_ELECTRONICS_1_135",
+    "reason": "Excess inventory, DIR 275.7 days",
+    "supplier_id": "SUPPLIER_1",
+    "supplier_name": "Supplier 1"
+  },
+  {
+    "type": "REORDER",
+    "priority": "high",
+    "item_id": "M5_HOUSEHOLD_1_120",
+    "product_name": "Product M5_HOUSEHOLD_1_120",
+    "reason": "Stockout risk 2.6%, DIR 132.8 days",
+    "suggested_quantity": 664,
+    "supplier_id": "SUPPLIER_1",
+    "supplier_name": "Supplier 1"
+  },
+  {
+    "type": "REDUCE_ORDER",
+    "priority": "low",
+    "item_id": "M5_ELECTRONICS_1_135",
+    "product_name": "Product M5_ELECTRONICS_1_135",
+    "reason": "Excess inventory, DIR 275.7 days",
+    "supplier_id": "SUPPLIER_1",
+    "supplier_name": "Supplier 1"
+  },
+  {
+    "type": "DEAD_STOCK",
+    "priority": "low",
+    "item_id": "M5_HOBBIES_1_097",
+    "product_name": "Product M5_HOBBIES_1_097",
+    "reason": "No sales in last 90 days, DIR 243.0 days",
+    "supplier_id": "SUPPLIER_3",
+    "supplier_name": "Supplier 3"
+  },
+  {
+    "type": "URGENT",
+    "priority": "medium",
+    "item_id": "M5_HOBBIES_1_017",
+    "product_name": "Product M5_HOBBIES_1_017",
+    "reason": "Stockout risk 69.9%, DIR 19.7 days",
+    "suggested_quantity": 716,
+    "supplier_id": "SUPPLIER_3",
+    "supplier_name": "Supplier 3"
+  },
+  {
+    "type": "REDUCE_ORDER",
+    "priority": "high",
+    "item_id": "M5_ELECTRONICS_1_187",
+    "product_name": "Product M5_ELECTRONICS_1_187",
+    "reason": "Excess inventory, DIR 193.8 days",
+    "supplier_id": "SUPPLIER_3",
+    "supplier_name": "Supplier 3"
+  },
+  {
+    "type": "URGENT",
+    "priority": "high",
+    "item_id": "M5_HOBBIES_1_125",
+    "product_name": "Product M5_HOBBIES_1_125",
+    "reason": "Stockout risk 10.8%, DIR 209.9 days",
+    "suggested_quantity": 1050,
+    "supplier_id": "SUPPLIER_1",
+    "supplier_name": "Supplier 1"
+  },
+  {
+    "type": "URGENT",
+    "priority": "high",
+    "item_id": "M5_HOBBIES_1_061",
+    "product_name": "Product M5_HOBBIES_1_061",
+    "reason": "Stockout risk 15.8%, DIR 195.9 days",
+    "suggested_quantity": 714,
+    "supplier_id": "SUPPLIER_2",
+    "supplier_name": "Supplier 2"
+  },
+  {
+    "type": "DEAD_STOCK",
+    "priority": "medium",
+    "item_id": "M5_ELECTRONICS_1_115",
+    "product_name": "Product M5_ELECTRONICS_1_115",
+    "reason": "No sales in last 90 days, DIR 117.5 days",
+    "supplier_id": "SUPPLIER_1",
+    "supplier_name": "Supplier 1"
+  },
+  {
+    "type": "URGENT",
+    "priority": "low",
+    "item_id": "M5_FOODS_1_150",
+    "product_name": "Product M5_FOODS_1_150",
+    "reason": "Stockout risk 9.3%, DIR 271.0 days",
+    "suggested_quantity": 198,
+    "supplier_id": "SUPPLIER_1",
+    "supplier_name": "Supplier 1"
+  },
+  {
+    "type": "REDUCE_ORDER",
+    "priority": "low",
+    "item_id": "M5_HOUSEHOLD_1_132",
+    "product_name": "Product M5_HOUSEHOLD_1_132",
+    "reason": "Excess inventory, DIR 299.5 days",
+    "supplier_id": "SUPPLIER_3",
+    "supplier_name": "Supplier 3"
+  },
+  {
+    "type": "REDUCE_ORDER",
+    "priority": "low",
+    "item_id": "M5_ELECTRONICS_1_095",
+    "product_name": "Product M5_ELECTRONICS_1_095",
+    "reason": "Excess inventory, DIR 176.8 days",
+    "supplier_id": "SUPPLIER_1",
+    "supplier_name": "Supplier 1"
+  },
+  {
+    "type": "REDUCE_ORDER",
+    "priority": "medium",
+    "item_id": "M5_ELECTRONICS_1_115",
+    "product_name": "Product M5_ELECTRONICS_1_115",
+    "reason": "Excess inventory, DIR 117.5 days",
+    "supplier_id": "SUPPLIER_1",
+    "supplier_name": "Supplier 1"
+  },
+  {
+    "type": "REDUCE_ORDER",
+    "priority": "high",
+    "item_id": "M5_ELECTRONICS_1_167",
+    "product_name": "Product M5_ELECTRONICS_1_167",
+    "reason": "Excess inventory, DIR 261.8 days",
+    "supplier_id": "SUPPLIER_3",
+    "supplier_name": "Supplier 3"
+  },
+  {
+    "type": "PROMOTE",
+    "priority": "medium",
+    "item_id": "M5_HOUSEHOLD_1_172",
+    "product_name": "Product M5_HOUSEHOLD_1_172",
+    "reason": "Low sales velocity, consider promotion",
+    "supplier_id": "SUPPLIER_3",
+    "supplier_name": "Supplier 3"
+  },
+  {
+    "type": "REDUCE_ORDER",
+    "priority": "high",
+    "item_id": "M5_ELECTRONICS_1_043",
+    "product_name": "Product M5_ELECTRONICS_1_043",
+    "reason": "Excess inventory, DIR 244.3 days",
+    "supplier_id": "SUPPLIER_4",
+    "supplier_name": "Supplier 4"
+  },
+  {
+    "type": "REDUCE_ORDER",
+    "priority": "low",
+    "item_id": "M5_HOBBIES_1_109",
+    "product_name": "Product M5_HOBBIES_1_109",
+    "reason": "Excess inventory, DIR 132.5 days",
+    "supplier_id": "SUPPLIER_5",
+    "supplier_name": "Supplier 5"
+  },
+  {
+    "type": "DEAD_STOCK",
+    "priority": "low",
+    "item_id": "M5_FOODS_1_166",
+    "product_name": "Product M5_FOODS_1_166",
+    "reason": "No sales in last 90 days, DIR 106.9 days",
+    "supplier_id": "SUPPLIER_2",
+    "supplier_name": "Supplier 2"
+  },
+  {
+    "type": "DEAD_STOCK",
+    "priority": "high",
+    "item_id": "M5_FOODS_1_126",
+    "product_name": "Product M5_FOODS_1_126",
+    "reason": "No sales in last 90 days, DIR 270.6 days",
+    "supplier_id": "SUPPLIER_2",
+    "supplier_name": "Supplier 2"
+  },
+  {
+    "type": "PROMOTE",
+    "priority": "high",
+    "item_id": "M5_FOODS_1_090",
+    "product_name": "Product M5_FOODS_1_090",
+    "reason": "Low sales velocity, consider promotion",
+    "supplier_id": "SUPPLIER_1",
+    "supplier_name": "Supplier 1"
+  }
+]

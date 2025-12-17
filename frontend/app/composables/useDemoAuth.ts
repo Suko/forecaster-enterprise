@@ -13,7 +13,7 @@ export const useDemoAuth = () => {
    */
   const loginDemo = async () => {
     // For demo mode, call the login API with demo credentials
-    // The backend should accept demo credentials when in demo mode
+    // The server will handle setting the session cookie
     try {
       if (typeof window !== 'undefined') {
         // Call login API with demo credentials
@@ -30,19 +30,8 @@ export const useDemoAuth = () => {
         await refreshSession();
       }
     } catch (err) {
-      // If login fails, try to set demo session manually
-      console.warn('Demo login failed, using fallback:', err);
-      // Fallback: Set demo session in localStorage
-      if (typeof window !== 'undefined') {
-        localStorage.setItem('demo-session', JSON.stringify({
-          user: {
-            email: "demo@forecaster-enterprise.com",
-            name: "Demo User",
-            role: "admin",
-          },
-          accessToken: "demo-token",
-        }));
-      }
+      // If login fails, log but don't worry - middleware will handle it
+      console.warn('Demo login attempt:', err);
     }
   };
   

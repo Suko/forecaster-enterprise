@@ -4,6 +4,13 @@ export default defineNuxtRouteMiddleware((to) => {
     return;
   }
 
+  const { isDemoMode } = useDemoMode();
+  
+  // In demo mode, bypass auth check
+  if (isDemoMode.value) {
+    return;
+  }
+
   const { loggedIn } = useUserSession();
 
   // Redirect the user to the login screen if they're not authenticated

@@ -1,0 +1,7964 @@
+[
+  {
+    "item_id": "M5_HOBBIES_1_001",
+    "product_name": "Product M5_HOBBIES_1_001",
+    "category": "HOBBIES",
+    "current_stock": 482,
+    "unit_cost": "23.37",
+    "safety_buffer_days": 7,
+    "dir": 5.7,
+    "stockout_risk": 0.743,
+    "status": "understocked",
+    "inventory_value": "11264.34",
+    "sales_velocity": {
+      "avg_7d": 27.31,
+      "avg_30d": 25.27,
+      "avg_90d": 23.91,
+      "trend_7d": 1,
+      "trend_30d": 1
+    },
+    "suppliers": [
+      {
+        "supplier_id": "SUPPLIER_2",
+        "supplier_name": "Supplier 2",
+        "moq": 102,
+        "lead_time_days": 4,
+        "is_primary": true
+      }
+    ],
+    "locations": [
+      {
+        "location_id": "WAREHOUSE_1",
+        "location_name": "Main Warehouse",
+        "current_stock": 337
+      }
+    ]
+  },
+  {
+    "item_id": "M5_FOODS_1_002",
+    "product_name": "Product M5_FOODS_1_002",
+    "category": "FOODS",
+    "current_stock": 211,
+    "unit_cost": "22.17",
+    "safety_buffer_days": 7,
+    "dir": 1.8,
+    "stockout_risk": 0.713,
+    "status": "understocked",
+    "inventory_value": "4677.87",
+    "sales_velocity": {
+      "avg_7d": 28.64,
+      "avg_30d": 27.26,
+      "avg_90d": 27.27,
+      "trend_7d": 1,
+      "trend_30d": -1
+    },
+    "suppliers": [
+      {
+        "supplier_id": "SUPPLIER_3",
+        "supplier_name": "Supplier 3",
+        "moq": 109,
+        "lead_time_days": 16,
+        "is_primary": true
+      }
+    ],
+    "locations": [
+      {
+        "location_id": "WAREHOUSE_1",
+        "location_name": "Main Warehouse",
+        "current_stock": 147
+      },
+      {
+        "location_id": "STORE_1",
+        "location_name": "Store Front",
+        "current_stock": 63
+      }
+    ]
+  },
+  {
+    "item_id": "M5_ELECTRONICS_1_003",
+    "product_name": "Product M5_ELECTRONICS_1_003",
+    "category": "ELECTRONICS",
+    "current_stock": 221,
+    "unit_cost": "19.85",
+    "safety_buffer_days": 7,
+    "dir": 9.4,
+    "stockout_risk": 0.802,
+    "status": "understocked",
+    "inventory_value": "4386.85",
+    "sales_velocity": {
+      "avg_7d": 42.53,
+      "avg_30d": 42.36,
+      "avg_90d": 42.49,
+      "trend_7d": 1,
+      "trend_30d": -1
+    },
+    "suppliers": [
+      {
+        "supplier_id": "SUPPLIER_4",
+        "supplier_name": "Supplier 4",
+        "moq": 53,
+        "lead_time_days": 13,
+        "is_primary": true
+      },
+      {
+        "supplier_id": "SUPPLIER_1",
+        "supplier_name": "Supplier 1",
+        "moq": 41,
+        "lead_time_days": 16,
+        "is_primary": false
+      }
+    ],
+    "locations": [
+      {
+        "location_id": "WAREHOUSE_1",
+        "location_name": "Main Warehouse",
+        "current_stock": 154
+      }
+    ]
+  },
+  {
+    "item_id": "M5_HOUSEHOLD_1_004",
+    "product_name": "Product M5_HOUSEHOLD_1_004",
+    "category": "HOUSEHOLD",
+    "current_stock": 300,
+    "unit_cost": "24.11",
+    "safety_buffer_days": 7,
+    "dir": 4,
+    "stockout_risk": 0.818,
+    "status": "understocked",
+    "inventory_value": "7233.00",
+    "sales_velocity": {
+      "avg_7d": 13.81,
+      "avg_30d": 16.21,
+      "avg_90d": 12.11,
+      "trend_7d": -1,
+      "trend_30d": 1
+    },
+    "suppliers": [
+      {
+        "supplier_id": "SUPPLIER_5",
+        "supplier_name": "Supplier 5",
+        "moq": 95,
+        "lead_time_days": 5,
+        "is_primary": true
+      }
+    ],
+    "locations": [
+      {
+        "location_id": "WAREHOUSE_1",
+        "location_name": "Main Warehouse",
+        "current_stock": 210
+      },
+      {
+        "location_id": "STORE_1",
+        "location_name": "Store Front",
+        "current_stock": 90
+      }
+    ]
+  },
+  {
+    "item_id": "M5_HOBBIES_1_005",
+    "product_name": "Product M5_HOBBIES_1_005",
+    "category": "HOBBIES",
+    "current_stock": 309,
+    "unit_cost": "27.76",
+    "safety_buffer_days": 7,
+    "dir": 6.2,
+    "stockout_risk": 0.741,
+    "status": "understocked",
+    "inventory_value": "8577.84",
+    "sales_velocity": {
+      "avg_7d": 21.65,
+      "avg_30d": 21.74,
+      "avg_90d": 17.31,
+      "trend_7d": -1,
+      "trend_30d": 1
+    },
+    "suppliers": [
+      {
+        "supplier_id": "SUPPLIER_1",
+        "supplier_name": "Supplier 1",
+        "moq": 94,
+        "lead_time_days": 13,
+        "is_primary": true
+      }
+    ],
+    "locations": [
+      {
+        "location_id": "WAREHOUSE_1",
+        "location_name": "Main Warehouse",
+        "current_stock": 216
+      }
+    ]
+  },
+  {
+    "item_id": "M5_FOODS_1_006",
+    "product_name": "Product M5_FOODS_1_006",
+    "category": "FOODS",
+    "current_stock": 534,
+    "unit_cost": "44.68",
+    "safety_buffer_days": 7,
+    "dir": 11,
+    "stockout_risk": 0.853,
+    "status": "understocked",
+    "inventory_value": "23859.12",
+    "sales_velocity": {
+      "avg_7d": 39.16,
+      "avg_30d": 39.42,
+      "avg_90d": 40.53,
+      "trend_7d": -1,
+      "trend_30d": -1
+    },
+    "suppliers": [
+      {
+        "supplier_id": "SUPPLIER_2",
+        "supplier_name": "Supplier 2",
+        "moq": 55,
+        "lead_time_days": 8,
+        "is_primary": true
+      },
+      {
+        "supplier_id": "SUPPLIER_4",
+        "supplier_name": "Supplier 4",
+        "moq": 41,
+        "lead_time_days": 9,
+        "is_primary": false
+      }
+    ],
+    "locations": [
+      {
+        "location_id": "WAREHOUSE_1",
+        "location_name": "Main Warehouse",
+        "current_stock": 373
+      },
+      {
+        "location_id": "STORE_1",
+        "location_name": "Store Front",
+        "current_stock": 160
+      }
+    ]
+  },
+  {
+    "item_id": "M5_ELECTRONICS_1_007",
+    "product_name": "Product M5_ELECTRONICS_1_007",
+    "category": "ELECTRONICS",
+    "current_stock": 429,
+    "unit_cost": "38.96",
+    "safety_buffer_days": 7,
+    "dir": 9.5,
+    "stockout_risk": 0.878,
+    "status": "understocked",
+    "inventory_value": "16713.84",
+    "sales_velocity": {
+      "avg_7d": 57.97,
+      "avg_30d": 59.95,
+      "avg_90d": 56.95,
+      "trend_7d": -1,
+      "trend_30d": 1
+    },
+    "suppliers": [
+      {
+        "supplier_id": "SUPPLIER_3",
+        "supplier_name": "Supplier 3",
+        "moq": 64,
+        "lead_time_days": 15,
+        "is_primary": true
+      }
+    ],
+    "locations": [
+      {
+        "location_id": "WAREHOUSE_1",
+        "location_name": "Main Warehouse",
+        "current_stock": 300
+      }
+    ]
+  },
+  {
+    "item_id": "M5_HOUSEHOLD_1_008",
+    "product_name": "Product M5_HOUSEHOLD_1_008",
+    "category": "HOUSEHOLD",
+    "current_stock": 335,
+    "unit_cost": "21.84",
+    "safety_buffer_days": 7,
+    "dir": 4.3,
+    "stockout_risk": 0.737,
+    "status": "understocked",
+    "inventory_value": "7316.40",
+    "sales_velocity": {
+      "avg_7d": 40.66,
+      "avg_30d": 42.51,
+      "avg_90d": 41.61,
+      "trend_7d": -1,
+      "trend_30d": 1
+    },
+    "suppliers": [
+      {
+        "supplier_id": "SUPPLIER_4",
+        "supplier_name": "Supplier 4",
+        "moq": 83,
+        "lead_time_days": 13,
+        "is_primary": true
+      }
+    ],
+    "locations": [
+      {
+        "location_id": "WAREHOUSE_1",
+        "location_name": "Main Warehouse",
+        "current_stock": 234
+      },
+      {
+        "location_id": "STORE_1",
+        "location_name": "Store Front",
+        "current_stock": 100
+      }
+    ]
+  },
+  {
+    "item_id": "M5_HOBBIES_1_009",
+    "product_name": "Product M5_HOBBIES_1_009",
+    "category": "HOBBIES",
+    "current_stock": 124,
+    "unit_cost": "37.71",
+    "safety_buffer_days": 7,
+    "dir": 1.8,
+    "stockout_risk": 0.762,
+    "status": "understocked",
+    "inventory_value": "4676.04",
+    "sales_velocity": {
+      "avg_7d": 8.71,
+      "avg_30d": 7.96,
+      "avg_90d": 11.97,
+      "trend_7d": 1,
+      "trend_30d": -1
+    },
+    "suppliers": [
+      {
+        "supplier_id": "SUPPLIER_5",
+        "supplier_name": "Supplier 5",
+        "moq": 107,
+        "lead_time_days": 12,
+        "is_primary": true
+      },
+      {
+        "supplier_id": "SUPPLIER_2",
+        "supplier_name": "Supplier 2",
+        "moq": 88,
+        "lead_time_days": 14,
+        "is_primary": false
+      }
+    ],
+    "locations": [
+      {
+        "location_id": "WAREHOUSE_1",
+        "location_name": "Main Warehouse",
+        "current_stock": 86
+      }
+    ]
+  },
+  {
+    "item_id": "M5_FOODS_1_010",
+    "product_name": "Product M5_FOODS_1_010",
+    "category": "FOODS",
+    "current_stock": 350,
+    "unit_cost": "45.10",
+    "safety_buffer_days": 7,
+    "dir": 30.9,
+    "stockout_risk": 0.188,
+    "status": "normal",
+    "inventory_value": "15785.00",
+    "sales_velocity": {
+      "avg_7d": 21.39,
+      "avg_30d": 22.91,
+      "avg_90d": 23.91,
+      "trend_7d": -1,
+      "trend_30d": -1
+    },
+    "suppliers": [
+      {
+        "supplier_id": "SUPPLIER_1",
+        "supplier_name": "Supplier 1",
+        "moq": 45,
+        "lead_time_days": 9,
+        "is_primary": true
+      }
+    ],
+    "locations": [
+      {
+        "location_id": "WAREHOUSE_1",
+        "location_name": "Main Warehouse",
+        "current_stock": 244
+      },
+      {
+        "location_id": "STORE_1",
+        "location_name": "Store Front",
+        "current_stock": 105
+      }
+    ]
+  },
+  {
+    "item_id": "M5_ELECTRONICS_1_011",
+    "product_name": "Product M5_ELECTRONICS_1_011",
+    "category": "ELECTRONICS",
+    "current_stock": 537,
+    "unit_cost": "41.78",
+    "safety_buffer_days": 7,
+    "dir": 15.3,
+    "stockout_risk": 0.422,
+    "status": "normal",
+    "inventory_value": "22435.86",
+    "sales_velocity": {
+      "avg_7d": 13.07,
+      "avg_30d": 13.44,
+      "avg_90d": 11.07,
+      "trend_7d": -1,
+      "trend_30d": 1
+    },
+    "suppliers": [
+      {
+        "supplier_id": "SUPPLIER_2",
+        "supplier_name": "Supplier 2",
+        "moq": 13,
+        "lead_time_days": 13,
+        "is_primary": true
+      }
+    ],
+    "locations": [
+      {
+        "location_id": "WAREHOUSE_1",
+        "location_name": "Main Warehouse",
+        "current_stock": 375
+      }
+    ]
+  },
+  {
+    "item_id": "M5_HOUSEHOLD_1_012",
+    "product_name": "Product M5_HOUSEHOLD_1_012",
+    "category": "HOUSEHOLD",
+    "current_stock": 166,
+    "unit_cost": "25.70",
+    "safety_buffer_days": 7,
+    "dir": 21.2,
+    "stockout_risk": 0.32,
+    "status": "normal",
+    "inventory_value": "4266.20",
+    "sales_velocity": {
+      "avg_7d": 55.61,
+      "avg_30d": 54.07,
+      "avg_90d": 52.34,
+      "trend_7d": 1,
+      "trend_30d": 1
+    },
+    "suppliers": [
+      {
+        "supplier_id": "SUPPLIER_3",
+        "supplier_name": "Supplier 3",
+        "moq": 29,
+        "lead_time_days": 3,
+        "is_primary": true
+      },
+      {
+        "supplier_id": "SUPPLIER_5",
+        "supplier_name": "Supplier 5",
+        "moq": 60,
+        "lead_time_days": 16,
+        "is_primary": false
+      }
+    ],
+    "locations": [
+      {
+        "location_id": "WAREHOUSE_1",
+        "location_name": "Main Warehouse",
+        "current_stock": 116
+      },
+      {
+        "location_id": "STORE_1",
+        "location_name": "Store Front",
+        "current_stock": 49
+      }
+    ]
+  },
+  {
+    "item_id": "M5_HOBBIES_1_013",
+    "product_name": "Product M5_HOBBIES_1_013",
+    "category": "HOBBIES",
+    "current_stock": 549,
+    "unit_cost": "45.89",
+    "safety_buffer_days": 7,
+    "dir": 56.2,
+    "stockout_risk": 0.03,
+    "status": "normal",
+    "inventory_value": "25193.61",
+    "sales_velocity": {
+      "avg_7d": 14.06,
+      "avg_30d": 14.46,
+      "avg_90d": 12.61,
+      "trend_7d": -1,
+      "trend_30d": 1
+    },
+    "suppliers": [
+      {
+        "supplier_id": "SUPPLIER_4",
+        "supplier_name": "Supplier 4",
+        "moq": 62,
+        "lead_time_days": 6,
+        "is_primary": true
+      }
+    ],
+    "locations": [
+      {
+        "location_id": "WAREHOUSE_1",
+        "location_name": "Main Warehouse",
+        "current_stock": 384
+      }
+    ]
+  },
+  {
+    "item_id": "M5_FOODS_1_014",
+    "product_name": "Product M5_FOODS_1_014",
+    "category": "FOODS",
+    "current_stock": 430,
+    "unit_cost": "17.44",
+    "safety_buffer_days": 7,
+    "dir": 49.8,
+    "stockout_risk": 0.068,
+    "status": "normal",
+    "inventory_value": "7499.20",
+    "sales_velocity": {
+      "avg_7d": 25.25,
+      "avg_30d": 25.45,
+      "avg_90d": 24.41,
+      "trend_7d": -1,
+      "trend_30d": 1
+    },
+    "suppliers": [
+      {
+        "supplier_id": "SUPPLIER_5",
+        "supplier_name": "Supplier 5",
+        "moq": 93,
+        "lead_time_days": 8,
+        "is_primary": true
+      }
+    ],
+    "locations": [
+      {
+        "location_id": "WAREHOUSE_1",
+        "location_name": "Main Warehouse",
+        "current_stock": 301
+      },
+      {
+        "location_id": "STORE_1",
+        "location_name": "Store Front",
+        "current_stock": 129
+      }
+    ]
+  },
+  {
+    "item_id": "M5_ELECTRONICS_1_015",
+    "product_name": "Product M5_ELECTRONICS_1_015",
+    "category": "ELECTRONICS",
+    "current_stock": 442,
+    "unit_cost": "54.18",
+    "safety_buffer_days": 7,
+    "dir": 27.5,
+    "stockout_risk": 0.437,
+    "status": "normal",
+    "inventory_value": "23947.56",
+    "sales_velocity": {
+      "avg_7d": 23.4,
+      "avg_30d": 25.27,
+      "avg_90d": 27.85,
+      "trend_7d": -1,
+      "trend_30d": -1
+    },
+    "suppliers": [
+      {
+        "supplier_id": "SUPPLIER_1",
+        "supplier_name": "Supplier 1",
+        "moq": 99,
+        "lead_time_days": 9,
+        "is_primary": true
+      },
+      {
+        "supplier_id": "SUPPLIER_3",
+        "supplier_name": "Supplier 3",
+        "moq": 109,
+        "lead_time_days": 8,
+        "is_primary": false
+      }
+    ],
+    "locations": [
+      {
+        "location_id": "WAREHOUSE_1",
+        "location_name": "Main Warehouse",
+        "current_stock": 309
+      }
+    ]
+  },
+  {
+    "item_id": "M5_HOUSEHOLD_1_016",
+    "product_name": "Product M5_HOUSEHOLD_1_016",
+    "category": "HOUSEHOLD",
+    "current_stock": 395,
+    "unit_cost": "25.48",
+    "safety_buffer_days": 7,
+    "dir": 61.3,
+    "stockout_risk": 0.119,
+    "status": "normal",
+    "inventory_value": "10064.60",
+    "sales_velocity": {
+      "avg_7d": 57,
+      "avg_30d": 55.86,
+      "avg_90d": 50.93,
+      "trend_7d": 1,
+      "trend_30d": 1
+    },
+    "suppliers": [
+      {
+        "supplier_id": "SUPPLIER_2",
+        "supplier_name": "Supplier 2",
+        "moq": 71,
+        "lead_time_days": 10,
+        "is_primary": true
+      }
+    ],
+    "locations": [
+      {
+        "location_id": "WAREHOUSE_1",
+        "location_name": "Main Warehouse",
+        "current_stock": 276
+      },
+      {
+        "location_id": "STORE_1",
+        "location_name": "Store Front",
+        "current_stock": 118
+      }
+    ]
+  },
+  {
+    "item_id": "M5_HOBBIES_1_017",
+    "product_name": "Product M5_HOBBIES_1_017",
+    "category": "HOBBIES",
+    "current_stock": 358,
+    "unit_cost": "52.39",
+    "safety_buffer_days": 7,
+    "dir": 19.7,
+    "stockout_risk": 0.699,
+    "status": "normal",
+    "inventory_value": "18755.62",
+    "sales_velocity": {
+      "avg_7d": 32.64,
+      "avg_30d": 34.76,
+      "avg_90d": 38.89,
+      "trend_7d": -1,
+      "trend_30d": -1
+    },
+    "suppliers": [
+      {
+        "supplier_id": "SUPPLIER_3",
+        "supplier_name": "Supplier 3",
+        "moq": 69,
+        "lead_time_days": 13,
+        "is_primary": true
+      }
+    ],
+    "locations": [
+      {
+        "location_id": "WAREHOUSE_1",
+        "location_name": "Main Warehouse",
+        "current_stock": 250
+      }
+    ]
+  },
+  {
+    "item_id": "M5_FOODS_1_018",
+    "product_name": "Product M5_FOODS_1_018",
+    "category": "FOODS",
+    "current_stock": 101,
+    "unit_cost": "58.53",
+    "safety_buffer_days": 7,
+    "dir": 10.6,
+    "stockout_risk": 0.914,
+    "status": "understocked",
+    "inventory_value": "5911.53",
+    "sales_velocity": {
+      "avg_7d": 26.17,
+      "avg_30d": 26.33,
+      "avg_90d": 28,
+      "trend_7d": -1,
+      "trend_30d": -1
+    },
+    "suppliers": [
+      {
+        "supplier_id": "SUPPLIER_4",
+        "supplier_name": "Supplier 4",
+        "moq": 32,
+        "lead_time_days": 7,
+        "is_primary": true
+      },
+      {
+        "supplier_id": "SUPPLIER_1",
+        "supplier_name": "Supplier 1",
+        "moq": 98,
+        "lead_time_days": 7,
+        "is_primary": false
+      }
+    ],
+    "locations": [
+      {
+        "location_id": "WAREHOUSE_1",
+        "location_name": "Main Warehouse",
+        "current_stock": 70
+      },
+      {
+        "location_id": "STORE_1",
+        "location_name": "Store Front",
+        "current_stock": 30
+      }
+    ]
+  },
+  {
+    "item_id": "M5_ELECTRONICS_1_019",
+    "product_name": "Product M5_ELECTRONICS_1_019",
+    "category": "ELECTRONICS",
+    "current_stock": 212,
+    "unit_cost": "33.05",
+    "safety_buffer_days": 7,
+    "dir": 16.7,
+    "stockout_risk": 0.597,
+    "status": "normal",
+    "inventory_value": "7006.60",
+    "sales_velocity": {
+      "avg_7d": 51.09,
+      "avg_30d": 52.92,
+      "avg_90d": 53.71,
+      "trend_7d": -1,
+      "trend_30d": -1
+    },
+    "suppliers": [
+      {
+        "supplier_id": "SUPPLIER_5",
+        "supplier_name": "Supplier 5",
+        "moq": 103,
+        "lead_time_days": 3,
+        "is_primary": true
+      }
+    ],
+    "locations": [
+      {
+        "location_id": "WAREHOUSE_1",
+        "location_name": "Main Warehouse",
+        "current_stock": 148
+      }
+    ]
+  },
+  {
+    "item_id": "M5_HOUSEHOLD_1_020",
+    "product_name": "Product M5_HOUSEHOLD_1_020",
+    "category": "HOUSEHOLD",
+    "current_stock": 411,
+    "unit_cost": "54.63",
+    "safety_buffer_days": 7,
+    "dir": 24.9,
+    "stockout_risk": 0.47,
+    "status": "normal",
+    "inventory_value": "22452.93",
+    "sales_velocity": {
+      "avg_7d": 39.43,
+      "avg_30d": 37.28,
+      "avg_90d": 39.26,
+      "trend_7d": 1,
+      "trend_30d": -1
+    },
+    "suppliers": [
+      {
+        "supplier_id": "SUPPLIER_1",
+        "supplier_name": "Supplier 1",
+        "moq": 93,
+        "lead_time_days": 3,
+        "is_primary": true
+      }
+    ],
+    "locations": [
+      {
+        "location_id": "WAREHOUSE_1",
+        "location_name": "Main Warehouse",
+        "current_stock": 287
+      },
+      {
+        "location_id": "STORE_1",
+        "location_name": "Store Front",
+        "current_stock": 123
+      }
+    ]
+  },
+  {
+    "item_id": "M5_HOBBIES_1_021",
+    "product_name": "Product M5_HOBBIES_1_021",
+    "category": "HOBBIES",
+    "current_stock": 506,
+    "unit_cost": "33.87",
+    "safety_buffer_days": 7,
+    "dir": 51.1,
+    "stockout_risk": 0.038,
+    "status": "normal",
+    "inventory_value": "17138.22",
+    "sales_velocity": {
+      "avg_7d": 54.36,
+      "avg_30d": 53.54,
+      "avg_90d": 51.42,
+      "trend_7d": 1,
+      "trend_30d": 1
+    },
+    "suppliers": [
+      {
+        "supplier_id": "SUPPLIER_2",
+        "supplier_name": "Supplier 2",
+        "moq": 86,
+        "lead_time_days": 11,
+        "is_primary": true
+      },
+      {
+        "supplier_id": "SUPPLIER_4",
+        "supplier_name": "Supplier 4",
+        "moq": 64,
+        "lead_time_days": 5,
+        "is_primary": false
+      }
+    ],
+    "locations": [
+      {
+        "location_id": "WAREHOUSE_1",
+        "location_name": "Main Warehouse",
+        "current_stock": 354
+      }
+    ]
+  },
+  {
+    "item_id": "M5_FOODS_1_022",
+    "product_name": "Product M5_FOODS_1_022",
+    "category": "FOODS",
+    "current_stock": 141,
+    "unit_cost": "47.70",
+    "safety_buffer_days": 7,
+    "dir": 60.3,
+    "stockout_risk": 0.034,
+    "status": "normal",
+    "inventory_value": "6725.70",
+    "sales_velocity": {
+      "avg_7d": 62.81,
+      "avg_30d": 61.57,
+      "avg_90d": 58.69,
+      "trend_7d": 1,
+      "trend_30d": 1
+    },
+    "suppliers": [
+      {
+        "supplier_id": "SUPPLIER_3",
+        "supplier_name": "Supplier 3",
+        "moq": 72,
+        "lead_time_days": 7,
+        "is_primary": true
+      }
+    ],
+    "locations": [
+      {
+        "location_id": "WAREHOUSE_1",
+        "location_name": "Main Warehouse",
+        "current_stock": 98
+      },
+      {
+        "location_id": "STORE_1",
+        "location_name": "Store Front",
+        "current_stock": 42
+      }
+    ]
+  },
+  {
+    "item_id": "M5_ELECTRONICS_1_023",
+    "product_name": "Product M5_ELECTRONICS_1_023",
+    "category": "ELECTRONICS",
+    "current_stock": 346,
+    "unit_cost": "57.27",
+    "safety_buffer_days": 7,
+    "dir": 31.6,
+    "stockout_risk": 0.115,
+    "status": "normal",
+    "inventory_value": "19815.42",
+    "sales_velocity": {
+      "avg_7d": 51.78,
+      "avg_30d": 50.67,
+      "avg_90d": 49.48,
+      "trend_7d": 1,
+      "trend_30d": 1
+    },
+    "suppliers": [
+      {
+        "supplier_id": "SUPPLIER_4",
+        "supplier_name": "Supplier 4",
+        "moq": 94,
+        "lead_time_days": 6,
+        "is_primary": true
+      }
+    ],
+    "locations": [
+      {
+        "location_id": "WAREHOUSE_1",
+        "location_name": "Main Warehouse",
+        "current_stock": 242
+      }
+    ]
+  },
+  {
+    "item_id": "M5_HOUSEHOLD_1_024",
+    "product_name": "Product M5_HOUSEHOLD_1_024",
+    "category": "HOUSEHOLD",
+    "current_stock": 220,
+    "unit_cost": "51.15",
+    "safety_buffer_days": 7,
+    "dir": 59.1,
+    "stockout_risk": 0.132,
+    "status": "normal",
+    "inventory_value": "11253.00",
+    "sales_velocity": {
+      "avg_7d": 45.71,
+      "avg_30d": 45.54,
+      "avg_90d": 43.59,
+      "trend_7d": 1,
+      "trend_30d": 1
+    },
+    "suppliers": [
+      {
+        "supplier_id": "SUPPLIER_5",
+        "supplier_name": "Supplier 5",
+        "moq": 82,
+        "lead_time_days": 13,
+        "is_primary": true
+      },
+      {
+        "supplier_id": "SUPPLIER_2",
+        "supplier_name": "Supplier 2",
+        "moq": 28,
+        "lead_time_days": 15,
+        "is_primary": false
+      }
+    ],
+    "locations": [
+      {
+        "location_id": "WAREHOUSE_1",
+        "location_name": "Main Warehouse",
+        "current_stock": 154
+      },
+      {
+        "location_id": "STORE_1",
+        "location_name": "Store Front",
+        "current_stock": 66
+      }
+    ]
+  },
+  {
+    "item_id": "M5_HOBBIES_1_025",
+    "product_name": "Product M5_HOBBIES_1_025",
+    "category": "HOBBIES",
+    "current_stock": 344,
+    "unit_cost": "18.08",
+    "safety_buffer_days": 7,
+    "dir": 26.1,
+    "stockout_risk": 0.355,
+    "status": "normal",
+    "inventory_value": "6219.52",
+    "sales_velocity": {
+      "avg_7d": 7.23,
+      "avg_30d": 6.78,
+      "avg_90d": 10.11,
+      "trend_7d": 1,
+      "trend_30d": -1
+    },
+    "suppliers": [
+      {
+        "supplier_id": "SUPPLIER_1",
+        "supplier_name": "Supplier 1",
+        "moq": 61,
+        "lead_time_days": 8,
+        "is_primary": true
+      }
+    ],
+    "locations": [
+      {
+        "location_id": "WAREHOUSE_1",
+        "location_name": "Main Warehouse",
+        "current_stock": 240
+      }
+    ]
+  },
+  {
+    "item_id": "M5_FOODS_1_026",
+    "product_name": "Product M5_FOODS_1_026",
+    "category": "FOODS",
+    "current_stock": 429,
+    "unit_cost": "27.63",
+    "safety_buffer_days": 7,
+    "dir": 42.8,
+    "stockout_risk": 0.152,
+    "status": "normal",
+    "inventory_value": "11853.27",
+    "sales_velocity": {
+      "avg_7d": 23.8,
+      "avg_30d": 23.45,
+      "avg_90d": 23.68,
+      "trend_7d": 1,
+      "trend_30d": -1
+    },
+    "suppliers": [
+      {
+        "supplier_id": "SUPPLIER_2",
+        "supplier_name": "Supplier 2",
+        "moq": 56,
+        "lead_time_days": 9,
+        "is_primary": true
+      }
+    ],
+    "locations": [
+      {
+        "location_id": "WAREHOUSE_1",
+        "location_name": "Main Warehouse",
+        "current_stock": 300
+      },
+      {
+        "location_id": "STORE_1",
+        "location_name": "Store Front",
+        "current_stock": 128
+      }
+    ]
+  },
+  {
+    "item_id": "M5_ELECTRONICS_1_027",
+    "product_name": "Product M5_ELECTRONICS_1_027",
+    "category": "ELECTRONICS",
+    "current_stock": 147,
+    "unit_cost": "25.61",
+    "safety_buffer_days": 7,
+    "dir": 16.3,
+    "stockout_risk": 0.401,
+    "status": "normal",
+    "inventory_value": "3764.67",
+    "sales_velocity": {
+      "avg_7d": 17.13,
+      "avg_30d": 19.13,
+      "avg_90d": 22.78,
+      "trend_7d": -1,
+      "trend_30d": -1
+    },
+    "suppliers": [
+      {
+        "supplier_id": "SUPPLIER_3",
+        "supplier_name": "Supplier 3",
+        "moq": 102,
+        "lead_time_days": 4,
+        "is_primary": true
+      },
+      {
+        "supplier_id": "SUPPLIER_5",
+        "supplier_name": "Supplier 5",
+        "moq": 77,
+        "lead_time_days": 10,
+        "is_primary": false
+      }
+    ],
+    "locations": [
+      {
+        "location_id": "WAREHOUSE_1",
+        "location_name": "Main Warehouse",
+        "current_stock": 102
+      }
+    ]
+  },
+  {
+    "item_id": "M5_HOUSEHOLD_1_028",
+    "product_name": "Product M5_HOUSEHOLD_1_028",
+    "category": "HOUSEHOLD",
+    "current_stock": 397,
+    "unit_cost": "54.92",
+    "safety_buffer_days": 7,
+    "dir": 43.1,
+    "stockout_risk": 0.149,
+    "status": "normal",
+    "inventory_value": "21803.24",
+    "sales_velocity": {
+      "avg_7d": 31.53,
+      "avg_30d": 31.05,
+      "avg_90d": 29.74,
+      "trend_7d": 1,
+      "trend_30d": 1
+    },
+    "suppliers": [
+      {
+        "supplier_id": "SUPPLIER_4",
+        "supplier_name": "Supplier 4",
+        "moq": 85,
+        "lead_time_days": 15,
+        "is_primary": true
+      }
+    ],
+    "locations": [
+      {
+        "location_id": "WAREHOUSE_1",
+        "location_name": "Main Warehouse",
+        "current_stock": 277
+      },
+      {
+        "location_id": "STORE_1",
+        "location_name": "Store Front",
+        "current_stock": 119
+      }
+    ]
+  },
+  {
+    "item_id": "M5_HOBBIES_1_029",
+    "product_name": "Product M5_HOBBIES_1_029",
+    "category": "HOBBIES",
+    "current_stock": 169,
+    "unit_cost": "47.60",
+    "safety_buffer_days": 7,
+    "dir": 52.6,
+    "stockout_risk": 0.094,
+    "status": "normal",
+    "inventory_value": "8044.40",
+    "sales_velocity": {
+      "avg_7d": 15.48,
+      "avg_30d": 15.76,
+      "avg_90d": 19.15,
+      "trend_7d": -1,
+      "trend_30d": -1
+    },
+    "suppliers": [
+      {
+        "supplier_id": "SUPPLIER_5",
+        "supplier_name": "Supplier 5",
+        "moq": 26,
+        "lead_time_days": 14,
+        "is_primary": true
+      }
+    ],
+    "locations": [
+      {
+        "location_id": "WAREHOUSE_1",
+        "location_name": "Main Warehouse",
+        "current_stock": 118
+      }
+    ]
+  },
+  {
+    "item_id": "M5_FOODS_1_030",
+    "product_name": "Product M5_FOODS_1_030",
+    "category": "FOODS",
+    "current_stock": 284,
+    "unit_cost": "15.14",
+    "safety_buffer_days": 7,
+    "dir": 179.9,
+    "stockout_risk": 0.199,
+    "status": "overstocked",
+    "inventory_value": "4299.76",
+    "sales_velocity": {
+      "avg_7d": 7.67,
+      "avg_30d": 9.53,
+      "avg_90d": 12.24,
+      "trend_7d": -1,
+      "trend_30d": -1
+    },
+    "suppliers": [
+      {
+        "supplier_id": "SUPPLIER_1",
+        "supplier_name": "Supplier 1",
+        "moq": 60,
+        "lead_time_days": 12,
+        "is_primary": true
+      },
+      {
+        "supplier_id": "SUPPLIER_3",
+        "supplier_name": "Supplier 3",
+        "moq": 98,
+        "lead_time_days": 7,
+        "is_primary": false
+      }
+    ],
+    "locations": [
+      {
+        "location_id": "WAREHOUSE_1",
+        "location_name": "Main Warehouse",
+        "current_stock": 198
+      },
+      {
+        "location_id": "STORE_1",
+        "location_name": "Store Front",
+        "current_stock": 85
+      }
+    ]
+  },
+  {
+    "item_id": "M5_ELECTRONICS_1_031",
+    "product_name": "Product M5_ELECTRONICS_1_031",
+    "category": "ELECTRONICS",
+    "current_stock": 99,
+    "unit_cost": "35.71",
+    "safety_buffer_days": 7,
+    "dir": 298.4,
+    "stockout_risk": 0.077,
+    "status": "overstocked",
+    "inventory_value": "3535.29",
+    "sales_velocity": {
+      "avg_7d": 42.08,
+      "avg_30d": 43.7,
+      "avg_90d": 41.63,
+      "trend_7d": -1,
+      "trend_30d": 1
+    },
+    "suppliers": [
+      {
+        "supplier_id": "SUPPLIER_2",
+        "supplier_name": "Supplier 2",
+        "moq": 33,
+        "lead_time_days": 16,
+        "is_primary": true
+      }
+    ],
+    "locations": [
+      {
+        "location_id": "WAREHOUSE_1",
+        "location_name": "Main Warehouse",
+        "current_stock": 69
+      }
+    ]
+  },
+  {
+    "item_id": "M5_HOUSEHOLD_1_032",
+    "product_name": "Product M5_HOUSEHOLD_1_032",
+    "category": "HOUSEHOLD",
+    "current_stock": 178,
+    "unit_cost": "46.61",
+    "safety_buffer_days": 7,
+    "dir": 287,
+    "stockout_risk": 0.017,
+    "status": "overstocked",
+    "inventory_value": "8296.58",
+    "sales_velocity": {
+      "avg_7d": 21.75,
+      "avg_30d": 21.78,
+      "avg_90d": 26.59,
+      "trend_7d": -1,
+      "trend_30d": -1
+    },
+    "suppliers": [
+      {
+        "supplier_id": "SUPPLIER_3",
+        "supplier_name": "Supplier 3",
+        "moq": 21,
+        "lead_time_days": 9,
+        "is_primary": true
+      }
+    ],
+    "locations": [
+      {
+        "location_id": "WAREHOUSE_1",
+        "location_name": "Main Warehouse",
+        "current_stock": 124
+      },
+      {
+        "location_id": "STORE_1",
+        "location_name": "Store Front",
+        "current_stock": 53
+      }
+    ]
+  },
+  {
+    "item_id": "M5_HOBBIES_1_033",
+    "product_name": "Product M5_HOBBIES_1_033",
+    "category": "HOBBIES",
+    "current_stock": 421,
+    "unit_cost": "14.94",
+    "safety_buffer_days": 7,
+    "dir": 221.1,
+    "stockout_risk": 0.089,
+    "status": "overstocked",
+    "inventory_value": "6289.74",
+    "sales_velocity": {
+      "avg_7d": 16.19,
+      "avg_30d": 16.82,
+      "avg_90d": 17.74,
+      "trend_7d": -1,
+      "trend_30d": -1
+    },
+    "suppliers": [
+      {
+        "supplier_id": "SUPPLIER_4",
+        "supplier_name": "Supplier 4",
+        "moq": 44,
+        "lead_time_days": 10,
+        "is_primary": true
+      },
+      {
+        "supplier_id": "SUPPLIER_1",
+        "supplier_name": "Supplier 1",
+        "moq": 24,
+        "lead_time_days": 8,
+        "is_primary": false
+      }
+    ],
+    "locations": [
+      {
+        "location_id": "WAREHOUSE_1",
+        "location_name": "Main Warehouse",
+        "current_stock": 294
+      }
+    ]
+  },
+  {
+    "item_id": "M5_FOODS_1_034",
+    "product_name": "Product M5_FOODS_1_034",
+    "category": "FOODS",
+    "current_stock": 67,
+    "unit_cost": "58.14",
+    "safety_buffer_days": 7,
+    "dir": 276.8,
+    "stockout_risk": 0.062,
+    "status": "overstocked",
+    "inventory_value": "3895.38",
+    "sales_velocity": {
+      "avg_7d": 13.24,
+      "avg_30d": 11.24,
+      "avg_90d": 12.27,
+      "trend_7d": 1,
+      "trend_30d": -1
+    },
+    "suppliers": [
+      {
+        "supplier_id": "SUPPLIER_5",
+        "supplier_name": "Supplier 5",
+        "moq": 86,
+        "lead_time_days": 11,
+        "is_primary": true
+      }
+    ],
+    "locations": [
+      {
+        "location_id": "WAREHOUSE_1",
+        "location_name": "Main Warehouse",
+        "current_stock": 46
+      },
+      {
+        "location_id": "STORE_1",
+        "location_name": "Store Front",
+        "current_stock": 20
+      }
+    ]
+  },
+  {
+    "item_id": "M5_ELECTRONICS_1_035",
+    "product_name": "Product M5_ELECTRONICS_1_035",
+    "category": "ELECTRONICS",
+    "current_stock": 70,
+    "unit_cost": "11.64",
+    "safety_buffer_days": 7,
+    "dir": 269.6,
+    "stockout_risk": 0.03,
+    "status": "overstocked",
+    "inventory_value": "814.80",
+    "sales_velocity": {
+      "avg_7d": 23.04,
+      "avg_30d": 25.07,
+      "avg_90d": 20.6,
+      "trend_7d": -1,
+      "trend_30d": 1
+    },
+    "suppliers": [
+      {
+        "supplier_id": "SUPPLIER_1",
+        "supplier_name": "Supplier 1",
+        "moq": 26,
+        "lead_time_days": 7,
+        "is_primary": true
+      }
+    ],
+    "locations": [
+      {
+        "location_id": "WAREHOUSE_1",
+        "location_name": "Main Warehouse",
+        "current_stock": 49
+      }
+    ]
+  },
+  {
+    "item_id": "M5_HOUSEHOLD_1_036",
+    "product_name": "Product M5_HOUSEHOLD_1_036",
+    "category": "HOUSEHOLD",
+    "current_stock": 490,
+    "unit_cost": "13.40",
+    "safety_buffer_days": 7,
+    "dir": 228.1,
+    "stockout_risk": 0.01,
+    "status": "overstocked",
+    "inventory_value": "6566.00",
+    "sales_velocity": {
+      "avg_7d": 14.02,
+      "avg_30d": 13.97,
+      "avg_90d": 10.31,
+      "trend_7d": 1,
+      "trend_30d": 1
+    },
+    "suppliers": [
+      {
+        "supplier_id": "SUPPLIER_2",
+        "supplier_name": "Supplier 2",
+        "moq": 71,
+        "lead_time_days": 7,
+        "is_primary": true
+      },
+      {
+        "supplier_id": "SUPPLIER_4",
+        "supplier_name": "Supplier 4",
+        "moq": 59,
+        "lead_time_days": 12,
+        "is_primary": false
+      }
+    ],
+    "locations": [
+      {
+        "location_id": "WAREHOUSE_1",
+        "location_name": "Main Warehouse",
+        "current_stock": 343
+      },
+      {
+        "location_id": "STORE_1",
+        "location_name": "Store Front",
+        "current_stock": 147
+      }
+    ]
+  },
+  {
+    "item_id": "M5_HOBBIES_1_037",
+    "product_name": "Product M5_HOBBIES_1_037",
+    "category": "HOBBIES",
+    "current_stock": 84,
+    "unit_cost": "26.35",
+    "safety_buffer_days": 7,
+    "dir": 284.2,
+    "stockout_risk": 0.082,
+    "status": "overstocked",
+    "inventory_value": "2213.40",
+    "sales_velocity": {
+      "avg_7d": 44.77,
+      "avg_30d": 43.8,
+      "avg_90d": 38.95,
+      "trend_7d": 1,
+      "trend_30d": 1
+    },
+    "suppliers": [
+      {
+        "supplier_id": "SUPPLIER_3",
+        "supplier_name": "Supplier 3",
+        "moq": 44,
+        "lead_time_days": 15,
+        "is_primary": true
+      }
+    ],
+    "locations": [
+      {
+        "location_id": "WAREHOUSE_1",
+        "location_name": "Main Warehouse",
+        "current_stock": 58
+      }
+    ]
+  },
+  {
+    "item_id": "M5_FOODS_1_038",
+    "product_name": "Product M5_FOODS_1_038",
+    "category": "FOODS",
+    "current_stock": 324,
+    "unit_cost": "57.25",
+    "safety_buffer_days": 7,
+    "dir": 118.7,
+    "stockout_risk": 0.099,
+    "status": "overstocked",
+    "inventory_value": "18549.00",
+    "sales_velocity": {
+      "avg_7d": 30.59,
+      "avg_30d": 32.93,
+      "avg_90d": 32.2,
+      "trend_7d": -1,
+      "trend_30d": 1
+    },
+    "suppliers": [
+      {
+        "supplier_id": "SUPPLIER_4",
+        "supplier_name": "Supplier 4",
+        "moq": 48,
+        "lead_time_days": 6,
+        "is_primary": true
+      }
+    ],
+    "locations": [
+      {
+        "location_id": "WAREHOUSE_1",
+        "location_name": "Main Warehouse",
+        "current_stock": 226
+      },
+      {
+        "location_id": "STORE_1",
+        "location_name": "Store Front",
+        "current_stock": 97
+      }
+    ]
+  },
+  {
+    "item_id": "M5_ELECTRONICS_1_039",
+    "product_name": "Product M5_ELECTRONICS_1_039",
+    "category": "ELECTRONICS",
+    "current_stock": 340,
+    "unit_cost": "17.13",
+    "safety_buffer_days": 7,
+    "dir": 240.5,
+    "stockout_risk": 0.116,
+    "status": "overstocked",
+    "inventory_value": "5824.20",
+    "sales_velocity": {
+      "avg_7d": 45.57,
+      "avg_30d": 45.14,
+      "avg_90d": 42.91,
+      "trend_7d": 1,
+      "trend_30d": 1
+    },
+    "suppliers": [
+      {
+        "supplier_id": "SUPPLIER_5",
+        "supplier_name": "Supplier 5",
+        "moq": 12,
+        "lead_time_days": 10,
+        "is_primary": true
+      },
+      {
+        "supplier_id": "SUPPLIER_2",
+        "supplier_name": "Supplier 2",
+        "moq": 105,
+        "lead_time_days": 9,
+        "is_primary": false
+      }
+    ],
+    "locations": [
+      {
+        "location_id": "WAREHOUSE_1",
+        "location_name": "Main Warehouse",
+        "current_stock": 237
+      }
+    ]
+  },
+  {
+    "item_id": "M5_HOUSEHOLD_1_040",
+    "product_name": "Product M5_HOUSEHOLD_1_040",
+    "category": "HOUSEHOLD",
+    "current_stock": 141,
+    "unit_cost": "21.51",
+    "safety_buffer_days": 7,
+    "dir": 243.3,
+    "stockout_risk": 0.064,
+    "status": "overstocked",
+    "inventory_value": "3032.91",
+    "sales_velocity": {
+      "avg_7d": 30.3,
+      "avg_30d": 32.72,
+      "avg_90d": 37.68,
+      "trend_7d": -1,
+      "trend_30d": -1
+    },
+    "suppliers": [
+      {
+        "supplier_id": "SUPPLIER_1",
+        "supplier_name": "Supplier 1",
+        "moq": 66,
+        "lead_time_days": 6,
+        "is_primary": true
+      }
+    ],
+    "locations": [
+      {
+        "location_id": "WAREHOUSE_1",
+        "location_name": "Main Warehouse",
+        "current_stock": 98
+      },
+      {
+        "location_id": "STORE_1",
+        "location_name": "Store Front",
+        "current_stock": 42
+      }
+    ]
+  },
+  {
+    "item_id": "M5_HOBBIES_1_041",
+    "product_name": "Product M5_HOBBIES_1_041",
+    "category": "HOBBIES",
+    "current_stock": 419,
+    "unit_cost": "28.25",
+    "safety_buffer_days": 7,
+    "dir": 195.5,
+    "stockout_risk": 0.072,
+    "status": "overstocked",
+    "inventory_value": "11836.75",
+    "sales_velocity": {
+      "avg_7d": 28.48,
+      "avg_30d": 26.83,
+      "avg_90d": 25.18,
+      "trend_7d": 1,
+      "trend_30d": 1
+    },
+    "suppliers": [
+      {
+        "supplier_id": "SUPPLIER_2",
+        "supplier_name": "Supplier 2",
+        "moq": 102,
+        "lead_time_days": 6,
+        "is_primary": true
+      }
+    ],
+    "locations": [
+      {
+        "location_id": "WAREHOUSE_1",
+        "location_name": "Main Warehouse",
+        "current_stock": 293
+      }
+    ]
+  },
+  {
+    "item_id": "M5_FOODS_1_042",
+    "product_name": "Product M5_FOODS_1_042",
+    "category": "FOODS",
+    "current_stock": 329,
+    "unit_cost": "41.51",
+    "safety_buffer_days": 7,
+    "dir": 122.7,
+    "stockout_risk": 0.043,
+    "status": "overstocked",
+    "inventory_value": "13656.79",
+    "sales_velocity": {
+      "avg_7d": 47.79,
+      "avg_30d": 48.91,
+      "avg_90d": 45.59,
+      "trend_7d": -1,
+      "trend_30d": 1
+    },
+    "suppliers": [
+      {
+        "supplier_id": "SUPPLIER_3",
+        "supplier_name": "Supplier 3",
+        "moq": 12,
+        "lead_time_days": 5,
+        "is_primary": true
+      },
+      {
+        "supplier_id": "SUPPLIER_5",
+        "supplier_name": "Supplier 5",
+        "moq": 25,
+        "lead_time_days": 10,
+        "is_primary": false
+      }
+    ],
+    "locations": [
+      {
+        "location_id": "WAREHOUSE_1",
+        "location_name": "Main Warehouse",
+        "current_stock": 230
+      },
+      {
+        "location_id": "STORE_1",
+        "location_name": "Store Front",
+        "current_stock": 98
+      }
+    ]
+  },
+  {
+    "item_id": "M5_ELECTRONICS_1_043",
+    "product_name": "Product M5_ELECTRONICS_1_043",
+    "category": "ELECTRONICS",
+    "current_stock": 345,
+    "unit_cost": "32.84",
+    "safety_buffer_days": 7,
+    "dir": 244.3,
+    "stockout_risk": 0.111,
+    "status": "overstocked",
+    "inventory_value": "11329.80",
+    "sales_velocity": {
+      "avg_7d": 53.94,
+      "avg_30d": 53.67,
+      "avg_90d": 57.04,
+      "trend_7d": 1,
+      "trend_30d": -1
+    },
+    "suppliers": [
+      {
+        "supplier_id": "SUPPLIER_4",
+        "supplier_name": "Supplier 4",
+        "moq": 78,
+        "lead_time_days": 9,
+        "is_primary": true
+      }
+    ],
+    "locations": [
+      {
+        "location_id": "WAREHOUSE_1",
+        "location_name": "Main Warehouse",
+        "current_stock": 241
+      }
+    ]
+  },
+  {
+    "item_id": "M5_HOUSEHOLD_1_044",
+    "product_name": "Product M5_HOUSEHOLD_1_044",
+    "category": "HOUSEHOLD",
+    "current_stock": 385,
+    "unit_cost": "21.50",
+    "safety_buffer_days": 7,
+    "dir": 133.7,
+    "stockout_risk": 0.09,
+    "status": "overstocked",
+    "inventory_value": "8277.50",
+    "sales_velocity": {
+      "avg_7d": 15.45,
+      "avg_30d": 16.05,
+      "avg_90d": 11.24,
+      "trend_7d": -1,
+      "trend_30d": 1
+    },
+    "suppliers": [
+      {
+        "supplier_id": "SUPPLIER_5",
+        "supplier_name": "Supplier 5",
+        "moq": 47,
+        "lead_time_days": 5,
+        "is_primary": true
+      }
+    ],
+    "locations": [
+      {
+        "location_id": "WAREHOUSE_1",
+        "location_name": "Main Warehouse",
+        "current_stock": 269
+      },
+      {
+        "location_id": "STORE_1",
+        "location_name": "Store Front",
+        "current_stock": 115
+      }
+    ]
+  },
+  {
+    "item_id": "M5_HOBBIES_1_045",
+    "product_name": "Product M5_HOBBIES_1_045",
+    "category": "HOBBIES",
+    "current_stock": 211,
+    "unit_cost": "30.56",
+    "safety_buffer_days": 7,
+    "dir": 176.2,
+    "stockout_risk": 0.155,
+    "status": "overstocked",
+    "inventory_value": "6448.16",
+    "sales_velocity": {
+      "avg_7d": 16.38,
+      "avg_30d": 15.6,
+      "avg_90d": 13.62,
+      "trend_7d": 1,
+      "trend_30d": 1
+    },
+    "suppliers": [
+      {
+        "supplier_id": "SUPPLIER_1",
+        "supplier_name": "Supplier 1",
+        "moq": 100,
+        "lead_time_days": 4,
+        "is_primary": true
+      },
+      {
+        "supplier_id": "SUPPLIER_3",
+        "supplier_name": "Supplier 3",
+        "moq": 75,
+        "lead_time_days": 7,
+        "is_primary": false
+      }
+    ],
+    "locations": [
+      {
+        "location_id": "WAREHOUSE_1",
+        "location_name": "Main Warehouse",
+        "current_stock": 147
+      }
+    ]
+  },
+  {
+    "item_id": "M5_FOODS_1_046",
+    "product_name": "Product M5_FOODS_1_046",
+    "category": "FOODS",
+    "current_stock": 480,
+    "unit_cost": "24.72",
+    "safety_buffer_days": 7,
+    "dir": 131.1,
+    "stockout_risk": 0.017,
+    "status": "overstocked",
+    "inventory_value": "11865.60",
+    "sales_velocity": {
+      "avg_7d": 27.09,
+      "avg_30d": 25.03,
+      "avg_90d": 23.61,
+      "trend_7d": 1,
+      "trend_30d": 1
+    },
+    "suppliers": [
+      {
+        "supplier_id": "SUPPLIER_2",
+        "supplier_name": "Supplier 2",
+        "moq": 83,
+        "lead_time_days": 10,
+        "is_primary": true
+      }
+    ],
+    "locations": [
+      {
+        "location_id": "WAREHOUSE_1",
+        "location_name": "Main Warehouse",
+        "current_stock": 336
+      },
+      {
+        "location_id": "STORE_1",
+        "location_name": "Store Front",
+        "current_stock": 144
+      }
+    ]
+  },
+  {
+    "item_id": "M5_ELECTRONICS_1_047",
+    "product_name": "Product M5_ELECTRONICS_1_047",
+    "category": "ELECTRONICS",
+    "current_stock": 347,
+    "unit_cost": "43.26",
+    "safety_buffer_days": 7,
+    "dir": 106.2,
+    "stockout_risk": 0.037,
+    "status": "overstocked",
+    "inventory_value": "15011.22",
+    "sales_velocity": {
+      "avg_7d": 52.95,
+      "avg_30d": 52.59,
+      "avg_90d": 48.42,
+      "trend_7d": 1,
+      "trend_30d": 1
+    },
+    "suppliers": [
+      {
+        "supplier_id": "SUPPLIER_3",
+        "supplier_name": "Supplier 3",
+        "moq": 52,
+        "lead_time_days": 6,
+        "is_primary": true
+      }
+    ],
+    "locations": [
+      {
+        "location_id": "WAREHOUSE_1",
+        "location_name": "Main Warehouse",
+        "current_stock": 242
+      }
+    ]
+  },
+  {
+    "item_id": "M5_HOUSEHOLD_1_048",
+    "product_name": "Product M5_HOUSEHOLD_1_048",
+    "category": "HOUSEHOLD",
+    "current_stock": 418,
+    "unit_cost": "13.61",
+    "safety_buffer_days": 7,
+    "dir": 233.5,
+    "stockout_risk": 0.079,
+    "status": "overstocked",
+    "inventory_value": "5688.98",
+    "sales_velocity": {
+      "avg_7d": 39.72,
+      "avg_30d": 38.13,
+      "avg_90d": 38.19,
+      "trend_7d": 1,
+      "trend_30d": -1
+    },
+    "suppliers": [
+      {
+        "supplier_id": "SUPPLIER_4",
+        "supplier_name": "Supplier 4",
+        "moq": 82,
+        "lead_time_days": 11,
+        "is_primary": true
+      },
+      {
+        "supplier_id": "SUPPLIER_1",
+        "supplier_name": "Supplier 1",
+        "moq": 20,
+        "lead_time_days": 7,
+        "is_primary": false
+      }
+    ],
+    "locations": [
+      {
+        "location_id": "WAREHOUSE_1",
+        "location_name": "Main Warehouse",
+        "current_stock": 292
+      },
+      {
+        "location_id": "STORE_1",
+        "location_name": "Store Front",
+        "current_stock": 125
+      }
+    ]
+  },
+  {
+    "item_id": "M5_HOBBIES_1_049",
+    "product_name": "Product M5_HOBBIES_1_049",
+    "category": "HOBBIES",
+    "current_stock": 156,
+    "unit_cost": "47.25",
+    "safety_buffer_days": 7,
+    "dir": 131.7,
+    "stockout_risk": 0.173,
+    "status": "overstocked",
+    "inventory_value": "7371.00",
+    "sales_velocity": {
+      "avg_7d": 37.16,
+      "avg_30d": 37.29,
+      "avg_90d": 32.82,
+      "trend_7d": -1,
+      "trend_30d": 1
+    },
+    "suppliers": [
+      {
+        "supplier_id": "SUPPLIER_5",
+        "supplier_name": "Supplier 5",
+        "moq": 52,
+        "lead_time_days": 8,
+        "is_primary": true
+      }
+    ],
+    "locations": [
+      {
+        "location_id": "WAREHOUSE_1",
+        "location_name": "Main Warehouse",
+        "current_stock": 109
+      }
+    ]
+  },
+  {
+    "item_id": "M5_FOODS_1_050",
+    "product_name": "Product M5_FOODS_1_050",
+    "category": "FOODS",
+    "current_stock": 120,
+    "unit_cost": "13.93",
+    "safety_buffer_days": 7,
+    "dir": 195,
+    "stockout_risk": 0.001,
+    "status": "overstocked",
+    "inventory_value": "1671.60",
+    "sales_velocity": {
+      "avg_7d": 32.98,
+      "avg_30d": 33.42,
+      "avg_90d": 28.75,
+      "trend_7d": -1,
+      "trend_30d": 1
+    },
+    "suppliers": [
+      {
+        "supplier_id": "SUPPLIER_1",
+        "supplier_name": "Supplier 1",
+        "moq": 106,
+        "lead_time_days": 9,
+        "is_primary": true
+      }
+    ],
+    "locations": [
+      {
+        "location_id": "WAREHOUSE_1",
+        "location_name": "Main Warehouse",
+        "current_stock": 84
+      },
+      {
+        "location_id": "STORE_1",
+        "location_name": "Store Front",
+        "current_stock": 36
+      }
+    ]
+  },
+  {
+    "item_id": "M5_ELECTRONICS_1_051",
+    "product_name": "Product M5_ELECTRONICS_1_051",
+    "category": "ELECTRONICS",
+    "current_stock": 302,
+    "unit_cost": "12.09",
+    "safety_buffer_days": 7,
+    "dir": 179.9,
+    "stockout_risk": 0.129,
+    "status": "overstocked",
+    "inventory_value": "3651.18",
+    "sales_velocity": {
+      "avg_7d": 15.89,
+      "avg_30d": 16.61,
+      "avg_90d": 18.51,
+      "trend_7d": -1,
+      "trend_30d": -1
+    },
+    "suppliers": [
+      {
+        "supplier_id": "SUPPLIER_2",
+        "supplier_name": "Supplier 2",
+        "moq": 11,
+        "lead_time_days": 10,
+        "is_primary": true
+      },
+      {
+        "supplier_id": "SUPPLIER_4",
+        "supplier_name": "Supplier 4",
+        "moq": 108,
+        "lead_time_days": 16,
+        "is_primary": false
+      }
+    ],
+    "locations": [
+      {
+        "location_id": "WAREHOUSE_1",
+        "location_name": "Main Warehouse",
+        "current_stock": 211
+      }
+    ]
+  },
+  {
+    "item_id": "M5_HOUSEHOLD_1_052",
+    "product_name": "Product M5_HOUSEHOLD_1_052",
+    "category": "HOUSEHOLD",
+    "current_stock": 454,
+    "unit_cost": "37.11",
+    "safety_buffer_days": 7,
+    "dir": 133.9,
+    "stockout_risk": 0.016,
+    "status": "overstocked",
+    "inventory_value": "16847.94",
+    "sales_velocity": {
+      "avg_7d": 18.48,
+      "avg_30d": 16.37,
+      "avg_90d": 18.31,
+      "trend_7d": 1,
+      "trend_30d": -1
+    },
+    "suppliers": [
+      {
+        "supplier_id": "SUPPLIER_3",
+        "supplier_name": "Supplier 3",
+        "moq": 57,
+        "lead_time_days": 4,
+        "is_primary": true
+      }
+    ],
+    "locations": [
+      {
+        "location_id": "WAREHOUSE_1",
+        "location_name": "Main Warehouse",
+        "current_stock": 317
+      },
+      {
+        "location_id": "STORE_1",
+        "location_name": "Store Front",
+        "current_stock": 136
+      }
+    ]
+  },
+  {
+    "item_id": "M5_HOBBIES_1_053",
+    "product_name": "Product M5_HOBBIES_1_053",
+    "category": "HOBBIES",
+    "current_stock": 181,
+    "unit_cost": "42.09",
+    "safety_buffer_days": 7,
+    "dir": 231.3,
+    "stockout_risk": 0.101,
+    "status": "overstocked",
+    "inventory_value": "7618.29",
+    "sales_velocity": {
+      "avg_7d": 14.83,
+      "avg_30d": 14.35,
+      "avg_90d": 16.46,
+      "trend_7d": 1,
+      "trend_30d": -1
+    },
+    "suppliers": [
+      {
+        "supplier_id": "SUPPLIER_4",
+        "supplier_name": "Supplier 4",
+        "moq": 85,
+        "lead_time_days": 3,
+        "is_primary": true
+      }
+    ],
+    "locations": [
+      {
+        "location_id": "WAREHOUSE_1",
+        "location_name": "Main Warehouse",
+        "current_stock": 126
+      }
+    ]
+  },
+  {
+    "item_id": "M5_FOODS_1_054",
+    "product_name": "Product M5_FOODS_1_054",
+    "category": "FOODS",
+    "current_stock": 352,
+    "unit_cost": "26.20",
+    "safety_buffer_days": 7,
+    "dir": 118.1,
+    "stockout_risk": 0.141,
+    "status": "overstocked",
+    "inventory_value": "9222.40",
+    "sales_velocity": {
+      "avg_7d": 47.11,
+      "avg_30d": 49.2,
+      "avg_90d": 44.76,
+      "trend_7d": -1,
+      "trend_30d": 1
+    },
+    "suppliers": [
+      {
+        "supplier_id": "SUPPLIER_5",
+        "supplier_name": "Supplier 5",
+        "moq": 102,
+        "lead_time_days": 11,
+        "is_primary": true
+      },
+      {
+        "supplier_id": "SUPPLIER_2",
+        "supplier_name": "Supplier 2",
+        "moq": 11,
+        "lead_time_days": 4,
+        "is_primary": false
+      }
+    ],
+    "locations": [
+      {
+        "location_id": "WAREHOUSE_1",
+        "location_name": "Main Warehouse",
+        "current_stock": 246
+      },
+      {
+        "location_id": "STORE_1",
+        "location_name": "Store Front",
+        "current_stock": 105
+      }
+    ]
+  },
+  {
+    "item_id": "M5_ELECTRONICS_1_055",
+    "product_name": "Product M5_ELECTRONICS_1_055",
+    "category": "ELECTRONICS",
+    "current_stock": 334,
+    "unit_cost": "55.61",
+    "safety_buffer_days": 7,
+    "dir": 152.8,
+    "stockout_risk": 0.042,
+    "status": "overstocked",
+    "inventory_value": "18573.74",
+    "sales_velocity": {
+      "avg_7d": 35.31,
+      "avg_30d": 32.94,
+      "avg_90d": 37.36,
+      "trend_7d": 1,
+      "trend_30d": -1
+    },
+    "suppliers": [
+      {
+        "supplier_id": "SUPPLIER_1",
+        "supplier_name": "Supplier 1",
+        "moq": 105,
+        "lead_time_days": 6,
+        "is_primary": true
+      }
+    ],
+    "locations": [
+      {
+        "location_id": "WAREHOUSE_1",
+        "location_name": "Main Warehouse",
+        "current_stock": 233
+      }
+    ]
+  },
+  {
+    "item_id": "M5_HOUSEHOLD_1_056",
+    "product_name": "Product M5_HOUSEHOLD_1_056",
+    "category": "HOUSEHOLD",
+    "current_stock": 304,
+    "unit_cost": "38.50",
+    "safety_buffer_days": 7,
+    "dir": 166.1,
+    "stockout_risk": 0.054,
+    "status": "overstocked",
+    "inventory_value": "11704.00",
+    "sales_velocity": {
+      "avg_7d": 38.77,
+      "avg_30d": 38.09,
+      "avg_90d": 42.07,
+      "trend_7d": 1,
+      "trend_30d": -1
+    },
+    "suppliers": [
+      {
+        "supplier_id": "SUPPLIER_2",
+        "supplier_name": "Supplier 2",
+        "moq": 46,
+        "lead_time_days": 13,
+        "is_primary": true
+      }
+    ],
+    "locations": [
+      {
+        "location_id": "WAREHOUSE_1",
+        "location_name": "Main Warehouse",
+        "current_stock": 212
+      },
+      {
+        "location_id": "STORE_1",
+        "location_name": "Store Front",
+        "current_stock": 91
+      }
+    ]
+  },
+  {
+    "item_id": "M5_HOBBIES_1_057",
+    "product_name": "Product M5_HOBBIES_1_057",
+    "category": "HOBBIES",
+    "current_stock": 442,
+    "unit_cost": "15.20",
+    "safety_buffer_days": 7,
+    "dir": 292.9,
+    "stockout_risk": 0.061,
+    "status": "overstocked",
+    "inventory_value": "6718.40",
+    "sales_velocity": {
+      "avg_7d": 41.15,
+      "avg_30d": 40.38,
+      "avg_90d": 35.75,
+      "trend_7d": 1,
+      "trend_30d": 1
+    },
+    "suppliers": [
+      {
+        "supplier_id": "SUPPLIER_3",
+        "supplier_name": "Supplier 3",
+        "moq": 93,
+        "lead_time_days": 14,
+        "is_primary": true
+      },
+      {
+        "supplier_id": "SUPPLIER_5",
+        "supplier_name": "Supplier 5",
+        "moq": 58,
+        "lead_time_days": 5,
+        "is_primary": false
+      }
+    ],
+    "locations": [
+      {
+        "location_id": "WAREHOUSE_1",
+        "location_name": "Main Warehouse",
+        "current_stock": 309
+      }
+    ]
+  },
+  {
+    "item_id": "M5_FOODS_1_058",
+    "product_name": "Product M5_FOODS_1_058",
+    "category": "FOODS",
+    "current_stock": 144,
+    "unit_cost": "36.83",
+    "safety_buffer_days": 7,
+    "dir": 138,
+    "stockout_risk": 0.13,
+    "status": "overstocked",
+    "inventory_value": "5303.52",
+    "sales_velocity": {
+      "avg_7d": 13.67,
+      "avg_30d": 15.47,
+      "avg_90d": 15.72,
+      "trend_7d": -1,
+      "trend_30d": -1
+    },
+    "suppliers": [
+      {
+        "supplier_id": "SUPPLIER_4",
+        "supplier_name": "Supplier 4",
+        "moq": 101,
+        "lead_time_days": 8,
+        "is_primary": true
+      }
+    ],
+    "locations": [
+      {
+        "location_id": "WAREHOUSE_1",
+        "location_name": "Main Warehouse",
+        "current_stock": 100
+      },
+      {
+        "location_id": "STORE_1",
+        "location_name": "Store Front",
+        "current_stock": 43
+      }
+    ]
+  },
+  {
+    "item_id": "M5_ELECTRONICS_1_059",
+    "product_name": "Product M5_ELECTRONICS_1_059",
+    "category": "ELECTRONICS",
+    "current_stock": 373,
+    "unit_cost": "56.84",
+    "safety_buffer_days": 7,
+    "dir": 291.5,
+    "stockout_risk": 0.19,
+    "status": "overstocked",
+    "inventory_value": "21201.32",
+    "sales_velocity": {
+      "avg_7d": 35.31,
+      "avg_30d": 33.21,
+      "avg_90d": 33.42,
+      "trend_7d": 1,
+      "trend_30d": -1
+    },
+    "suppliers": [
+      {
+        "supplier_id": "SUPPLIER_5",
+        "supplier_name": "Supplier 5",
+        "moq": 65,
+        "lead_time_days": 11,
+        "is_primary": true
+      }
+    ],
+    "locations": [
+      {
+        "location_id": "WAREHOUSE_1",
+        "location_name": "Main Warehouse",
+        "current_stock": 261
+      }
+    ]
+  },
+  {
+    "item_id": "M5_HOUSEHOLD_1_060",
+    "product_name": "Product M5_HOUSEHOLD_1_060",
+    "category": "HOUSEHOLD",
+    "current_stock": 303,
+    "unit_cost": "58.71",
+    "safety_buffer_days": 7,
+    "dir": 261.8,
+    "stockout_risk": 0.089,
+    "status": "overstocked",
+    "inventory_value": "17789.13",
+    "sales_velocity": {
+      "avg_7d": 36.77,
+      "avg_30d": 36.91,
+      "avg_90d": 41.83,
+      "trend_7d": -1,
+      "trend_30d": -1
+    },
+    "suppliers": [
+      {
+        "supplier_id": "SUPPLIER_1",
+        "supplier_name": "Supplier 1",
+        "moq": 26,
+        "lead_time_days": 12,
+        "is_primary": true
+      },
+      {
+        "supplier_id": "SUPPLIER_3",
+        "supplier_name": "Supplier 3",
+        "moq": 30,
+        "lead_time_days": 4,
+        "is_primary": false
+      }
+    ],
+    "locations": [
+      {
+        "location_id": "WAREHOUSE_1",
+        "location_name": "Main Warehouse",
+        "current_stock": 212
+      },
+      {
+        "location_id": "STORE_1",
+        "location_name": "Store Front",
+        "current_stock": 90
+      }
+    ]
+  },
+  {
+    "item_id": "M5_HOBBIES_1_061",
+    "product_name": "Product M5_HOBBIES_1_061",
+    "category": "HOBBIES",
+    "current_stock": 357,
+    "unit_cost": "51.63",
+    "safety_buffer_days": 7,
+    "dir": 195.9,
+    "stockout_risk": 0.158,
+    "status": "overstocked",
+    "inventory_value": "18431.91",
+    "sales_velocity": {
+      "avg_7d": 25.67,
+      "avg_30d": 24.12,
+      "avg_90d": 27.85,
+      "trend_7d": 1,
+      "trend_30d": -1
+    },
+    "suppliers": [
+      {
+        "supplier_id": "SUPPLIER_2",
+        "supplier_name": "Supplier 2",
+        "moq": 29,
+        "lead_time_days": 14,
+        "is_primary": true
+      }
+    ],
+    "locations": [
+      {
+        "location_id": "WAREHOUSE_1",
+        "location_name": "Main Warehouse",
+        "current_stock": 249
+      }
+    ]
+  },
+  {
+    "item_id": "M5_FOODS_1_062",
+    "product_name": "Product M5_FOODS_1_062",
+    "category": "FOODS",
+    "current_stock": 142,
+    "unit_cost": "45.07",
+    "safety_buffer_days": 7,
+    "dir": 139.7,
+    "stockout_risk": 0.024,
+    "status": "overstocked",
+    "inventory_value": "6399.94",
+    "sales_velocity": {
+      "avg_7d": 48.07,
+      "avg_30d": 47.95,
+      "avg_90d": 44.94,
+      "trend_7d": 1,
+      "trend_30d": 1
+    },
+    "suppliers": [
+      {
+        "supplier_id": "SUPPLIER_3",
+        "supplier_name": "Supplier 3",
+        "moq": 74,
+        "lead_time_days": 9,
+        "is_primary": true
+      }
+    ],
+    "locations": [
+      {
+        "location_id": "WAREHOUSE_1",
+        "location_name": "Main Warehouse",
+        "current_stock": 99
+      },
+      {
+        "location_id": "STORE_1",
+        "location_name": "Store Front",
+        "current_stock": 42
+      }
+    ]
+  },
+  {
+    "item_id": "M5_ELECTRONICS_1_063",
+    "product_name": "Product M5_ELECTRONICS_1_063",
+    "category": "ELECTRONICS",
+    "current_stock": 267,
+    "unit_cost": "58.16",
+    "safety_buffer_days": 7,
+    "dir": 115.1,
+    "stockout_risk": 0.187,
+    "status": "overstocked",
+    "inventory_value": "15528.72",
+    "sales_velocity": {
+      "avg_7d": 16.96,
+      "avg_30d": 15.17,
+      "avg_90d": 17,
+      "trend_7d": 1,
+      "trend_30d": -1
+    },
+    "suppliers": [
+      {
+        "supplier_id": "SUPPLIER_4",
+        "supplier_name": "Supplier 4",
+        "moq": 68,
+        "lead_time_days": 10,
+        "is_primary": true
+      },
+      {
+        "supplier_id": "SUPPLIER_1",
+        "supplier_name": "Supplier 1",
+        "moq": 36,
+        "lead_time_days": 9,
+        "is_primary": false
+      }
+    ],
+    "locations": [
+      {
+        "location_id": "WAREHOUSE_1",
+        "location_name": "Main Warehouse",
+        "current_stock": 186
+      }
+    ]
+  },
+  {
+    "item_id": "M5_HOUSEHOLD_1_064",
+    "product_name": "Product M5_HOUSEHOLD_1_064",
+    "category": "HOUSEHOLD",
+    "current_stock": 283,
+    "unit_cost": "36.98",
+    "safety_buffer_days": 7,
+    "dir": 181.2,
+    "stockout_risk": 0.085,
+    "status": "overstocked",
+    "inventory_value": "10465.34",
+    "sales_velocity": {
+      "avg_7d": 49.34,
+      "avg_30d": 51.72,
+      "avg_90d": 53.4,
+      "trend_7d": -1,
+      "trend_30d": -1
+    },
+    "suppliers": [
+      {
+        "supplier_id": "SUPPLIER_5",
+        "supplier_name": "Supplier 5",
+        "moq": 63,
+        "lead_time_days": 3,
+        "is_primary": true
+      }
+    ],
+    "locations": [
+      {
+        "location_id": "WAREHOUSE_1",
+        "location_name": "Main Warehouse",
+        "current_stock": 198
+      },
+      {
+        "location_id": "STORE_1",
+        "location_name": "Store Front",
+        "current_stock": 84
+      }
+    ]
+  },
+  {
+    "item_id": "M5_HOBBIES_1_065",
+    "product_name": "Product M5_HOBBIES_1_065",
+    "category": "HOBBIES",
+    "current_stock": 457,
+    "unit_cost": "49.47",
+    "safety_buffer_days": 7,
+    "dir": 298.2,
+    "stockout_risk": 0.132,
+    "status": "overstocked",
+    "inventory_value": "22607.79",
+    "sales_velocity": {
+      "avg_7d": 20.57,
+      "avg_30d": 21.9,
+      "avg_90d": 23.88,
+      "trend_7d": -1,
+      "trend_30d": -1
+    },
+    "suppliers": [
+      {
+        "supplier_id": "SUPPLIER_1",
+        "supplier_name": "Supplier 1",
+        "moq": 74,
+        "lead_time_days": 8,
+        "is_primary": true
+      }
+    ],
+    "locations": [
+      {
+        "location_id": "WAREHOUSE_1",
+        "location_name": "Main Warehouse",
+        "current_stock": 319
+      }
+    ]
+  },
+  {
+    "item_id": "M5_FOODS_1_066",
+    "product_name": "Product M5_FOODS_1_066",
+    "category": "FOODS",
+    "current_stock": 300,
+    "unit_cost": "55.87",
+    "safety_buffer_days": 7,
+    "dir": 242.1,
+    "stockout_risk": 0.059,
+    "status": "overstocked",
+    "inventory_value": "16761.00",
+    "sales_velocity": {
+      "avg_7d": 65.14,
+      "avg_30d": 63.53,
+      "avg_90d": 59.16,
+      "trend_7d": 1,
+      "trend_30d": 1
+    },
+    "suppliers": [
+      {
+        "supplier_id": "SUPPLIER_2",
+        "supplier_name": "Supplier 2",
+        "moq": 93,
+        "lead_time_days": 10,
+        "is_primary": true
+      },
+      {
+        "supplier_id": "SUPPLIER_4",
+        "supplier_name": "Supplier 4",
+        "moq": 88,
+        "lead_time_days": 8,
+        "is_primary": false
+      }
+    ],
+    "locations": [
+      {
+        "location_id": "WAREHOUSE_1",
+        "location_name": "Main Warehouse",
+        "current_stock": 210
+      },
+      {
+        "location_id": "STORE_1",
+        "location_name": "Store Front",
+        "current_stock": 90
+      }
+    ]
+  },
+  {
+    "item_id": "M5_ELECTRONICS_1_067",
+    "product_name": "Product M5_ELECTRONICS_1_067",
+    "category": "ELECTRONICS",
+    "current_stock": 172,
+    "unit_cost": "17.92",
+    "safety_buffer_days": 7,
+    "dir": 156.3,
+    "stockout_risk": 0.04,
+    "status": "overstocked",
+    "inventory_value": "3082.24",
+    "sales_velocity": {
+      "avg_7d": 43.98,
+      "avg_30d": 46.06,
+      "avg_90d": 46.02,
+      "trend_7d": -1,
+      "trend_30d": 1
+    },
+    "suppliers": [
+      {
+        "supplier_id": "SUPPLIER_3",
+        "supplier_name": "Supplier 3",
+        "moq": 109,
+        "lead_time_days": 12,
+        "is_primary": true
+      }
+    ],
+    "locations": [
+      {
+        "location_id": "WAREHOUSE_1",
+        "location_name": "Main Warehouse",
+        "current_stock": 120
+      }
+    ]
+  },
+  {
+    "item_id": "M5_HOUSEHOLD_1_068",
+    "product_name": "Product M5_HOUSEHOLD_1_068",
+    "category": "HOUSEHOLD",
+    "current_stock": 306,
+    "unit_cost": "10.38",
+    "safety_buffer_days": 7,
+    "dir": 254.5,
+    "stockout_risk": 0.075,
+    "status": "overstocked",
+    "inventory_value": "3176.28",
+    "sales_velocity": {
+      "avg_7d": 39.38,
+      "avg_30d": 41.35,
+      "avg_90d": 38.69,
+      "trend_7d": -1,
+      "trend_30d": 1
+    },
+    "suppliers": [
+      {
+        "supplier_id": "SUPPLIER_4",
+        "supplier_name": "Supplier 4",
+        "moq": 10,
+        "lead_time_days": 13,
+        "is_primary": true
+      }
+    ],
+    "locations": [
+      {
+        "location_id": "WAREHOUSE_1",
+        "location_name": "Main Warehouse",
+        "current_stock": 214
+      },
+      {
+        "location_id": "STORE_1",
+        "location_name": "Store Front",
+        "current_stock": 91
+      }
+    ]
+  },
+  {
+    "item_id": "M5_HOBBIES_1_069",
+    "product_name": "Product M5_HOBBIES_1_069",
+    "category": "HOBBIES",
+    "current_stock": 329,
+    "unit_cost": "59.52",
+    "safety_buffer_days": 7,
+    "dir": 257.6,
+    "stockout_risk": 0.08,
+    "status": "overstocked",
+    "inventory_value": "19582.08",
+    "sales_velocity": {
+      "avg_7d": 43.22,
+      "avg_30d": 44.94,
+      "avg_90d": 49.39,
+      "trend_7d": -1,
+      "trend_30d": -1
+    },
+    "suppliers": [
+      {
+        "supplier_id": "SUPPLIER_5",
+        "supplier_name": "Supplier 5",
+        "moq": 39,
+        "lead_time_days": 8,
+        "is_primary": true
+      },
+      {
+        "supplier_id": "SUPPLIER_2",
+        "supplier_name": "Supplier 2",
+        "moq": 91,
+        "lead_time_days": 15,
+        "is_primary": false
+      }
+    ],
+    "locations": [
+      {
+        "location_id": "WAREHOUSE_1",
+        "location_name": "Main Warehouse",
+        "current_stock": 230
+      }
+    ]
+  },
+  {
+    "item_id": "M5_FOODS_1_070",
+    "product_name": "Product M5_FOODS_1_070",
+    "category": "FOODS",
+    "current_stock": 57,
+    "unit_cost": "29.34",
+    "safety_buffer_days": 7,
+    "dir": 164.7,
+    "stockout_risk": 0.066,
+    "status": "overstocked",
+    "inventory_value": "1672.38",
+    "sales_velocity": {
+      "avg_7d": 36.72,
+      "avg_30d": 35.46,
+      "avg_90d": 30.48,
+      "trend_7d": 1,
+      "trend_30d": 1
+    },
+    "suppliers": [
+      {
+        "supplier_id": "SUPPLIER_1",
+        "supplier_name": "Supplier 1",
+        "moq": 94,
+        "lead_time_days": 11,
+        "is_primary": true
+      }
+    ],
+    "locations": [
+      {
+        "location_id": "WAREHOUSE_1",
+        "location_name": "Main Warehouse",
+        "current_stock": 39
+      },
+      {
+        "location_id": "STORE_1",
+        "location_name": "Store Front",
+        "current_stock": 17
+      }
+    ]
+  },
+  {
+    "item_id": "M5_ELECTRONICS_1_071",
+    "product_name": "Product M5_ELECTRONICS_1_071",
+    "category": "ELECTRONICS",
+    "current_stock": 422,
+    "unit_cost": "55.47",
+    "safety_buffer_days": 7,
+    "dir": 228.2,
+    "stockout_risk": 0.134,
+    "status": "overstocked",
+    "inventory_value": "23408.34",
+    "sales_velocity": {
+      "avg_7d": 13.9,
+      "avg_30d": 12.85,
+      "avg_90d": 15.45,
+      "trend_7d": 1,
+      "trend_30d": -1
+    },
+    "suppliers": [
+      {
+        "supplier_id": "SUPPLIER_2",
+        "supplier_name": "Supplier 2",
+        "moq": 106,
+        "lead_time_days": 12,
+        "is_primary": true
+      }
+    ],
+    "locations": [
+      {
+        "location_id": "WAREHOUSE_1",
+        "location_name": "Main Warehouse",
+        "current_stock": 295
+      }
+    ]
+  },
+  {
+    "item_id": "M5_HOUSEHOLD_1_072",
+    "product_name": "Product M5_HOUSEHOLD_1_072",
+    "category": "HOUSEHOLD",
+    "current_stock": 157,
+    "unit_cost": "11.17",
+    "safety_buffer_days": 7,
+    "dir": 189.6,
+    "stockout_risk": 0.001,
+    "status": "overstocked",
+    "inventory_value": "1753.69",
+    "sales_velocity": {
+      "avg_7d": 50.97,
+      "avg_30d": 52.18,
+      "avg_90d": 56.05,
+      "trend_7d": -1,
+      "trend_30d": -1
+    },
+    "suppliers": [
+      {
+        "supplier_id": "SUPPLIER_3",
+        "supplier_name": "Supplier 3",
+        "moq": 70,
+        "lead_time_days": 10,
+        "is_primary": true
+      },
+      {
+        "supplier_id": "SUPPLIER_5",
+        "supplier_name": "Supplier 5",
+        "moq": 59,
+        "lead_time_days": 15,
+        "is_primary": false
+      }
+    ],
+    "locations": [
+      {
+        "location_id": "WAREHOUSE_1",
+        "location_name": "Main Warehouse",
+        "current_stock": 109
+      },
+      {
+        "location_id": "STORE_1",
+        "location_name": "Store Front",
+        "current_stock": 47
+      }
+    ]
+  },
+  {
+    "item_id": "M5_HOBBIES_1_073",
+    "product_name": "Product M5_HOBBIES_1_073",
+    "category": "HOBBIES",
+    "current_stock": 92,
+    "unit_cost": "51.26",
+    "safety_buffer_days": 7,
+    "dir": 166.7,
+    "stockout_risk": 0.098,
+    "status": "overstocked",
+    "inventory_value": "4715.92",
+    "sales_velocity": {
+      "avg_7d": 51.47,
+      "avg_30d": 52,
+      "avg_90d": 52.28,
+      "trend_7d": -1,
+      "trend_30d": -1
+    },
+    "suppliers": [
+      {
+        "supplier_id": "SUPPLIER_4",
+        "supplier_name": "Supplier 4",
+        "moq": 94,
+        "lead_time_days": 13,
+        "is_primary": true
+      }
+    ],
+    "locations": [
+      {
+        "location_id": "WAREHOUSE_1",
+        "location_name": "Main Warehouse",
+        "current_stock": 64
+      }
+    ]
+  },
+  {
+    "item_id": "M5_FOODS_1_074",
+    "product_name": "Product M5_FOODS_1_074",
+    "category": "FOODS",
+    "current_stock": 79,
+    "unit_cost": "29.67",
+    "safety_buffer_days": 7,
+    "dir": 236,
+    "stockout_risk": 0.182,
+    "status": "overstocked",
+    "inventory_value": "2343.93",
+    "sales_velocity": {
+      "avg_7d": 35.47,
+      "avg_30d": 36.61,
+      "avg_90d": 38.31,
+      "trend_7d": -1,
+      "trend_30d": -1
+    },
+    "suppliers": [
+      {
+        "supplier_id": "SUPPLIER_5",
+        "supplier_name": "Supplier 5",
+        "moq": 70,
+        "lead_time_days": 11,
+        "is_primary": true
+      }
+    ],
+    "locations": [
+      {
+        "location_id": "WAREHOUSE_1",
+        "location_name": "Main Warehouse",
+        "current_stock": 55
+      },
+      {
+        "location_id": "STORE_1",
+        "location_name": "Store Front",
+        "current_stock": 23
+      }
+    ]
+  },
+  {
+    "item_id": "M5_ELECTRONICS_1_075",
+    "product_name": "Product M5_ELECTRONICS_1_075",
+    "category": "ELECTRONICS",
+    "current_stock": 512,
+    "unit_cost": "59.70",
+    "safety_buffer_days": 7,
+    "dir": 257.1,
+    "stockout_risk": 0.048,
+    "status": "overstocked",
+    "inventory_value": "30566.40",
+    "sales_velocity": {
+      "avg_7d": 20.39,
+      "avg_30d": 22.38,
+      "avg_90d": 19.61,
+      "trend_7d": -1,
+      "trend_30d": 1
+    },
+    "suppliers": [
+      {
+        "supplier_id": "SUPPLIER_1",
+        "supplier_name": "Supplier 1",
+        "moq": 72,
+        "lead_time_days": 8,
+        "is_primary": true
+      },
+      {
+        "supplier_id": "SUPPLIER_3",
+        "supplier_name": "Supplier 3",
+        "moq": 40,
+        "lead_time_days": 6,
+        "is_primary": false
+      }
+    ],
+    "locations": [
+      {
+        "location_id": "WAREHOUSE_1",
+        "location_name": "Main Warehouse",
+        "current_stock": 358
+      }
+    ]
+  },
+  {
+    "item_id": "M5_HOUSEHOLD_1_076",
+    "product_name": "Product M5_HOUSEHOLD_1_076",
+    "category": "HOUSEHOLD",
+    "current_stock": 388,
+    "unit_cost": "26.19",
+    "safety_buffer_days": 7,
+    "dir": 103,
+    "stockout_risk": 0.108,
+    "status": "overstocked",
+    "inventory_value": "10161.72",
+    "sales_velocity": {
+      "avg_7d": 41.85,
+      "avg_30d": 39.51,
+      "avg_90d": 36.87,
+      "trend_7d": 1,
+      "trend_30d": 1
+    },
+    "suppliers": [
+      {
+        "supplier_id": "SUPPLIER_2",
+        "supplier_name": "Supplier 2",
+        "moq": 58,
+        "lead_time_days": 8,
+        "is_primary": true
+      }
+    ],
+    "locations": [
+      {
+        "location_id": "WAREHOUSE_1",
+        "location_name": "Main Warehouse",
+        "current_stock": 271
+      },
+      {
+        "location_id": "STORE_1",
+        "location_name": "Store Front",
+        "current_stock": 116
+      }
+    ]
+  },
+  {
+    "item_id": "M5_HOBBIES_1_077",
+    "product_name": "Product M5_HOBBIES_1_077",
+    "category": "HOBBIES",
+    "current_stock": 483,
+    "unit_cost": "41.03",
+    "safety_buffer_days": 7,
+    "dir": 114.9,
+    "stockout_risk": 0.009,
+    "status": "overstocked",
+    "inventory_value": "19817.49",
+    "sales_velocity": {
+      "avg_7d": 29.91,
+      "avg_30d": 29.97,
+      "avg_90d": 31.44,
+      "trend_7d": -1,
+      "trend_30d": -1
+    },
+    "suppliers": [
+      {
+        "supplier_id": "SUPPLIER_3",
+        "supplier_name": "Supplier 3",
+        "moq": 26,
+        "lead_time_days": 6,
+        "is_primary": true
+      }
+    ],
+    "locations": [
+      {
+        "location_id": "WAREHOUSE_1",
+        "location_name": "Main Warehouse",
+        "current_stock": 338
+      }
+    ]
+  },
+  {
+    "item_id": "M5_FOODS_1_078",
+    "product_name": "Product M5_FOODS_1_078",
+    "category": "FOODS",
+    "current_stock": 373,
+    "unit_cost": "10.03",
+    "safety_buffer_days": 7,
+    "dir": 144.5,
+    "stockout_risk": 0.177,
+    "status": "overstocked",
+    "inventory_value": "3741.19",
+    "sales_velocity": {
+      "avg_7d": 56.49,
+      "avg_30d": 56.69,
+      "avg_90d": 58.4,
+      "trend_7d": -1,
+      "trend_30d": -1
+    },
+    "suppliers": [
+      {
+        "supplier_id": "SUPPLIER_4",
+        "supplier_name": "Supplier 4",
+        "moq": 102,
+        "lead_time_days": 6,
+        "is_primary": true
+      },
+      {
+        "supplier_id": "SUPPLIER_1",
+        "supplier_name": "Supplier 1",
+        "moq": 12,
+        "lead_time_days": 16,
+        "is_primary": false
+      }
+    ],
+    "locations": [
+      {
+        "location_id": "WAREHOUSE_1",
+        "location_name": "Main Warehouse",
+        "current_stock": 261
+      },
+      {
+        "location_id": "STORE_1",
+        "location_name": "Store Front",
+        "current_stock": 111
+      }
+    ]
+  },
+  {
+    "item_id": "M5_ELECTRONICS_1_079",
+    "product_name": "Product M5_ELECTRONICS_1_079",
+    "category": "ELECTRONICS",
+    "current_stock": 496,
+    "unit_cost": "21.74",
+    "safety_buffer_days": 7,
+    "dir": 156.9,
+    "stockout_risk": 0.182,
+    "status": "overstocked",
+    "inventory_value": "10783.04",
+    "sales_velocity": {
+      "avg_7d": 44.44,
+      "avg_30d": 44.87,
+      "avg_90d": 40.4,
+      "trend_7d": -1,
+      "trend_30d": 1
+    },
+    "suppliers": [
+      {
+        "supplier_id": "SUPPLIER_5",
+        "supplier_name": "Supplier 5",
+        "moq": 99,
+        "lead_time_days": 4,
+        "is_primary": true
+      }
+    ],
+    "locations": [
+      {
+        "location_id": "WAREHOUSE_1",
+        "location_name": "Main Warehouse",
+        "current_stock": 347
+      }
+    ]
+  },
+  {
+    "item_id": "M5_HOUSEHOLD_1_080",
+    "product_name": "Product M5_HOUSEHOLD_1_080",
+    "category": "HOUSEHOLD",
+    "current_stock": 187,
+    "unit_cost": "55.35",
+    "safety_buffer_days": 7,
+    "dir": 279.5,
+    "stockout_risk": 0.188,
+    "status": "overstocked",
+    "inventory_value": "10350.45",
+    "sales_velocity": {
+      "avg_7d": 40.64,
+      "avg_30d": 40.43,
+      "avg_90d": 37.07,
+      "trend_7d": 1,
+      "trend_30d": 1
+    },
+    "suppliers": [
+      {
+        "supplier_id": "SUPPLIER_1",
+        "supplier_name": "Supplier 1",
+        "moq": 37,
+        "lead_time_days": 4,
+        "is_primary": true
+      }
+    ],
+    "locations": [
+      {
+        "location_id": "WAREHOUSE_1",
+        "location_name": "Main Warehouse",
+        "current_stock": 130
+      },
+      {
+        "location_id": "STORE_1",
+        "location_name": "Store Front",
+        "current_stock": 56
+      }
+    ]
+  },
+  {
+    "item_id": "M5_HOBBIES_1_081",
+    "product_name": "Product M5_HOBBIES_1_081",
+    "category": "HOBBIES",
+    "current_stock": 328,
+    "unit_cost": "57.51",
+    "safety_buffer_days": 7,
+    "dir": 224.9,
+    "stockout_risk": 0.088,
+    "status": "overstocked",
+    "inventory_value": "18863.28",
+    "sales_velocity": {
+      "avg_7d": 24.72,
+      "avg_30d": 26.35,
+      "avg_90d": 23.26,
+      "trend_7d": -1,
+      "trend_30d": 1
+    },
+    "suppliers": [
+      {
+        "supplier_id": "SUPPLIER_2",
+        "supplier_name": "Supplier 2",
+        "moq": 43,
+        "lead_time_days": 13,
+        "is_primary": true
+      },
+      {
+        "supplier_id": "SUPPLIER_4",
+        "supplier_name": "Supplier 4",
+        "moq": 41,
+        "lead_time_days": 10,
+        "is_primary": false
+      }
+    ],
+    "locations": [
+      {
+        "location_id": "WAREHOUSE_1",
+        "location_name": "Main Warehouse",
+        "current_stock": 229
+      }
+    ]
+  },
+  {
+    "item_id": "M5_FOODS_1_082",
+    "product_name": "Product M5_FOODS_1_082",
+    "category": "FOODS",
+    "current_stock": 332,
+    "unit_cost": "46.07",
+    "safety_buffer_days": 7,
+    "dir": 125.8,
+    "stockout_risk": 0.001,
+    "status": "overstocked",
+    "inventory_value": "15295.24",
+    "sales_velocity": {
+      "avg_7d": 22.07,
+      "avg_30d": 22.73,
+      "avg_90d": 19.27,
+      "trend_7d": -1,
+      "trend_30d": 1
+    },
+    "suppliers": [
+      {
+        "supplier_id": "SUPPLIER_3",
+        "supplier_name": "Supplier 3",
+        "moq": 85,
+        "lead_time_days": 6,
+        "is_primary": true
+      }
+    ],
+    "locations": [
+      {
+        "location_id": "WAREHOUSE_1",
+        "location_name": "Main Warehouse",
+        "current_stock": 232
+      },
+      {
+        "location_id": "STORE_1",
+        "location_name": "Store Front",
+        "current_stock": 99
+      }
+    ]
+  },
+  {
+    "item_id": "M5_ELECTRONICS_1_083",
+    "product_name": "Product M5_ELECTRONICS_1_083",
+    "category": "ELECTRONICS",
+    "current_stock": 219,
+    "unit_cost": "42.27",
+    "safety_buffer_days": 7,
+    "dir": 220.5,
+    "stockout_risk": 0.126,
+    "status": "overstocked",
+    "inventory_value": "9257.13",
+    "sales_velocity": {
+      "avg_7d": 57.82,
+      "avg_30d": 58.07,
+      "avg_90d": 55.01,
+      "trend_7d": -1,
+      "trend_30d": 1
+    },
+    "suppliers": [
+      {
+        "supplier_id": "SUPPLIER_4",
+        "supplier_name": "Supplier 4",
+        "moq": 97,
+        "lead_time_days": 11,
+        "is_primary": true
+      }
+    ],
+    "locations": [
+      {
+        "location_id": "WAREHOUSE_1",
+        "location_name": "Main Warehouse",
+        "current_stock": 153
+      }
+    ]
+  },
+  {
+    "item_id": "M5_HOUSEHOLD_1_084",
+    "product_name": "Product M5_HOUSEHOLD_1_084",
+    "category": "HOUSEHOLD",
+    "current_stock": 154,
+    "unit_cost": "32.36",
+    "safety_buffer_days": 7,
+    "dir": 251.1,
+    "stockout_risk": 0.103,
+    "status": "overstocked",
+    "inventory_value": "4983.44",
+    "sales_velocity": {
+      "avg_7d": 53.63,
+      "avg_30d": 54.64,
+      "avg_90d": 55.65,
+      "trend_7d": -1,
+      "trend_30d": -1
+    },
+    "suppliers": [
+      {
+        "supplier_id": "SUPPLIER_5",
+        "supplier_name": "Supplier 5",
+        "moq": 18,
+        "lead_time_days": 14,
+        "is_primary": true
+      },
+      {
+        "supplier_id": "SUPPLIER_2",
+        "supplier_name": "Supplier 2",
+        "moq": 89,
+        "lead_time_days": 5,
+        "is_primary": false
+      }
+    ],
+    "locations": [
+      {
+        "location_id": "WAREHOUSE_1",
+        "location_name": "Main Warehouse",
+        "current_stock": 107
+      },
+      {
+        "location_id": "STORE_1",
+        "location_name": "Store Front",
+        "current_stock": 46
+      }
+    ]
+  },
+  {
+    "item_id": "M5_HOBBIES_1_085",
+    "product_name": "Product M5_HOBBIES_1_085",
+    "category": "HOBBIES",
+    "current_stock": 354,
+    "unit_cost": "59.89",
+    "safety_buffer_days": 7,
+    "dir": 126.1,
+    "stockout_risk": 0.19,
+    "status": "overstocked",
+    "inventory_value": "21201.06",
+    "sales_velocity": {
+      "avg_7d": 34.83,
+      "avg_30d": 34.82,
+      "avg_90d": 35.67,
+      "trend_7d": 1,
+      "trend_30d": -1
+    },
+    "suppliers": [
+      {
+        "supplier_id": "SUPPLIER_1",
+        "supplier_name": "Supplier 1",
+        "moq": 12,
+        "lead_time_days": 16,
+        "is_primary": true
+      }
+    ],
+    "locations": [
+      {
+        "location_id": "WAREHOUSE_1",
+        "location_name": "Main Warehouse",
+        "current_stock": 247
+      }
+    ]
+  },
+  {
+    "item_id": "M5_FOODS_1_086",
+    "product_name": "Product M5_FOODS_1_086",
+    "category": "FOODS",
+    "current_stock": 521,
+    "unit_cost": "12.26",
+    "safety_buffer_days": 7,
+    "dir": 141.4,
+    "stockout_risk": 0.103,
+    "status": "overstocked",
+    "inventory_value": "6387.46",
+    "sales_velocity": {
+      "avg_7d": 54.07,
+      "avg_30d": 52.05,
+      "avg_90d": 49.5,
+      "trend_7d": 1,
+      "trend_30d": 1
+    },
+    "suppliers": [
+      {
+        "supplier_id": "SUPPLIER_2",
+        "supplier_name": "Supplier 2",
+        "moq": 107,
+        "lead_time_days": 16,
+        "is_primary": true
+      }
+    ],
+    "locations": [
+      {
+        "location_id": "WAREHOUSE_1",
+        "location_name": "Main Warehouse",
+        "current_stock": 364
+      },
+      {
+        "location_id": "STORE_1",
+        "location_name": "Store Front",
+        "current_stock": 156
+      }
+    ]
+  },
+  {
+    "item_id": "M5_ELECTRONICS_1_087",
+    "product_name": "Product M5_ELECTRONICS_1_087",
+    "category": "ELECTRONICS",
+    "current_stock": 547,
+    "unit_cost": "36.91",
+    "safety_buffer_days": 7,
+    "dir": 118.3,
+    "stockout_risk": 0.177,
+    "status": "overstocked",
+    "inventory_value": "20189.77",
+    "sales_velocity": {
+      "avg_7d": 33.9,
+      "avg_30d": 33.71,
+      "avg_90d": 38.44,
+      "trend_7d": 1,
+      "trend_30d": -1
+    },
+    "suppliers": [
+      {
+        "supplier_id": "SUPPLIER_3",
+        "supplier_name": "Supplier 3",
+        "moq": 50,
+        "lead_time_days": 16,
+        "is_primary": true
+      },
+      {
+        "supplier_id": "SUPPLIER_5",
+        "supplier_name": "Supplier 5",
+        "moq": 16,
+        "lead_time_days": 10,
+        "is_primary": false
+      }
+    ],
+    "locations": [
+      {
+        "location_id": "WAREHOUSE_1",
+        "location_name": "Main Warehouse",
+        "current_stock": 382
+      }
+    ]
+  },
+  {
+    "item_id": "M5_HOUSEHOLD_1_088",
+    "product_name": "Product M5_HOUSEHOLD_1_088",
+    "category": "HOUSEHOLD",
+    "current_stock": 356,
+    "unit_cost": "20.14",
+    "safety_buffer_days": 7,
+    "dir": 188.5,
+    "stockout_risk": 0.048,
+    "status": "overstocked",
+    "inventory_value": "7169.84",
+    "sales_velocity": {
+      "avg_7d": 31.93,
+      "avg_30d": 30.46,
+      "avg_90d": 30.12,
+      "trend_7d": 1,
+      "trend_30d": 1
+    },
+    "suppliers": [
+      {
+        "supplier_id": "SUPPLIER_4",
+        "supplier_name": "Supplier 4",
+        "moq": 61,
+        "lead_time_days": 12,
+        "is_primary": true
+      }
+    ],
+    "locations": [
+      {
+        "location_id": "WAREHOUSE_1",
+        "location_name": "Main Warehouse",
+        "current_stock": 249
+      },
+      {
+        "location_id": "STORE_1",
+        "location_name": "Store Front",
+        "current_stock": 106
+      }
+    ]
+  },
+  {
+    "item_id": "M5_HOBBIES_1_089",
+    "product_name": "Product M5_HOBBIES_1_089",
+    "category": "HOBBIES",
+    "current_stock": 203,
+    "unit_cost": "22.84",
+    "safety_buffer_days": 7,
+    "dir": 135.8,
+    "stockout_risk": 0.034,
+    "status": "overstocked",
+    "inventory_value": "4636.52",
+    "sales_velocity": {
+      "avg_7d": 54.18,
+      "avg_30d": 51.9,
+      "avg_90d": 49.73,
+      "trend_7d": 1,
+      "trend_30d": 1
+    },
+    "suppliers": [
+      {
+        "supplier_id": "SUPPLIER_5",
+        "supplier_name": "Supplier 5",
+        "moq": 59,
+        "lead_time_days": 6,
+        "is_primary": true
+      }
+    ],
+    "locations": [
+      {
+        "location_id": "WAREHOUSE_1",
+        "location_name": "Main Warehouse",
+        "current_stock": 142
+      }
+    ]
+  },
+  {
+    "item_id": "M5_FOODS_1_090",
+    "product_name": "Product M5_FOODS_1_090",
+    "category": "FOODS",
+    "current_stock": 369,
+    "unit_cost": "55.00",
+    "safety_buffer_days": 7,
+    "dir": 248.5,
+    "stockout_risk": 0.131,
+    "status": "overstocked",
+    "inventory_value": "20295.00",
+    "sales_velocity": {
+      "avg_7d": 45.31,
+      "avg_30d": 43.44,
+      "avg_90d": 46.7,
+      "trend_7d": 1,
+      "trend_30d": -1
+    },
+    "suppliers": [
+      {
+        "supplier_id": "SUPPLIER_1",
+        "supplier_name": "Supplier 1",
+        "moq": 18,
+        "lead_time_days": 4,
+        "is_primary": true
+      },
+      {
+        "supplier_id": "SUPPLIER_3",
+        "supplier_name": "Supplier 3",
+        "moq": 96,
+        "lead_time_days": 11,
+        "is_primary": false
+      }
+    ],
+    "locations": [
+      {
+        "location_id": "WAREHOUSE_1",
+        "location_name": "Main Warehouse",
+        "current_stock": 258
+      },
+      {
+        "location_id": "STORE_1",
+        "location_name": "Store Front",
+        "current_stock": 110
+      }
+    ]
+  },
+  {
+    "item_id": "M5_ELECTRONICS_1_091",
+    "product_name": "Product M5_ELECTRONICS_1_091",
+    "category": "ELECTRONICS",
+    "current_stock": 506,
+    "unit_cost": "44.86",
+    "safety_buffer_days": 7,
+    "dir": 222,
+    "stockout_risk": 0.122,
+    "status": "overstocked",
+    "inventory_value": "22699.16",
+    "sales_velocity": {
+      "avg_7d": 58.03,
+      "avg_30d": 57.76,
+      "avg_90d": 56.75,
+      "trend_7d": 1,
+      "trend_30d": 1
+    },
+    "suppliers": [
+      {
+        "supplier_id": "SUPPLIER_2",
+        "supplier_name": "Supplier 2",
+        "moq": 28,
+        "lead_time_days": 14,
+        "is_primary": true
+      }
+    ],
+    "locations": [
+      {
+        "location_id": "WAREHOUSE_1",
+        "location_name": "Main Warehouse",
+        "current_stock": 354
+      }
+    ]
+  },
+  {
+    "item_id": "M5_HOUSEHOLD_1_092",
+    "product_name": "Product M5_HOUSEHOLD_1_092",
+    "category": "HOUSEHOLD",
+    "current_stock": 51,
+    "unit_cost": "57.54",
+    "safety_buffer_days": 7,
+    "dir": 295.9,
+    "stockout_risk": 0.115,
+    "status": "overstocked",
+    "inventory_value": "2934.54",
+    "sales_velocity": {
+      "avg_7d": 4.42,
+      "avg_30d": 6.39,
+      "avg_90d": 11.37,
+      "trend_7d": -1,
+      "trend_30d": -1
+    },
+    "suppliers": [
+      {
+        "supplier_id": "SUPPLIER_3",
+        "supplier_name": "Supplier 3",
+        "moq": 15,
+        "lead_time_days": 10,
+        "is_primary": true
+      }
+    ],
+    "locations": [
+      {
+        "location_id": "WAREHOUSE_1",
+        "location_name": "Main Warehouse",
+        "current_stock": 35
+      },
+      {
+        "location_id": "STORE_1",
+        "location_name": "Store Front",
+        "current_stock": 15
+      }
+    ]
+  },
+  {
+    "item_id": "M5_HOBBIES_1_093",
+    "product_name": "Product M5_HOBBIES_1_093",
+    "category": "HOBBIES",
+    "current_stock": 457,
+    "unit_cost": "38.27",
+    "safety_buffer_days": 7,
+    "dir": 193.7,
+    "stockout_risk": 0.171,
+    "status": "overstocked",
+    "inventory_value": "17489.39",
+    "sales_velocity": {
+      "avg_7d": 32.78,
+      "avg_30d": 34.39,
+      "avg_90d": 30.78,
+      "trend_7d": -1,
+      "trend_30d": 1
+    },
+    "suppliers": [
+      {
+        "supplier_id": "SUPPLIER_4",
+        "supplier_name": "Supplier 4",
+        "moq": 75,
+        "lead_time_days": 9,
+        "is_primary": true
+      },
+      {
+        "supplier_id": "SUPPLIER_1",
+        "supplier_name": "Supplier 1",
+        "moq": 74,
+        "lead_time_days": 11,
+        "is_primary": false
+      }
+    ],
+    "locations": [
+      {
+        "location_id": "WAREHOUSE_1",
+        "location_name": "Main Warehouse",
+        "current_stock": 319
+      }
+    ]
+  },
+  {
+    "item_id": "M5_FOODS_1_094",
+    "product_name": "Product M5_FOODS_1_094",
+    "category": "FOODS",
+    "current_stock": 153,
+    "unit_cost": "58.26",
+    "safety_buffer_days": 7,
+    "dir": 102.2,
+    "stockout_risk": 0.15,
+    "status": "overstocked",
+    "inventory_value": "8913.78",
+    "sales_velocity": {
+      "avg_7d": 43.4,
+      "avg_30d": 43.83,
+      "avg_90d": 47.72,
+      "trend_7d": -1,
+      "trend_30d": -1
+    },
+    "suppliers": [
+      {
+        "supplier_id": "SUPPLIER_5",
+        "supplier_name": "Supplier 5",
+        "moq": 95,
+        "lead_time_days": 13,
+        "is_primary": true
+      }
+    ],
+    "locations": [
+      {
+        "location_id": "WAREHOUSE_1",
+        "location_name": "Main Warehouse",
+        "current_stock": 107
+      },
+      {
+        "location_id": "STORE_1",
+        "location_name": "Store Front",
+        "current_stock": 45
+      }
+    ]
+  },
+  {
+    "item_id": "M5_ELECTRONICS_1_095",
+    "product_name": "Product M5_ELECTRONICS_1_095",
+    "category": "ELECTRONICS",
+    "current_stock": 215,
+    "unit_cost": "15.37",
+    "safety_buffer_days": 7,
+    "dir": 176.8,
+    "stockout_risk": 0.133,
+    "status": "overstocked",
+    "inventory_value": "3304.55",
+    "sales_velocity": {
+      "avg_7d": 17.13,
+      "avg_30d": 14.75,
+      "avg_90d": 18.99,
+      "trend_7d": 1,
+      "trend_30d": -1
+    },
+    "suppliers": [
+      {
+        "supplier_id": "SUPPLIER_1",
+        "supplier_name": "Supplier 1",
+        "moq": 19,
+        "lead_time_days": 7,
+        "is_primary": true
+      }
+    ],
+    "locations": [
+      {
+        "location_id": "WAREHOUSE_1",
+        "location_name": "Main Warehouse",
+        "current_stock": 150
+      }
+    ]
+  },
+  {
+    "item_id": "M5_HOUSEHOLD_1_096",
+    "product_name": "Product M5_HOUSEHOLD_1_096",
+    "category": "HOUSEHOLD",
+    "current_stock": 246,
+    "unit_cost": "24.76",
+    "safety_buffer_days": 7,
+    "dir": 283.3,
+    "stockout_risk": 0.067,
+    "status": "overstocked",
+    "inventory_value": "6090.96",
+    "sales_velocity": {
+      "avg_7d": 50.33,
+      "avg_30d": 50.15,
+      "avg_90d": 50.52,
+      "trend_7d": 1,
+      "trend_30d": -1
+    },
+    "suppliers": [
+      {
+        "supplier_id": "SUPPLIER_2",
+        "supplier_name": "Supplier 2",
+        "moq": 58,
+        "lead_time_days": 5,
+        "is_primary": true
+      },
+      {
+        "supplier_id": "SUPPLIER_4",
+        "supplier_name": "Supplier 4",
+        "moq": 108,
+        "lead_time_days": 3,
+        "is_primary": false
+      }
+    ],
+    "locations": [
+      {
+        "location_id": "WAREHOUSE_1",
+        "location_name": "Main Warehouse",
+        "current_stock": 172
+      },
+      {
+        "location_id": "STORE_1",
+        "location_name": "Store Front",
+        "current_stock": 73
+      }
+    ]
+  },
+  {
+    "item_id": "M5_HOBBIES_1_097",
+    "product_name": "Product M5_HOBBIES_1_097",
+    "category": "HOBBIES",
+    "current_stock": 481,
+    "unit_cost": "46.62",
+    "safety_buffer_days": 7,
+    "dir": 243,
+    "stockout_risk": 0.106,
+    "status": "overstocked",
+    "inventory_value": "22424.22",
+    "sales_velocity": {
+      "avg_7d": 10.92,
+      "avg_30d": 9.48,
+      "avg_90d": 10.44,
+      "trend_7d": 1,
+      "trend_30d": -1
+    },
+    "suppliers": [
+      {
+        "supplier_id": "SUPPLIER_3",
+        "supplier_name": "Supplier 3",
+        "moq": 22,
+        "lead_time_days": 8,
+        "is_primary": true
+      }
+    ],
+    "locations": [
+      {
+        "location_id": "WAREHOUSE_1",
+        "location_name": "Main Warehouse",
+        "current_stock": 336
+      }
+    ]
+  },
+  {
+    "item_id": "M5_FOODS_1_098",
+    "product_name": "Product M5_FOODS_1_098",
+    "category": "FOODS",
+    "current_stock": 109,
+    "unit_cost": "16.24",
+    "safety_buffer_days": 7,
+    "dir": 236,
+    "stockout_risk": 0.165,
+    "status": "overstocked",
+    "inventory_value": "1770.16",
+    "sales_velocity": {
+      "avg_7d": 46.93,
+      "avg_30d": 47.43,
+      "avg_90d": 42.6,
+      "trend_7d": -1,
+      "trend_30d": 1
+    },
+    "suppliers": [
+      {
+        "supplier_id": "SUPPLIER_4",
+        "supplier_name": "Supplier 4",
+        "moq": 36,
+        "lead_time_days": 15,
+        "is_primary": true
+      }
+    ],
+    "locations": [
+      {
+        "location_id": "WAREHOUSE_1",
+        "location_name": "Main Warehouse",
+        "current_stock": 76
+      },
+      {
+        "location_id": "STORE_1",
+        "location_name": "Store Front",
+        "current_stock": 32
+      }
+    ]
+  },
+  {
+    "item_id": "M5_ELECTRONICS_1_099",
+    "product_name": "Product M5_ELECTRONICS_1_099",
+    "category": "ELECTRONICS",
+    "current_stock": 316,
+    "unit_cost": "23.86",
+    "safety_buffer_days": 7,
+    "dir": 233.7,
+    "stockout_risk": 0.186,
+    "status": "overstocked",
+    "inventory_value": "7539.76",
+    "sales_velocity": {
+      "avg_7d": 44.12,
+      "avg_30d": 45.35,
+      "avg_90d": 42.89,
+      "trend_7d": -1,
+      "trend_30d": 1
+    },
+    "suppliers": [
+      {
+        "supplier_id": "SUPPLIER_5",
+        "supplier_name": "Supplier 5",
+        "moq": 38,
+        "lead_time_days": 4,
+        "is_primary": true
+      },
+      {
+        "supplier_id": "SUPPLIER_2",
+        "supplier_name": "Supplier 2",
+        "moq": 22,
+        "lead_time_days": 6,
+        "is_primary": false
+      }
+    ],
+    "locations": [
+      {
+        "location_id": "WAREHOUSE_1",
+        "location_name": "Main Warehouse",
+        "current_stock": 221
+      }
+    ]
+  },
+  {
+    "item_id": "M5_HOUSEHOLD_1_100",
+    "product_name": "Product M5_HOUSEHOLD_1_100",
+    "category": "HOUSEHOLD",
+    "current_stock": 199,
+    "unit_cost": "10.14",
+    "safety_buffer_days": 7,
+    "dir": 162.1,
+    "stockout_risk": 0.149,
+    "status": "overstocked",
+    "inventory_value": "2017.86",
+    "sales_velocity": {
+      "avg_7d": 35.52,
+      "avg_30d": 34.12,
+      "avg_90d": 31.2,
+      "trend_7d": 1,
+      "trend_30d": 1
+    },
+    "suppliers": [
+      {
+        "supplier_id": "SUPPLIER_1",
+        "supplier_name": "Supplier 1",
+        "moq": 68,
+        "lead_time_days": 15,
+        "is_primary": true
+      }
+    ],
+    "locations": [
+      {
+        "location_id": "WAREHOUSE_1",
+        "location_name": "Main Warehouse",
+        "current_stock": 139
+      },
+      {
+        "location_id": "STORE_1",
+        "location_name": "Store Front",
+        "current_stock": 59
+      }
+    ]
+  },
+  {
+    "item_id": "M5_HOBBIES_1_101",
+    "product_name": "Product M5_HOBBIES_1_101",
+    "category": "HOBBIES",
+    "current_stock": 319,
+    "unit_cost": "34.62",
+    "safety_buffer_days": 7,
+    "dir": 252.8,
+    "stockout_risk": 0.168,
+    "status": "overstocked",
+    "inventory_value": "11043.78",
+    "sales_velocity": {
+      "avg_7d": 32.71,
+      "avg_30d": 34.04,
+      "avg_90d": 32.61,
+      "trend_7d": -1,
+      "trend_30d": 1
+    },
+    "suppliers": [
+      {
+        "supplier_id": "SUPPLIER_2",
+        "supplier_name": "Supplier 2",
+        "moq": 43,
+        "lead_time_days": 9,
+        "is_primary": true
+      }
+    ],
+    "locations": [
+      {
+        "location_id": "WAREHOUSE_1",
+        "location_name": "Main Warehouse",
+        "current_stock": 223
+      }
+    ]
+  },
+  {
+    "item_id": "M5_FOODS_1_102",
+    "product_name": "Product M5_FOODS_1_102",
+    "category": "FOODS",
+    "current_stock": 490,
+    "unit_cost": "56.67",
+    "safety_buffer_days": 7,
+    "dir": 125.1,
+    "stockout_risk": 0.164,
+    "status": "overstocked",
+    "inventory_value": "27768.30",
+    "sales_velocity": {
+      "avg_7d": 11.75,
+      "avg_30d": 13.61,
+      "avg_90d": 17.82,
+      "trend_7d": -1,
+      "trend_30d": -1
+    },
+    "suppliers": [
+      {
+        "supplier_id": "SUPPLIER_3",
+        "supplier_name": "Supplier 3",
+        "moq": 79,
+        "lead_time_days": 14,
+        "is_primary": true
+      },
+      {
+        "supplier_id": "SUPPLIER_5",
+        "supplier_name": "Supplier 5",
+        "moq": 85,
+        "lead_time_days": 6,
+        "is_primary": false
+      }
+    ],
+    "locations": [
+      {
+        "location_id": "WAREHOUSE_1",
+        "location_name": "Main Warehouse",
+        "current_stock": 343
+      },
+      {
+        "location_id": "STORE_1",
+        "location_name": "Store Front",
+        "current_stock": 147
+      }
+    ]
+  },
+  {
+    "item_id": "M5_ELECTRONICS_1_103",
+    "product_name": "Product M5_ELECTRONICS_1_103",
+    "category": "ELECTRONICS",
+    "current_stock": 536,
+    "unit_cost": "12.06",
+    "safety_buffer_days": 7,
+    "dir": 270.5,
+    "stockout_risk": 0.111,
+    "status": "overstocked",
+    "inventory_value": "6464.16",
+    "sales_velocity": {
+      "avg_7d": 53.53,
+      "avg_30d": 51.76,
+      "avg_90d": 49.63,
+      "trend_7d": 1,
+      "trend_30d": 1
+    },
+    "suppliers": [
+      {
+        "supplier_id": "SUPPLIER_4",
+        "supplier_name": "Supplier 4",
+        "moq": 46,
+        "lead_time_days": 16,
+        "is_primary": true
+      }
+    ],
+    "locations": [
+      {
+        "location_id": "WAREHOUSE_1",
+        "location_name": "Main Warehouse",
+        "current_stock": 375
+      }
+    ]
+  },
+  {
+    "item_id": "M5_HOUSEHOLD_1_104",
+    "product_name": "Product M5_HOUSEHOLD_1_104",
+    "category": "HOUSEHOLD",
+    "current_stock": 346,
+    "unit_cost": "22.53",
+    "safety_buffer_days": 7,
+    "dir": 193,
+    "stockout_risk": 0.043,
+    "status": "overstocked",
+    "inventory_value": "7795.38",
+    "sales_velocity": {
+      "avg_7d": 30.24,
+      "avg_30d": 32.01,
+      "avg_90d": 36.66,
+      "trend_7d": -1,
+      "trend_30d": -1
+    },
+    "suppliers": [
+      {
+        "supplier_id": "SUPPLIER_5",
+        "supplier_name": "Supplier 5",
+        "moq": 14,
+        "lead_time_days": 4,
+        "is_primary": true
+      }
+    ],
+    "locations": [
+      {
+        "location_id": "WAREHOUSE_1",
+        "location_name": "Main Warehouse",
+        "current_stock": 242
+      },
+      {
+        "location_id": "STORE_1",
+        "location_name": "Store Front",
+        "current_stock": 103
+      }
+    ]
+  },
+  {
+    "item_id": "M5_HOBBIES_1_105",
+    "product_name": "Product M5_HOBBIES_1_105",
+    "category": "HOBBIES",
+    "current_stock": 213,
+    "unit_cost": "28.93",
+    "safety_buffer_days": 7,
+    "dir": 185.4,
+    "stockout_risk": 0.087,
+    "status": "overstocked",
+    "inventory_value": "6162.09",
+    "sales_velocity": {
+      "avg_7d": 42.52,
+      "avg_30d": 41.06,
+      "avg_90d": 36.18,
+      "trend_7d": 1,
+      "trend_30d": 1
+    },
+    "suppliers": [
+      {
+        "supplier_id": "SUPPLIER_1",
+        "supplier_name": "Supplier 1",
+        "moq": 109,
+        "lead_time_days": 12,
+        "is_primary": true
+      },
+      {
+        "supplier_id": "SUPPLIER_3",
+        "supplier_name": "Supplier 3",
+        "moq": 12,
+        "lead_time_days": 14,
+        "is_primary": false
+      }
+    ],
+    "locations": [
+      {
+        "location_id": "WAREHOUSE_1",
+        "location_name": "Main Warehouse",
+        "current_stock": 149
+      }
+    ]
+  },
+  {
+    "item_id": "M5_FOODS_1_106",
+    "product_name": "Product M5_FOODS_1_106",
+    "category": "FOODS",
+    "current_stock": 492,
+    "unit_cost": "16.00",
+    "safety_buffer_days": 7,
+    "dir": 206.2,
+    "stockout_risk": 0.192,
+    "status": "overstocked",
+    "inventory_value": "7872.00",
+    "sales_velocity": {
+      "avg_7d": 30.26,
+      "avg_30d": 30.5,
+      "avg_90d": 34.79,
+      "trend_7d": -1,
+      "trend_30d": -1
+    },
+    "suppliers": [
+      {
+        "supplier_id": "SUPPLIER_2",
+        "supplier_name": "Supplier 2",
+        "moq": 27,
+        "lead_time_days": 12,
+        "is_primary": true
+      }
+    ],
+    "locations": [
+      {
+        "location_id": "WAREHOUSE_1",
+        "location_name": "Main Warehouse",
+        "current_stock": 344
+      },
+      {
+        "location_id": "STORE_1",
+        "location_name": "Store Front",
+        "current_stock": 147
+      }
+    ]
+  },
+  {
+    "item_id": "M5_ELECTRONICS_1_107",
+    "product_name": "Product M5_ELECTRONICS_1_107",
+    "category": "ELECTRONICS",
+    "current_stock": 126,
+    "unit_cost": "58.08",
+    "safety_buffer_days": 7,
+    "dir": 291.5,
+    "stockout_risk": 0.084,
+    "status": "overstocked",
+    "inventory_value": "7318.08",
+    "sales_velocity": {
+      "avg_7d": 53.04,
+      "avg_30d": 54.17,
+      "avg_90d": 52.3,
+      "trend_7d": -1,
+      "trend_30d": 1
+    },
+    "suppliers": [
+      {
+        "supplier_id": "SUPPLIER_3",
+        "supplier_name": "Supplier 3",
+        "moq": 18,
+        "lead_time_days": 11,
+        "is_primary": true
+      }
+    ],
+    "locations": [
+      {
+        "location_id": "WAREHOUSE_1",
+        "location_name": "Main Warehouse",
+        "current_stock": 88
+      }
+    ]
+  },
+  {
+    "item_id": "M5_HOUSEHOLD_1_108",
+    "product_name": "Product M5_HOUSEHOLD_1_108",
+    "category": "HOUSEHOLD",
+    "current_stock": 430,
+    "unit_cost": "34.97",
+    "safety_buffer_days": 7,
+    "dir": 140,
+    "stockout_risk": 0.072,
+    "status": "overstocked",
+    "inventory_value": "15037.10",
+    "sales_velocity": {
+      "avg_7d": 58.26,
+      "avg_30d": 58.95,
+      "avg_90d": 56.15,
+      "trend_7d": -1,
+      "trend_30d": 1
+    },
+    "suppliers": [
+      {
+        "supplier_id": "SUPPLIER_4",
+        "supplier_name": "Supplier 4",
+        "moq": 89,
+        "lead_time_days": 13,
+        "is_primary": true
+      },
+      {
+        "supplier_id": "SUPPLIER_1",
+        "supplier_name": "Supplier 1",
+        "moq": 92,
+        "lead_time_days": 8,
+        "is_primary": false
+      }
+    ],
+    "locations": [
+      {
+        "location_id": "WAREHOUSE_1",
+        "location_name": "Main Warehouse",
+        "current_stock": 301
+      },
+      {
+        "location_id": "STORE_1",
+        "location_name": "Store Front",
+        "current_stock": 129
+      }
+    ]
+  },
+  {
+    "item_id": "M5_HOBBIES_1_109",
+    "product_name": "Product M5_HOBBIES_1_109",
+    "category": "HOBBIES",
+    "current_stock": 322,
+    "unit_cost": "51.45",
+    "safety_buffer_days": 7,
+    "dir": 132.5,
+    "stockout_risk": 0.077,
+    "status": "overstocked",
+    "inventory_value": "16566.90",
+    "sales_velocity": {
+      "avg_7d": 57.86,
+      "avg_30d": 56,
+      "avg_90d": 58.59,
+      "trend_7d": 1,
+      "trend_30d": -1
+    },
+    "suppliers": [
+      {
+        "supplier_id": "SUPPLIER_5",
+        "supplier_name": "Supplier 5",
+        "moq": 27,
+        "lead_time_days": 11,
+        "is_primary": true
+      }
+    ],
+    "locations": [
+      {
+        "location_id": "WAREHOUSE_1",
+        "location_name": "Main Warehouse",
+        "current_stock": 225
+      }
+    ]
+  },
+  {
+    "item_id": "M5_FOODS_1_110",
+    "product_name": "Product M5_FOODS_1_110",
+    "category": "FOODS",
+    "current_stock": 280,
+    "unit_cost": "53.79",
+    "safety_buffer_days": 7,
+    "dir": 288.3,
+    "stockout_risk": 0.142,
+    "status": "overstocked",
+    "inventory_value": "15061.20",
+    "sales_velocity": {
+      "avg_7d": 23.87,
+      "avg_30d": 25.58,
+      "avg_90d": 23.76,
+      "trend_7d": -1,
+      "trend_30d": 1
+    },
+    "suppliers": [
+      {
+        "supplier_id": "SUPPLIER_1",
+        "supplier_name": "Supplier 1",
+        "moq": 30,
+        "lead_time_days": 13,
+        "is_primary": true
+      }
+    ],
+    "locations": [
+      {
+        "location_id": "WAREHOUSE_1",
+        "location_name": "Main Warehouse",
+        "current_stock": 196
+      },
+      {
+        "location_id": "STORE_1",
+        "location_name": "Store Front",
+        "current_stock": 84
+      }
+    ]
+  },
+  {
+    "item_id": "M5_ELECTRONICS_1_111",
+    "product_name": "Product M5_ELECTRONICS_1_111",
+    "category": "ELECTRONICS",
+    "current_stock": 103,
+    "unit_cost": "31.11",
+    "safety_buffer_days": 7,
+    "dir": 152.2,
+    "stockout_risk": 0.038,
+    "status": "overstocked",
+    "inventory_value": "3204.33",
+    "sales_velocity": {
+      "avg_7d": 22.87,
+      "avg_30d": 24.41,
+      "avg_90d": 28.06,
+      "trend_7d": -1,
+      "trend_30d": -1
+    },
+    "suppliers": [
+      {
+        "supplier_id": "SUPPLIER_2",
+        "supplier_name": "Supplier 2",
+        "moq": 87,
+        "lead_time_days": 12,
+        "is_primary": true
+      },
+      {
+        "supplier_id": "SUPPLIER_4",
+        "supplier_name": "Supplier 4",
+        "moq": 81,
+        "lead_time_days": 16,
+        "is_primary": false
+      }
+    ],
+    "locations": [
+      {
+        "location_id": "WAREHOUSE_1",
+        "location_name": "Main Warehouse",
+        "current_stock": 72
+      }
+    ]
+  },
+  {
+    "item_id": "M5_HOUSEHOLD_1_112",
+    "product_name": "Product M5_HOUSEHOLD_1_112",
+    "category": "HOUSEHOLD",
+    "current_stock": 497,
+    "unit_cost": "52.60",
+    "safety_buffer_days": 7,
+    "dir": 152.5,
+    "stockout_risk": 0.191,
+    "status": "overstocked",
+    "inventory_value": "26142.20",
+    "sales_velocity": {
+      "avg_7d": 23.32,
+      "avg_30d": 20.93,
+      "avg_90d": 24.22,
+      "trend_7d": 1,
+      "trend_30d": -1
+    },
+    "suppliers": [
+      {
+        "supplier_id": "SUPPLIER_3",
+        "supplier_name": "Supplier 3",
+        "moq": 29,
+        "lead_time_days": 10,
+        "is_primary": true
+      }
+    ],
+    "locations": [
+      {
+        "location_id": "WAREHOUSE_1",
+        "location_name": "Main Warehouse",
+        "current_stock": 347
+      },
+      {
+        "location_id": "STORE_1",
+        "location_name": "Store Front",
+        "current_stock": 149
+      }
+    ]
+  },
+  {
+    "item_id": "M5_HOBBIES_1_113",
+    "product_name": "Product M5_HOBBIES_1_113",
+    "category": "HOBBIES",
+    "current_stock": 494,
+    "unit_cost": "52.22",
+    "safety_buffer_days": 7,
+    "dir": 116,
+    "stockout_risk": 0.177,
+    "status": "overstocked",
+    "inventory_value": "25796.68",
+    "sales_velocity": {
+      "avg_7d": 38.65,
+      "avg_30d": 39.35,
+      "avg_90d": 39.56,
+      "trend_7d": -1,
+      "trend_30d": -1
+    },
+    "suppliers": [
+      {
+        "supplier_id": "SUPPLIER_4",
+        "supplier_name": "Supplier 4",
+        "moq": 58,
+        "lead_time_days": 14,
+        "is_primary": true
+      }
+    ],
+    "locations": [
+      {
+        "location_id": "WAREHOUSE_1",
+        "location_name": "Main Warehouse",
+        "current_stock": 345
+      }
+    ]
+  },
+  {
+    "item_id": "M5_FOODS_1_114",
+    "product_name": "Product M5_FOODS_1_114",
+    "category": "FOODS",
+    "current_stock": 465,
+    "unit_cost": "34.87",
+    "safety_buffer_days": 7,
+    "dir": 235.8,
+    "stockout_risk": 0.179,
+    "status": "overstocked",
+    "inventory_value": "16214.55",
+    "sales_velocity": {
+      "avg_7d": 30.66,
+      "avg_30d": 32.76,
+      "avg_90d": 33.94,
+      "trend_7d": -1,
+      "trend_30d": -1
+    },
+    "suppliers": [
+      {
+        "supplier_id": "SUPPLIER_5",
+        "supplier_name": "Supplier 5",
+        "moq": 109,
+        "lead_time_days": 14,
+        "is_primary": true
+      },
+      {
+        "supplier_id": "SUPPLIER_2",
+        "supplier_name": "Supplier 2",
+        "moq": 66,
+        "lead_time_days": 12,
+        "is_primary": false
+      }
+    ],
+    "locations": [
+      {
+        "location_id": "WAREHOUSE_1",
+        "location_name": "Main Warehouse",
+        "current_stock": 325
+      },
+      {
+        "location_id": "STORE_1",
+        "location_name": "Store Front",
+        "current_stock": 139
+      }
+    ]
+  },
+  {
+    "item_id": "M5_ELECTRONICS_1_115",
+    "product_name": "Product M5_ELECTRONICS_1_115",
+    "category": "ELECTRONICS",
+    "current_stock": 540,
+    "unit_cost": "21.78",
+    "safety_buffer_days": 7,
+    "dir": 117.5,
+    "stockout_risk": 0.149,
+    "status": "overstocked",
+    "inventory_value": "11761.20",
+    "sales_velocity": {
+      "avg_7d": 49.61,
+      "avg_30d": 51.58,
+      "avg_90d": 53.54,
+      "trend_7d": -1,
+      "trend_30d": -1
+    },
+    "suppliers": [
+      {
+        "supplier_id": "SUPPLIER_1",
+        "supplier_name": "Supplier 1",
+        "moq": 35,
+        "lead_time_days": 3,
+        "is_primary": true
+      }
+    ],
+    "locations": [
+      {
+        "location_id": "WAREHOUSE_1",
+        "location_name": "Main Warehouse",
+        "current_stock": 378
+      }
+    ]
+  },
+  {
+    "item_id": "M5_HOUSEHOLD_1_116",
+    "product_name": "Product M5_HOUSEHOLD_1_116",
+    "category": "HOUSEHOLD",
+    "current_stock": 397,
+    "unit_cost": "48.79",
+    "safety_buffer_days": 7,
+    "dir": 120.7,
+    "stockout_risk": 0.091,
+    "status": "overstocked",
+    "inventory_value": "19369.63",
+    "sales_velocity": {
+      "avg_7d": 23.9,
+      "avg_30d": 23.68,
+      "avg_90d": 19.81,
+      "trend_7d": 1,
+      "trend_30d": 1
+    },
+    "suppliers": [
+      {
+        "supplier_id": "SUPPLIER_2",
+        "supplier_name": "Supplier 2",
+        "moq": 54,
+        "lead_time_days": 8,
+        "is_primary": true
+      }
+    ],
+    "locations": [
+      {
+        "location_id": "WAREHOUSE_1",
+        "location_name": "Main Warehouse",
+        "current_stock": 277
+      },
+      {
+        "location_id": "STORE_1",
+        "location_name": "Store Front",
+        "current_stock": 119
+      }
+    ]
+  },
+  {
+    "item_id": "M5_HOBBIES_1_117",
+    "product_name": "Product M5_HOBBIES_1_117",
+    "category": "HOBBIES",
+    "current_stock": 472,
+    "unit_cost": "56.63",
+    "safety_buffer_days": 7,
+    "dir": 209.1,
+    "stockout_risk": 0.198,
+    "status": "overstocked",
+    "inventory_value": "26729.36",
+    "sales_velocity": {
+      "avg_7d": 40.14,
+      "avg_30d": 40.06,
+      "avg_90d": 43.19,
+      "trend_7d": 1,
+      "trend_30d": -1
+    },
+    "suppliers": [
+      {
+        "supplier_id": "SUPPLIER_3",
+        "supplier_name": "Supplier 3",
+        "moq": 24,
+        "lead_time_days": 13,
+        "is_primary": true
+      },
+      {
+        "supplier_id": "SUPPLIER_5",
+        "supplier_name": "Supplier 5",
+        "moq": 37,
+        "lead_time_days": 7,
+        "is_primary": false
+      }
+    ],
+    "locations": [
+      {
+        "location_id": "WAREHOUSE_1",
+        "location_name": "Main Warehouse",
+        "current_stock": 330
+      }
+    ]
+  },
+  {
+    "item_id": "M5_FOODS_1_118",
+    "product_name": "Product M5_FOODS_1_118",
+    "category": "FOODS",
+    "current_stock": 57,
+    "unit_cost": "34.80",
+    "safety_buffer_days": 7,
+    "dir": 103.5,
+    "stockout_risk": 0.122,
+    "status": "overstocked",
+    "inventory_value": "1983.60",
+    "sales_velocity": {
+      "avg_7d": 43.99,
+      "avg_30d": 42.1,
+      "avg_90d": 44.4,
+      "trend_7d": 1,
+      "trend_30d": -1
+    },
+    "suppliers": [
+      {
+        "supplier_id": "SUPPLIER_4",
+        "supplier_name": "Supplier 4",
+        "moq": 55,
+        "lead_time_days": 10,
+        "is_primary": true
+      }
+    ],
+    "locations": [
+      {
+        "location_id": "WAREHOUSE_1",
+        "location_name": "Main Warehouse",
+        "current_stock": 39
+      },
+      {
+        "location_id": "STORE_1",
+        "location_name": "Store Front",
+        "current_stock": 17
+      }
+    ]
+  },
+  {
+    "item_id": "M5_ELECTRONICS_1_119",
+    "product_name": "Product M5_ELECTRONICS_1_119",
+    "category": "ELECTRONICS",
+    "current_stock": 462,
+    "unit_cost": "14.57",
+    "safety_buffer_days": 7,
+    "dir": 121.2,
+    "stockout_risk": 0.063,
+    "status": "overstocked",
+    "inventory_value": "6731.34",
+    "sales_velocity": {
+      "avg_7d": 41.9,
+      "avg_30d": 42.38,
+      "avg_90d": 45.15,
+      "trend_7d": -1,
+      "trend_30d": -1
+    },
+    "suppliers": [
+      {
+        "supplier_id": "SUPPLIER_5",
+        "supplier_name": "Supplier 5",
+        "moq": 21,
+        "lead_time_days": 3,
+        "is_primary": true
+      }
+    ],
+    "locations": [
+      {
+        "location_id": "WAREHOUSE_1",
+        "location_name": "Main Warehouse",
+        "current_stock": 323
+      }
+    ]
+  },
+  {
+    "item_id": "M5_HOUSEHOLD_1_120",
+    "product_name": "Product M5_HOUSEHOLD_1_120",
+    "category": "HOUSEHOLD",
+    "current_stock": 332,
+    "unit_cost": "22.48",
+    "safety_buffer_days": 7,
+    "dir": 132.8,
+    "stockout_risk": 0.026,
+    "status": "overstocked",
+    "inventory_value": "7463.36",
+    "sales_velocity": {
+      "avg_7d": 8,
+      "avg_30d": 9.72,
+      "avg_90d": 11.93,
+      "trend_7d": -1,
+      "trend_30d": -1
+    },
+    "suppliers": [
+      {
+        "supplier_id": "SUPPLIER_1",
+        "supplier_name": "Supplier 1",
+        "moq": 84,
+        "lead_time_days": 14,
+        "is_primary": true
+      },
+      {
+        "supplier_id": "SUPPLIER_3",
+        "supplier_name": "Supplier 3",
+        "moq": 54,
+        "lead_time_days": 5,
+        "is_primary": false
+      }
+    ],
+    "locations": [
+      {
+        "location_id": "WAREHOUSE_1",
+        "location_name": "Main Warehouse",
+        "current_stock": 232
+      },
+      {
+        "location_id": "STORE_1",
+        "location_name": "Store Front",
+        "current_stock": 99
+      }
+    ]
+  },
+  {
+    "item_id": "M5_HOBBIES_1_121",
+    "product_name": "Product M5_HOBBIES_1_121",
+    "category": "HOBBIES",
+    "current_stock": 215,
+    "unit_cost": "25.77",
+    "safety_buffer_days": 7,
+    "dir": 206.2,
+    "stockout_risk": 0.041,
+    "status": "overstocked",
+    "inventory_value": "5540.55",
+    "sales_velocity": {
+      "avg_7d": 64.53,
+      "avg_30d": 63.81,
+      "avg_90d": 59.2,
+      "trend_7d": 1,
+      "trend_30d": 1
+    },
+    "suppliers": [
+      {
+        "supplier_id": "SUPPLIER_2",
+        "supplier_name": "Supplier 2",
+        "moq": 83,
+        "lead_time_days": 13,
+        "is_primary": true
+      }
+    ],
+    "locations": [
+      {
+        "location_id": "WAREHOUSE_1",
+        "location_name": "Main Warehouse",
+        "current_stock": 150
+      }
+    ]
+  },
+  {
+    "item_id": "M5_FOODS_1_122",
+    "product_name": "Product M5_FOODS_1_122",
+    "category": "FOODS",
+    "current_stock": 443,
+    "unit_cost": "18.60",
+    "safety_buffer_days": 7,
+    "dir": 221.6,
+    "stockout_risk": 0.127,
+    "status": "overstocked",
+    "inventory_value": "8239.80",
+    "sales_velocity": {
+      "avg_7d": 14.21,
+      "avg_30d": 14.83,
+      "avg_90d": 10.02,
+      "trend_7d": -1,
+      "trend_30d": 1
+    },
+    "suppliers": [
+      {
+        "supplier_id": "SUPPLIER_3",
+        "supplier_name": "Supplier 3",
+        "moq": 44,
+        "lead_time_days": 15,
+        "is_primary": true
+      }
+    ],
+    "locations": [
+      {
+        "location_id": "WAREHOUSE_1",
+        "location_name": "Main Warehouse",
+        "current_stock": 310
+      },
+      {
+        "location_id": "STORE_1",
+        "location_name": "Store Front",
+        "current_stock": 132
+      }
+    ]
+  },
+  {
+    "item_id": "M5_ELECTRONICS_1_123",
+    "product_name": "Product M5_ELECTRONICS_1_123",
+    "category": "ELECTRONICS",
+    "current_stock": 181,
+    "unit_cost": "53.61",
+    "safety_buffer_days": 7,
+    "dir": 282.1,
+    "stockout_risk": 0.004,
+    "status": "overstocked",
+    "inventory_value": "9703.41",
+    "sales_velocity": {
+      "avg_7d": 46.71,
+      "avg_30d": 48.38,
+      "avg_90d": 50.78,
+      "trend_7d": -1,
+      "trend_30d": -1
+    },
+    "suppliers": [
+      {
+        "supplier_id": "SUPPLIER_4",
+        "supplier_name": "Supplier 4",
+        "moq": 18,
+        "lead_time_days": 5,
+        "is_primary": true
+      },
+      {
+        "supplier_id": "SUPPLIER_1",
+        "supplier_name": "Supplier 1",
+        "moq": 41,
+        "lead_time_days": 15,
+        "is_primary": false
+      }
+    ],
+    "locations": [
+      {
+        "location_id": "WAREHOUSE_1",
+        "location_name": "Main Warehouse",
+        "current_stock": 126
+      }
+    ]
+  },
+  {
+    "item_id": "M5_HOUSEHOLD_1_124",
+    "product_name": "Product M5_HOUSEHOLD_1_124",
+    "category": "HOUSEHOLD",
+    "current_stock": 172,
+    "unit_cost": "29.02",
+    "safety_buffer_days": 7,
+    "dir": 173.5,
+    "stockout_risk": 0.132,
+    "status": "overstocked",
+    "inventory_value": "4991.44",
+    "sales_velocity": {
+      "avg_7d": 18.15,
+      "avg_30d": 20.6,
+      "avg_90d": 23.9,
+      "trend_7d": -1,
+      "trend_30d": -1
+    },
+    "suppliers": [
+      {
+        "supplier_id": "SUPPLIER_5",
+        "supplier_name": "Supplier 5",
+        "moq": 44,
+        "lead_time_days": 3,
+        "is_primary": true
+      }
+    ],
+    "locations": [
+      {
+        "location_id": "WAREHOUSE_1",
+        "location_name": "Main Warehouse",
+        "current_stock": 120
+      },
+      {
+        "location_id": "STORE_1",
+        "location_name": "Store Front",
+        "current_stock": 51
+      }
+    ]
+  },
+  {
+    "item_id": "M5_HOBBIES_1_125",
+    "product_name": "Product M5_HOBBIES_1_125",
+    "category": "HOBBIES",
+    "current_stock": 525,
+    "unit_cost": "20.76",
+    "safety_buffer_days": 7,
+    "dir": 209.9,
+    "stockout_risk": 0.108,
+    "status": "overstocked",
+    "inventory_value": "10899.00",
+    "sales_velocity": {
+      "avg_7d": 13.98,
+      "avg_30d": 15.52,
+      "avg_90d": 11.71,
+      "trend_7d": -1,
+      "trend_30d": 1
+    },
+    "suppliers": [
+      {
+        "supplier_id": "SUPPLIER_1",
+        "supplier_name": "Supplier 1",
+        "moq": 52,
+        "lead_time_days": 12,
+        "is_primary": true
+      }
+    ],
+    "locations": [
+      {
+        "location_id": "WAREHOUSE_1",
+        "location_name": "Main Warehouse",
+        "current_stock": 367
+      }
+    ]
+  },
+  {
+    "item_id": "M5_FOODS_1_126",
+    "product_name": "Product M5_FOODS_1_126",
+    "category": "FOODS",
+    "current_stock": 56,
+    "unit_cost": "37.66",
+    "safety_buffer_days": 7,
+    "dir": 270.6,
+    "stockout_risk": 0.038,
+    "status": "overstocked",
+    "inventory_value": "2108.96",
+    "sales_velocity": {
+      "avg_7d": 19.8,
+      "avg_30d": 17.36,
+      "avg_90d": 16.2,
+      "trend_7d": 1,
+      "trend_30d": 1
+    },
+    "suppliers": [
+      {
+        "supplier_id": "SUPPLIER_2",
+        "supplier_name": "Supplier 2",
+        "moq": 41,
+        "lead_time_days": 12,
+        "is_primary": true
+      },
+      {
+        "supplier_id": "SUPPLIER_4",
+        "supplier_name": "Supplier 4",
+        "moq": 26,
+        "lead_time_days": 16,
+        "is_primary": false
+      }
+    ],
+    "locations": [
+      {
+        "location_id": "WAREHOUSE_1",
+        "location_name": "Main Warehouse",
+        "current_stock": 39
+      },
+      {
+        "location_id": "STORE_1",
+        "location_name": "Store Front",
+        "current_stock": 16
+      }
+    ]
+  },
+  {
+    "item_id": "M5_ELECTRONICS_1_127",
+    "product_name": "Product M5_ELECTRONICS_1_127",
+    "category": "ELECTRONICS",
+    "current_stock": 228,
+    "unit_cost": "40.48",
+    "safety_buffer_days": 7,
+    "dir": 283.4,
+    "stockout_risk": 0.098,
+    "status": "overstocked",
+    "inventory_value": "9229.44",
+    "sales_velocity": {
+      "avg_7d": 54.14,
+      "avg_30d": 56.59,
+      "avg_90d": 52.26,
+      "trend_7d": -1,
+      "trend_30d": 1
+    },
+    "suppliers": [
+      {
+        "supplier_id": "SUPPLIER_3",
+        "supplier_name": "Supplier 3",
+        "moq": 30,
+        "lead_time_days": 11,
+        "is_primary": true
+      }
+    ],
+    "locations": [
+      {
+        "location_id": "WAREHOUSE_1",
+        "location_name": "Main Warehouse",
+        "current_stock": 159
+      }
+    ]
+  },
+  {
+    "item_id": "M5_HOUSEHOLD_1_128",
+    "product_name": "Product M5_HOUSEHOLD_1_128",
+    "category": "HOUSEHOLD",
+    "current_stock": 342,
+    "unit_cost": "12.87",
+    "safety_buffer_days": 7,
+    "dir": 125.4,
+    "stockout_risk": 0.115,
+    "status": "overstocked",
+    "inventory_value": "4401.54",
+    "sales_velocity": {
+      "avg_7d": 48.23,
+      "avg_30d": 50.42,
+      "avg_90d": 45.49,
+      "trend_7d": -1,
+      "trend_30d": 1
+    },
+    "suppliers": [
+      {
+        "supplier_id": "SUPPLIER_4",
+        "supplier_name": "Supplier 4",
+        "moq": 109,
+        "lead_time_days": 6,
+        "is_primary": true
+      }
+    ],
+    "locations": [
+      {
+        "location_id": "WAREHOUSE_1",
+        "location_name": "Main Warehouse",
+        "current_stock": 239
+      },
+      {
+        "location_id": "STORE_1",
+        "location_name": "Store Front",
+        "current_stock": 102
+      }
+    ]
+  },
+  {
+    "item_id": "M5_HOBBIES_1_129",
+    "product_name": "Product M5_HOBBIES_1_129",
+    "category": "HOBBIES",
+    "current_stock": 509,
+    "unit_cost": "13.22",
+    "safety_buffer_days": 7,
+    "dir": 118.8,
+    "stockout_risk": 0.175,
+    "status": "overstocked",
+    "inventory_value": "6728.98",
+    "sales_velocity": {
+      "avg_7d": 36.32,
+      "avg_30d": 35.6,
+      "avg_90d": 35.77,
+      "trend_7d": 1,
+      "trend_30d": -1
+    },
+    "suppliers": [
+      {
+        "supplier_id": "SUPPLIER_5",
+        "supplier_name": "Supplier 5",
+        "moq": 103,
+        "lead_time_days": 11,
+        "is_primary": true
+      },
+      {
+        "supplier_id": "SUPPLIER_2",
+        "supplier_name": "Supplier 2",
+        "moq": 57,
+        "lead_time_days": 11,
+        "is_primary": false
+      }
+    ],
+    "locations": [
+      {
+        "location_id": "WAREHOUSE_1",
+        "location_name": "Main Warehouse",
+        "current_stock": 356
+      }
+    ]
+  },
+  {
+    "item_id": "M5_FOODS_1_130",
+    "product_name": "Product M5_FOODS_1_130",
+    "category": "FOODS",
+    "current_stock": 96,
+    "unit_cost": "25.74",
+    "safety_buffer_days": 7,
+    "dir": 282.7,
+    "stockout_risk": 0.131,
+    "status": "overstocked",
+    "inventory_value": "2471.04",
+    "sales_velocity": {
+      "avg_7d": 23.96,
+      "avg_30d": 22.77,
+      "avg_90d": 20.42,
+      "trend_7d": 1,
+      "trend_30d": 1
+    },
+    "suppliers": [
+      {
+        "supplier_id": "SUPPLIER_1",
+        "supplier_name": "Supplier 1",
+        "moq": 61,
+        "lead_time_days": 9,
+        "is_primary": true
+      }
+    ],
+    "locations": [
+      {
+        "location_id": "WAREHOUSE_1",
+        "location_name": "Main Warehouse",
+        "current_stock": 67
+      },
+      {
+        "location_id": "STORE_1",
+        "location_name": "Store Front",
+        "current_stock": 28
+      }
+    ]
+  },
+  {
+    "item_id": "M5_ELECTRONICS_1_131",
+    "product_name": "Product M5_ELECTRONICS_1_131",
+    "category": "ELECTRONICS",
+    "current_stock": 166,
+    "unit_cost": "39.76",
+    "safety_buffer_days": 7,
+    "dir": 245.3,
+    "stockout_risk": 0.05,
+    "status": "overstocked",
+    "inventory_value": "6600.16",
+    "sales_velocity": {
+      "avg_7d": 44.47,
+      "avg_30d": 43.44,
+      "avg_90d": 39.72,
+      "trend_7d": 1,
+      "trend_30d": 1
+    },
+    "suppliers": [
+      {
+        "supplier_id": "SUPPLIER_2",
+        "supplier_name": "Supplier 2",
+        "moq": 61,
+        "lead_time_days": 4,
+        "is_primary": true
+      }
+    ],
+    "locations": [
+      {
+        "location_id": "WAREHOUSE_1",
+        "location_name": "Main Warehouse",
+        "current_stock": 116
+      }
+    ]
+  },
+  {
+    "item_id": "M5_HOUSEHOLD_1_132",
+    "product_name": "Product M5_HOUSEHOLD_1_132",
+    "category": "HOUSEHOLD",
+    "current_stock": 66,
+    "unit_cost": "54.31",
+    "safety_buffer_days": 7,
+    "dir": 299.5,
+    "stockout_risk": 0.107,
+    "status": "overstocked",
+    "inventory_value": "3584.46",
+    "sales_velocity": {
+      "avg_7d": 63.12,
+      "avg_30d": 60.99,
+      "avg_90d": 59.7,
+      "trend_7d": 1,
+      "trend_30d": 1
+    },
+    "suppliers": [
+      {
+        "supplier_id": "SUPPLIER_3",
+        "supplier_name": "Supplier 3",
+        "moq": 80,
+        "lead_time_days": 16,
+        "is_primary": true
+      },
+      {
+        "supplier_id": "SUPPLIER_5",
+        "supplier_name": "Supplier 5",
+        "moq": 59,
+        "lead_time_days": 14,
+        "is_primary": false
+      }
+    ],
+    "locations": [
+      {
+        "location_id": "WAREHOUSE_1",
+        "location_name": "Main Warehouse",
+        "current_stock": 46
+      },
+      {
+        "location_id": "STORE_1",
+        "location_name": "Store Front",
+        "current_stock": 19
+      }
+    ]
+  },
+  {
+    "item_id": "M5_HOBBIES_1_133",
+    "product_name": "Product M5_HOBBIES_1_133",
+    "category": "HOBBIES",
+    "current_stock": 357,
+    "unit_cost": "33.00",
+    "safety_buffer_days": 7,
+    "dir": 191.4,
+    "stockout_risk": 0.043,
+    "status": "overstocked",
+    "inventory_value": "11781.00",
+    "sales_velocity": {
+      "avg_7d": 25.09,
+      "avg_30d": 22.67,
+      "avg_90d": 25.5,
+      "trend_7d": 1,
+      "trend_30d": -1
+    },
+    "suppliers": [
+      {
+        "supplier_id": "SUPPLIER_4",
+        "supplier_name": "Supplier 4",
+        "moq": 60,
+        "lead_time_days": 13,
+        "is_primary": true
+      }
+    ],
+    "locations": [
+      {
+        "location_id": "WAREHOUSE_1",
+        "location_name": "Main Warehouse",
+        "current_stock": 249
+      }
+    ]
+  },
+  {
+    "item_id": "M5_FOODS_1_134",
+    "product_name": "Product M5_FOODS_1_134",
+    "category": "FOODS",
+    "current_stock": 383,
+    "unit_cost": "58.50",
+    "safety_buffer_days": 7,
+    "dir": 216.6,
+    "stockout_risk": 0.082,
+    "status": "overstocked",
+    "inventory_value": "22405.50",
+    "sales_velocity": {
+      "avg_7d": 53.73,
+      "avg_30d": 55.75,
+      "avg_90d": 54.27,
+      "trend_7d": -1,
+      "trend_30d": 1
+    },
+    "suppliers": [
+      {
+        "supplier_id": "SUPPLIER_5",
+        "supplier_name": "Supplier 5",
+        "moq": 15,
+        "lead_time_days": 6,
+        "is_primary": true
+      }
+    ],
+    "locations": [
+      {
+        "location_id": "WAREHOUSE_1",
+        "location_name": "Main Warehouse",
+        "current_stock": 268
+      },
+      {
+        "location_id": "STORE_1",
+        "location_name": "Store Front",
+        "current_stock": 114
+      }
+    ]
+  },
+  {
+    "item_id": "M5_ELECTRONICS_1_135",
+    "product_name": "Product M5_ELECTRONICS_1_135",
+    "category": "ELECTRONICS",
+    "current_stock": 393,
+    "unit_cost": "35.07",
+    "safety_buffer_days": 7,
+    "dir": 275.7,
+    "stockout_risk": 0.027,
+    "status": "overstocked",
+    "inventory_value": "13782.51",
+    "sales_velocity": {
+      "avg_7d": 30.08,
+      "avg_30d": 27.84,
+      "avg_90d": 27.63,
+      "trend_7d": 1,
+      "trend_30d": 1
+    },
+    "suppliers": [
+      {
+        "supplier_id": "SUPPLIER_1",
+        "supplier_name": "Supplier 1",
+        "moq": 97,
+        "lead_time_days": 10,
+        "is_primary": true
+      },
+      {
+        "supplier_id": "SUPPLIER_3",
+        "supplier_name": "Supplier 3",
+        "moq": 79,
+        "lead_time_days": 14,
+        "is_primary": false
+      }
+    ],
+    "locations": [
+      {
+        "location_id": "WAREHOUSE_1",
+        "location_name": "Main Warehouse",
+        "current_stock": 275
+      }
+    ]
+  },
+  {
+    "item_id": "M5_HOUSEHOLD_1_136",
+    "product_name": "Product M5_HOUSEHOLD_1_136",
+    "category": "HOUSEHOLD",
+    "current_stock": 175,
+    "unit_cost": "24.14",
+    "safety_buffer_days": 7,
+    "dir": 217.7,
+    "stockout_risk": 0.172,
+    "status": "overstocked",
+    "inventory_value": "4224.50",
+    "sales_velocity": {
+      "avg_7d": 57.95,
+      "avg_30d": 58.23,
+      "avg_90d": 57.72,
+      "trend_7d": -1,
+      "trend_30d": 1
+    },
+    "suppliers": [
+      {
+        "supplier_id": "SUPPLIER_2",
+        "supplier_name": "Supplier 2",
+        "moq": 34,
+        "lead_time_days": 16,
+        "is_primary": true
+      }
+    ],
+    "locations": [
+      {
+        "location_id": "WAREHOUSE_1",
+        "location_name": "Main Warehouse",
+        "current_stock": 122
+      },
+      {
+        "location_id": "STORE_1",
+        "location_name": "Store Front",
+        "current_stock": 52
+      }
+    ]
+  },
+  {
+    "item_id": "M5_HOBBIES_1_137",
+    "product_name": "Product M5_HOBBIES_1_137",
+    "category": "HOBBIES",
+    "current_stock": 388,
+    "unit_cost": "30.79",
+    "safety_buffer_days": 7,
+    "dir": 117.4,
+    "stockout_risk": 0.196,
+    "status": "overstocked",
+    "inventory_value": "11946.52",
+    "sales_velocity": {
+      "avg_7d": 17.19,
+      "avg_30d": 16.6,
+      "avg_90d": 13.14,
+      "trend_7d": 1,
+      "trend_30d": 1
+    },
+    "suppliers": [
+      {
+        "supplier_id": "SUPPLIER_3",
+        "supplier_name": "Supplier 3",
+        "moq": 12,
+        "lead_time_days": 12,
+        "is_primary": true
+      }
+    ],
+    "locations": [
+      {
+        "location_id": "WAREHOUSE_1",
+        "location_name": "Main Warehouse",
+        "current_stock": 271
+      }
+    ]
+  },
+  {
+    "item_id": "M5_FOODS_1_138",
+    "product_name": "Product M5_FOODS_1_138",
+    "category": "FOODS",
+    "current_stock": 541,
+    "unit_cost": "49.87",
+    "safety_buffer_days": 7,
+    "dir": 102,
+    "stockout_risk": 0.074,
+    "status": "overstocked",
+    "inventory_value": "26979.67",
+    "sales_velocity": {
+      "avg_7d": 12.16,
+      "avg_30d": 10.19,
+      "avg_90d": 13.39,
+      "trend_7d": 1,
+      "trend_30d": -1
+    },
+    "suppliers": [
+      {
+        "supplier_id": "SUPPLIER_4",
+        "supplier_name": "Supplier 4",
+        "moq": 101,
+        "lead_time_days": 15,
+        "is_primary": true
+      },
+      {
+        "supplier_id": "SUPPLIER_1",
+        "supplier_name": "Supplier 1",
+        "moq": 101,
+        "lead_time_days": 13,
+        "is_primary": false
+      }
+    ],
+    "locations": [
+      {
+        "location_id": "WAREHOUSE_1",
+        "location_name": "Main Warehouse",
+        "current_stock": 378
+      },
+      {
+        "location_id": "STORE_1",
+        "location_name": "Store Front",
+        "current_stock": 162
+      }
+    ]
+  },
+  {
+    "item_id": "M5_ELECTRONICS_1_139",
+    "product_name": "Product M5_ELECTRONICS_1_139",
+    "category": "ELECTRONICS",
+    "current_stock": 205,
+    "unit_cost": "54.71",
+    "safety_buffer_days": 7,
+    "dir": 296.1,
+    "stockout_risk": 0.044,
+    "status": "overstocked",
+    "inventory_value": "11215.55",
+    "sales_velocity": {
+      "avg_7d": 13.82,
+      "avg_30d": 15.41,
+      "avg_90d": 19.83,
+      "trend_7d": -1,
+      "trend_30d": -1
+    },
+    "suppliers": [
+      {
+        "supplier_id": "SUPPLIER_5",
+        "supplier_name": "Supplier 5",
+        "moq": 90,
+        "lead_time_days": 8,
+        "is_primary": true
+      }
+    ],
+    "locations": [
+      {
+        "location_id": "WAREHOUSE_1",
+        "location_name": "Main Warehouse",
+        "current_stock": 143
+      }
+    ]
+  },
+  {
+    "item_id": "M5_HOUSEHOLD_1_140",
+    "product_name": "Product M5_HOUSEHOLD_1_140",
+    "category": "HOUSEHOLD",
+    "current_stock": 387,
+    "unit_cost": "44.01",
+    "safety_buffer_days": 7,
+    "dir": 141.6,
+    "stockout_risk": 0.152,
+    "status": "overstocked",
+    "inventory_value": "17031.87",
+    "sales_velocity": {
+      "avg_7d": 24.01,
+      "avg_30d": 25.38,
+      "avg_90d": 20.87,
+      "trend_7d": -1,
+      "trend_30d": 1
+    },
+    "suppliers": [
+      {
+        "supplier_id": "SUPPLIER_1",
+        "supplier_name": "Supplier 1",
+        "moq": 92,
+        "lead_time_days": 13,
+        "is_primary": true
+      }
+    ],
+    "locations": [
+      {
+        "location_id": "WAREHOUSE_1",
+        "location_name": "Main Warehouse",
+        "current_stock": 270
+      },
+      {
+        "location_id": "STORE_1",
+        "location_name": "Store Front",
+        "current_stock": 116
+      }
+    ]
+  },
+  {
+    "item_id": "M5_HOBBIES_1_141",
+    "product_name": "Product M5_HOBBIES_1_141",
+    "category": "HOBBIES",
+    "current_stock": 438,
+    "unit_cost": "20.40",
+    "safety_buffer_days": 7,
+    "dir": 108.9,
+    "stockout_risk": 0.199,
+    "status": "overstocked",
+    "inventory_value": "8935.20",
+    "sales_velocity": {
+      "avg_7d": 46.19,
+      "avg_30d": 47.82,
+      "avg_90d": 46.73,
+      "trend_7d": -1,
+      "trend_30d": 1
+    },
+    "suppliers": [
+      {
+        "supplier_id": "SUPPLIER_2",
+        "supplier_name": "Supplier 2",
+        "moq": 84,
+        "lead_time_days": 10,
+        "is_primary": true
+      },
+      {
+        "supplier_id": "SUPPLIER_4",
+        "supplier_name": "Supplier 4",
+        "moq": 16,
+        "lead_time_days": 6,
+        "is_primary": false
+      }
+    ],
+    "locations": [
+      {
+        "location_id": "WAREHOUSE_1",
+        "location_name": "Main Warehouse",
+        "current_stock": 306
+      }
+    ]
+  },
+  {
+    "item_id": "M5_FOODS_1_142",
+    "product_name": "Product M5_FOODS_1_142",
+    "category": "FOODS",
+    "current_stock": 82,
+    "unit_cost": "24.66",
+    "safety_buffer_days": 7,
+    "dir": 134.5,
+    "stockout_risk": 0.154,
+    "status": "overstocked",
+    "inventory_value": "2022.12",
+    "sales_velocity": {
+      "avg_7d": 50.08,
+      "avg_30d": 51.85,
+      "avg_90d": 55.7,
+      "trend_7d": -1,
+      "trend_30d": -1
+    },
+    "suppliers": [
+      {
+        "supplier_id": "SUPPLIER_3",
+        "supplier_name": "Supplier 3",
+        "moq": 47,
+        "lead_time_days": 7,
+        "is_primary": true
+      }
+    ],
+    "locations": [
+      {
+        "location_id": "WAREHOUSE_1",
+        "location_name": "Main Warehouse",
+        "current_stock": 57
+      },
+      {
+        "location_id": "STORE_1",
+        "location_name": "Store Front",
+        "current_stock": 24
+      }
+    ]
+  },
+  {
+    "item_id": "M5_ELECTRONICS_1_143",
+    "product_name": "Product M5_ELECTRONICS_1_143",
+    "category": "ELECTRONICS",
+    "current_stock": 102,
+    "unit_cost": "49.64",
+    "safety_buffer_days": 7,
+    "dir": 145.7,
+    "stockout_risk": 0.066,
+    "status": "overstocked",
+    "inventory_value": "5063.28",
+    "sales_velocity": {
+      "avg_7d": 37.43,
+      "avg_30d": 37.23,
+      "avg_90d": 37.39,
+      "trend_7d": 1,
+      "trend_30d": -1
+    },
+    "suppliers": [
+      {
+        "supplier_id": "SUPPLIER_4",
+        "supplier_name": "Supplier 4",
+        "moq": 11,
+        "lead_time_days": 7,
+        "is_primary": true
+      }
+    ],
+    "locations": [
+      {
+        "location_id": "WAREHOUSE_1",
+        "location_name": "Main Warehouse",
+        "current_stock": 71
+      }
+    ]
+  },
+  {
+    "item_id": "M5_HOUSEHOLD_1_144",
+    "product_name": "Product M5_HOUSEHOLD_1_144",
+    "category": "HOUSEHOLD",
+    "current_stock": 88,
+    "unit_cost": "23.93",
+    "safety_buffer_days": 7,
+    "dir": 139.8,
+    "stockout_risk": 0.062,
+    "status": "overstocked",
+    "inventory_value": "2105.84",
+    "sales_velocity": {
+      "avg_7d": 37.06,
+      "avg_30d": 38.3,
+      "avg_90d": 35.78,
+      "trend_7d": -1,
+      "trend_30d": 1
+    },
+    "suppliers": [
+      {
+        "supplier_id": "SUPPLIER_5",
+        "supplier_name": "Supplier 5",
+        "moq": 81,
+        "lead_time_days": 11,
+        "is_primary": true
+      },
+      {
+        "supplier_id": "SUPPLIER_2",
+        "supplier_name": "Supplier 2",
+        "moq": 60,
+        "lead_time_days": 16,
+        "is_primary": false
+      }
+    ],
+    "locations": [
+      {
+        "location_id": "WAREHOUSE_1",
+        "location_name": "Main Warehouse",
+        "current_stock": 61
+      },
+      {
+        "location_id": "STORE_1",
+        "location_name": "Store Front",
+        "current_stock": 26
+      }
+    ]
+  },
+  {
+    "item_id": "M5_HOBBIES_1_145",
+    "product_name": "Product M5_HOBBIES_1_145",
+    "category": "HOBBIES",
+    "current_stock": 353,
+    "unit_cost": "30.68",
+    "safety_buffer_days": 7,
+    "dir": 207.4,
+    "stockout_risk": 0.083,
+    "status": "overstocked",
+    "inventory_value": "10830.04",
+    "sales_velocity": {
+      "avg_7d": 46.18,
+      "avg_30d": 48.37,
+      "avg_90d": 47.94,
+      "trend_7d": -1,
+      "trend_30d": 1
+    },
+    "suppliers": [
+      {
+        "supplier_id": "SUPPLIER_1",
+        "supplier_name": "Supplier 1",
+        "moq": 29,
+        "lead_time_days": 11,
+        "is_primary": true
+      }
+    ],
+    "locations": [
+      {
+        "location_id": "WAREHOUSE_1",
+        "location_name": "Main Warehouse",
+        "current_stock": 247
+      }
+    ]
+  },
+  {
+    "item_id": "M5_FOODS_1_146",
+    "product_name": "Product M5_FOODS_1_146",
+    "category": "FOODS",
+    "current_stock": 243,
+    "unit_cost": "23.00",
+    "safety_buffer_days": 7,
+    "dir": 290.3,
+    "stockout_risk": 0.178,
+    "status": "overstocked",
+    "inventory_value": "5589.00",
+    "sales_velocity": {
+      "avg_7d": 39.58,
+      "avg_30d": 41.38,
+      "avg_90d": 37.15,
+      "trend_7d": -1,
+      "trend_30d": 1
+    },
+    "suppliers": [
+      {
+        "supplier_id": "SUPPLIER_2",
+        "supplier_name": "Supplier 2",
+        "moq": 62,
+        "lead_time_days": 9,
+        "is_primary": true
+      }
+    ],
+    "locations": [
+      {
+        "location_id": "WAREHOUSE_1",
+        "location_name": "Main Warehouse",
+        "current_stock": 170
+      },
+      {
+        "location_id": "STORE_1",
+        "location_name": "Store Front",
+        "current_stock": 72
+      }
+    ]
+  },
+  {
+    "item_id": "M5_ELECTRONICS_1_147",
+    "product_name": "Product M5_ELECTRONICS_1_147",
+    "category": "ELECTRONICS",
+    "current_stock": 476,
+    "unit_cost": "49.28",
+    "safety_buffer_days": 7,
+    "dir": 119.3,
+    "stockout_risk": 0.078,
+    "status": "overstocked",
+    "inventory_value": "23457.28",
+    "sales_velocity": {
+      "avg_7d": 24.36,
+      "avg_30d": 24.62,
+      "avg_90d": 27,
+      "trend_7d": -1,
+      "trend_30d": -1
+    },
+    "suppliers": [
+      {
+        "supplier_id": "SUPPLIER_3",
+        "supplier_name": "Supplier 3",
+        "moq": 65,
+        "lead_time_days": 4,
+        "is_primary": true
+      },
+      {
+        "supplier_id": "SUPPLIER_5",
+        "supplier_name": "Supplier 5",
+        "moq": 97,
+        "lead_time_days": 11,
+        "is_primary": false
+      }
+    ],
+    "locations": [
+      {
+        "location_id": "WAREHOUSE_1",
+        "location_name": "Main Warehouse",
+        "current_stock": 333
+      }
+    ]
+  },
+  {
+    "item_id": "M5_HOUSEHOLD_1_148",
+    "product_name": "Product M5_HOUSEHOLD_1_148",
+    "category": "HOUSEHOLD",
+    "current_stock": 447,
+    "unit_cost": "36.56",
+    "safety_buffer_days": 7,
+    "dir": 299.1,
+    "stockout_risk": 0.156,
+    "status": "overstocked",
+    "inventory_value": "16342.32",
+    "sales_velocity": {
+      "avg_7d": 49.45,
+      "avg_30d": 49.13,
+      "avg_90d": 52.18,
+      "trend_7d": 1,
+      "trend_30d": -1
+    },
+    "suppliers": [
+      {
+        "supplier_id": "SUPPLIER_4",
+        "supplier_name": "Supplier 4",
+        "moq": 82,
+        "lead_time_days": 7,
+        "is_primary": true
+      }
+    ],
+    "locations": [
+      {
+        "location_id": "WAREHOUSE_1",
+        "location_name": "Main Warehouse",
+        "current_stock": 312
+      },
+      {
+        "location_id": "STORE_1",
+        "location_name": "Store Front",
+        "current_stock": 134
+      }
+    ]
+  },
+  {
+    "item_id": "M5_HOBBIES_1_149",
+    "product_name": "Product M5_HOBBIES_1_149",
+    "category": "HOBBIES",
+    "current_stock": 486,
+    "unit_cost": "29.18",
+    "safety_buffer_days": 7,
+    "dir": 260.1,
+    "stockout_risk": 0.044,
+    "status": "overstocked",
+    "inventory_value": "14181.48",
+    "sales_velocity": {
+      "avg_7d": 32.51,
+      "avg_30d": 31.69,
+      "avg_90d": 27.69,
+      "trend_7d": 1,
+      "trend_30d": 1
+    },
+    "suppliers": [
+      {
+        "supplier_id": "SUPPLIER_5",
+        "supplier_name": "Supplier 5",
+        "moq": 37,
+        "lead_time_days": 3,
+        "is_primary": true
+      }
+    ],
+    "locations": [
+      {
+        "location_id": "WAREHOUSE_1",
+        "location_name": "Main Warehouse",
+        "current_stock": 340
+      }
+    ]
+  },
+  {
+    "item_id": "M5_FOODS_1_150",
+    "product_name": "Product M5_FOODS_1_150",
+    "category": "FOODS",
+    "current_stock": 99,
+    "unit_cost": "12.10",
+    "safety_buffer_days": 7,
+    "dir": 271,
+    "stockout_risk": 0.093,
+    "status": "overstocked",
+    "inventory_value": "1197.90",
+    "sales_velocity": {
+      "avg_7d": 17.75,
+      "avg_30d": 16.92,
+      "avg_90d": 19.81,
+      "trend_7d": 1,
+      "trend_30d": -1
+    },
+    "suppliers": [
+      {
+        "supplier_id": "SUPPLIER_1",
+        "supplier_name": "Supplier 1",
+        "moq": 67,
+        "lead_time_days": 8,
+        "is_primary": true
+      },
+      {
+        "supplier_id": "SUPPLIER_3",
+        "supplier_name": "Supplier 3",
+        "moq": 26,
+        "lead_time_days": 13,
+        "is_primary": false
+      }
+    ],
+    "locations": [
+      {
+        "location_id": "WAREHOUSE_1",
+        "location_name": "Main Warehouse",
+        "current_stock": 69
+      },
+      {
+        "location_id": "STORE_1",
+        "location_name": "Store Front",
+        "current_stock": 29
+      }
+    ]
+  },
+  {
+    "item_id": "M5_ELECTRONICS_1_151",
+    "product_name": "Product M5_ELECTRONICS_1_151",
+    "category": "ELECTRONICS",
+    "current_stock": 130,
+    "unit_cost": "56.24",
+    "safety_buffer_days": 7,
+    "dir": 287.2,
+    "stockout_risk": 0.166,
+    "status": "overstocked",
+    "inventory_value": "7311.20",
+    "sales_velocity": {
+      "avg_7d": 51.82,
+      "avg_30d": 52.8,
+      "avg_90d": 49.3,
+      "trend_7d": -1,
+      "trend_30d": 1
+    },
+    "suppliers": [
+      {
+        "supplier_id": "SUPPLIER_2",
+        "supplier_name": "Supplier 2",
+        "moq": 83,
+        "lead_time_days": 14,
+        "is_primary": true
+      }
+    ],
+    "locations": [
+      {
+        "location_id": "WAREHOUSE_1",
+        "location_name": "Main Warehouse",
+        "current_stock": 91
+      }
+    ]
+  },
+  {
+    "item_id": "M5_HOUSEHOLD_1_152",
+    "product_name": "Product M5_HOUSEHOLD_1_152",
+    "category": "HOUSEHOLD",
+    "current_stock": 460,
+    "unit_cost": "54.65",
+    "safety_buffer_days": 7,
+    "dir": 173.3,
+    "stockout_risk": 0.05,
+    "status": "overstocked",
+    "inventory_value": "25139.00",
+    "sales_velocity": {
+      "avg_7d": 17.18,
+      "avg_30d": 15.1,
+      "avg_90d": 17.14,
+      "trend_7d": 1,
+      "trend_30d": -1
+    },
+    "suppliers": [
+      {
+        "supplier_id": "SUPPLIER_3",
+        "supplier_name": "Supplier 3",
+        "moq": 97,
+        "lead_time_days": 10,
+        "is_primary": true
+      }
+    ],
+    "locations": [
+      {
+        "location_id": "WAREHOUSE_1",
+        "location_name": "Main Warehouse",
+        "current_stock": 322
+      },
+      {
+        "location_id": "STORE_1",
+        "location_name": "Store Front",
+        "current_stock": 138
+      }
+    ]
+  },
+  {
+    "item_id": "M5_HOBBIES_1_153",
+    "product_name": "Product M5_HOBBIES_1_153",
+    "category": "HOBBIES",
+    "current_stock": 361,
+    "unit_cost": "25.83",
+    "safety_buffer_days": 7,
+    "dir": 276.3,
+    "stockout_risk": 0.068,
+    "status": "overstocked",
+    "inventory_value": "9324.63",
+    "sales_velocity": {
+      "avg_7d": 56.37,
+      "avg_30d": 56.58,
+      "avg_90d": 53.01,
+      "trend_7d": -1,
+      "trend_30d": 1
+    },
+    "suppliers": [
+      {
+        "supplier_id": "SUPPLIER_4",
+        "supplier_name": "Supplier 4",
+        "moq": 46,
+        "lead_time_days": 5,
+        "is_primary": true
+      },
+      {
+        "supplier_id": "SUPPLIER_1",
+        "supplier_name": "Supplier 1",
+        "moq": 58,
+        "lead_time_days": 16,
+        "is_primary": false
+      }
+    ],
+    "locations": [
+      {
+        "location_id": "WAREHOUSE_1",
+        "location_name": "Main Warehouse",
+        "current_stock": 252
+      }
+    ]
+  },
+  {
+    "item_id": "M5_FOODS_1_154",
+    "product_name": "Product M5_FOODS_1_154",
+    "category": "FOODS",
+    "current_stock": 394,
+    "unit_cost": "43.07",
+    "safety_buffer_days": 7,
+    "dir": 201.7,
+    "stockout_risk": 0.086,
+    "status": "overstocked",
+    "inventory_value": "16969.58",
+    "sales_velocity": {
+      "avg_7d": 58.62,
+      "avg_30d": 60.92,
+      "avg_90d": 58.74,
+      "trend_7d": -1,
+      "trend_30d": 1
+    },
+    "suppliers": [
+      {
+        "supplier_id": "SUPPLIER_5",
+        "supplier_name": "Supplier 5",
+        "moq": 39,
+        "lead_time_days": 13,
+        "is_primary": true
+      }
+    ],
+    "locations": [
+      {
+        "location_id": "WAREHOUSE_1",
+        "location_name": "Main Warehouse",
+        "current_stock": 275
+      },
+      {
+        "location_id": "STORE_1",
+        "location_name": "Store Front",
+        "current_stock": 118
+      }
+    ]
+  },
+  {
+    "item_id": "M5_ELECTRONICS_1_155",
+    "product_name": "Product M5_ELECTRONICS_1_155",
+    "category": "ELECTRONICS",
+    "current_stock": 211,
+    "unit_cost": "40.11",
+    "safety_buffer_days": 7,
+    "dir": 131.3,
+    "stockout_risk": 0.131,
+    "status": "overstocked",
+    "inventory_value": "8463.21",
+    "sales_velocity": {
+      "avg_7d": 53.68,
+      "avg_30d": 51.35,
+      "avg_90d": 54.59,
+      "trend_7d": 1,
+      "trend_30d": -1
+    },
+    "suppliers": [
+      {
+        "supplier_id": "SUPPLIER_1",
+        "supplier_name": "Supplier 1",
+        "moq": 105,
+        "lead_time_days": 12,
+        "is_primary": true
+      }
+    ],
+    "locations": [
+      {
+        "location_id": "WAREHOUSE_1",
+        "location_name": "Main Warehouse",
+        "current_stock": 147
+      }
+    ]
+  },
+  {
+    "item_id": "M5_HOUSEHOLD_1_156",
+    "product_name": "Product M5_HOUSEHOLD_1_156",
+    "category": "HOUSEHOLD",
+    "current_stock": 376,
+    "unit_cost": "50.58",
+    "safety_buffer_days": 7,
+    "dir": 286.1,
+    "stockout_risk": 0.076,
+    "status": "overstocked",
+    "inventory_value": "19018.08",
+    "sales_velocity": {
+      "avg_7d": 10.57,
+      "avg_30d": 9.4,
+      "avg_90d": 11.37,
+      "trend_7d": 1,
+      "trend_30d": -1
+    },
+    "suppliers": [
+      {
+        "supplier_id": "SUPPLIER_2",
+        "supplier_name": "Supplier 2",
+        "moq": 48,
+        "lead_time_days": 11,
+        "is_primary": true
+      },
+      {
+        "supplier_id": "SUPPLIER_4",
+        "supplier_name": "Supplier 4",
+        "moq": 20,
+        "lead_time_days": 13,
+        "is_primary": false
+      }
+    ],
+    "locations": [
+      {
+        "location_id": "WAREHOUSE_1",
+        "location_name": "Main Warehouse",
+        "current_stock": 263
+      },
+      {
+        "location_id": "STORE_1",
+        "location_name": "Store Front",
+        "current_stock": 112
+      }
+    ]
+  },
+  {
+    "item_id": "M5_HOBBIES_1_157",
+    "product_name": "Product M5_HOBBIES_1_157",
+    "category": "HOBBIES",
+    "current_stock": 95,
+    "unit_cost": "14.00",
+    "safety_buffer_days": 7,
+    "dir": 152.2,
+    "stockout_risk": 0.074,
+    "status": "overstocked",
+    "inventory_value": "1330.00",
+    "sales_velocity": {
+      "avg_7d": 15.07,
+      "avg_30d": 17,
+      "avg_90d": 17.4,
+      "trend_7d": -1,
+      "trend_30d": -1
+    },
+    "suppliers": [
+      {
+        "supplier_id": "SUPPLIER_3",
+        "supplier_name": "Supplier 3",
+        "moq": 16,
+        "lead_time_days": 10,
+        "is_primary": true
+      }
+    ],
+    "locations": [
+      {
+        "location_id": "WAREHOUSE_1",
+        "location_name": "Main Warehouse",
+        "current_stock": 66
+      }
+    ]
+  },
+  {
+    "item_id": "M5_FOODS_1_158",
+    "product_name": "Product M5_FOODS_1_158",
+    "category": "FOODS",
+    "current_stock": 331,
+    "unit_cost": "29.57",
+    "safety_buffer_days": 7,
+    "dir": 184.2,
+    "stockout_risk": 0.187,
+    "status": "overstocked",
+    "inventory_value": "9787.67",
+    "sales_velocity": {
+      "avg_7d": 37.02,
+      "avg_30d": 38.43,
+      "avg_90d": 37.08,
+      "trend_7d": -1,
+      "trend_30d": 1
+    },
+    "suppliers": [
+      {
+        "supplier_id": "SUPPLIER_4",
+        "supplier_name": "Supplier 4",
+        "moq": 99,
+        "lead_time_days": 11,
+        "is_primary": true
+      }
+    ],
+    "locations": [
+      {
+        "location_id": "WAREHOUSE_1",
+        "location_name": "Main Warehouse",
+        "current_stock": 231
+      },
+      {
+        "location_id": "STORE_1",
+        "location_name": "Store Front",
+        "current_stock": 99
+      }
+    ]
+  },
+  {
+    "item_id": "M5_ELECTRONICS_1_159",
+    "product_name": "Product M5_ELECTRONICS_1_159",
+    "category": "ELECTRONICS",
+    "current_stock": 67,
+    "unit_cost": "15.35",
+    "safety_buffer_days": 7,
+    "dir": 191.6,
+    "stockout_risk": 0.091,
+    "status": "overstocked",
+    "inventory_value": "1028.45",
+    "sales_velocity": {
+      "avg_7d": 31.52,
+      "avg_30d": 29.21,
+      "avg_90d": 31.08,
+      "trend_7d": 1,
+      "trend_30d": -1
+    },
+    "suppliers": [
+      {
+        "supplier_id": "SUPPLIER_5",
+        "supplier_name": "Supplier 5",
+        "moq": 84,
+        "lead_time_days": 16,
+        "is_primary": true
+      },
+      {
+        "supplier_id": "SUPPLIER_2",
+        "supplier_name": "Supplier 2",
+        "moq": 59,
+        "lead_time_days": 11,
+        "is_primary": false
+      }
+    ],
+    "locations": [
+      {
+        "location_id": "WAREHOUSE_1",
+        "location_name": "Main Warehouse",
+        "current_stock": 46
+      }
+    ]
+  },
+  {
+    "item_id": "M5_HOUSEHOLD_1_160",
+    "product_name": "Product M5_HOUSEHOLD_1_160",
+    "category": "HOUSEHOLD",
+    "current_stock": 124,
+    "unit_cost": "26.26",
+    "safety_buffer_days": 7,
+    "dir": 162.5,
+    "stockout_risk": 0.135,
+    "status": "overstocked",
+    "inventory_value": "3256.24",
+    "sales_velocity": {
+      "avg_7d": 18.82,
+      "avg_30d": 19.98,
+      "avg_90d": 17.82,
+      "trend_7d": -1,
+      "trend_30d": 1
+    },
+    "suppliers": [
+      {
+        "supplier_id": "SUPPLIER_1",
+        "supplier_name": "Supplier 1",
+        "moq": 91,
+        "lead_time_days": 6,
+        "is_primary": true
+      }
+    ],
+    "locations": [
+      {
+        "location_id": "WAREHOUSE_1",
+        "location_name": "Main Warehouse",
+        "current_stock": 86
+      },
+      {
+        "location_id": "STORE_1",
+        "location_name": "Store Front",
+        "current_stock": 37
+      }
+    ]
+  },
+  {
+    "item_id": "M5_HOBBIES_1_161",
+    "product_name": "Product M5_HOBBIES_1_161",
+    "category": "HOBBIES",
+    "current_stock": 243,
+    "unit_cost": "29.14",
+    "safety_buffer_days": 7,
+    "dir": 150.7,
+    "stockout_risk": 0.066,
+    "status": "overstocked",
+    "inventory_value": "7081.02",
+    "sales_velocity": {
+      "avg_7d": 13.77,
+      "avg_30d": 13.53,
+      "avg_90d": 16.38,
+      "trend_7d": 1,
+      "trend_30d": -1
+    },
+    "suppliers": [
+      {
+        "supplier_id": "SUPPLIER_2",
+        "supplier_name": "Supplier 2",
+        "moq": 90,
+        "lead_time_days": 9,
+        "is_primary": true
+      }
+    ],
+    "locations": [
+      {
+        "location_id": "WAREHOUSE_1",
+        "location_name": "Main Warehouse",
+        "current_stock": 170
+      }
+    ]
+  },
+  {
+    "item_id": "M5_FOODS_1_162",
+    "product_name": "Product M5_FOODS_1_162",
+    "category": "FOODS",
+    "current_stock": 322,
+    "unit_cost": "11.24",
+    "safety_buffer_days": 7,
+    "dir": 142.6,
+    "stockout_risk": 0.039,
+    "status": "overstocked",
+    "inventory_value": "3619.28",
+    "sales_velocity": {
+      "avg_7d": 45.25,
+      "avg_30d": 43.88,
+      "avg_90d": 44.24,
+      "trend_7d": 1,
+      "trend_30d": -1
+    },
+    "suppliers": [
+      {
+        "supplier_id": "SUPPLIER_3",
+        "supplier_name": "Supplier 3",
+        "moq": 100,
+        "lead_time_days": 7,
+        "is_primary": true
+      },
+      {
+        "supplier_id": "SUPPLIER_5",
+        "supplier_name": "Supplier 5",
+        "moq": 64,
+        "lead_time_days": 6,
+        "is_primary": false
+      }
+    ],
+    "locations": [
+      {
+        "location_id": "WAREHOUSE_1",
+        "location_name": "Main Warehouse",
+        "current_stock": 225
+      },
+      {
+        "location_id": "STORE_1",
+        "location_name": "Store Front",
+        "current_stock": 96
+      }
+    ]
+  },
+  {
+    "item_id": "M5_ELECTRONICS_1_163",
+    "product_name": "Product M5_ELECTRONICS_1_163",
+    "category": "ELECTRONICS",
+    "current_stock": 60,
+    "unit_cost": "23.96",
+    "safety_buffer_days": 7,
+    "dir": 283.6,
+    "stockout_risk": 0.157,
+    "status": "overstocked",
+    "inventory_value": "1437.60",
+    "sales_velocity": {
+      "avg_7d": 18.32,
+      "avg_30d": 17.5,
+      "avg_90d": 20.41,
+      "trend_7d": 1,
+      "trend_30d": -1
+    },
+    "suppliers": [
+      {
+        "supplier_id": "SUPPLIER_4",
+        "supplier_name": "Supplier 4",
+        "moq": 101,
+        "lead_time_days": 4,
+        "is_primary": true
+      }
+    ],
+    "locations": [
+      {
+        "location_id": "WAREHOUSE_1",
+        "location_name": "Main Warehouse",
+        "current_stock": 42
+      }
+    ]
+  },
+  {
+    "item_id": "M5_HOUSEHOLD_1_164",
+    "product_name": "Product M5_HOUSEHOLD_1_164",
+    "category": "HOUSEHOLD",
+    "current_stock": 533,
+    "unit_cost": "30.40",
+    "safety_buffer_days": 7,
+    "dir": 117,
+    "stockout_risk": 0.014,
+    "status": "overstocked",
+    "inventory_value": "16203.20",
+    "sales_velocity": {
+      "avg_7d": 23.68,
+      "avg_30d": 23.89,
+      "avg_90d": 26.08,
+      "trend_7d": -1,
+      "trend_30d": -1
+    },
+    "suppliers": [
+      {
+        "supplier_id": "SUPPLIER_5",
+        "supplier_name": "Supplier 5",
+        "moq": 53,
+        "lead_time_days": 5,
+        "is_primary": true
+      }
+    ],
+    "locations": [
+      {
+        "location_id": "WAREHOUSE_1",
+        "location_name": "Main Warehouse",
+        "current_stock": 373
+      },
+      {
+        "location_id": "STORE_1",
+        "location_name": "Store Front",
+        "current_stock": 159
+      }
+    ]
+  },
+  {
+    "item_id": "M5_HOBBIES_1_165",
+    "product_name": "Product M5_HOBBIES_1_165",
+    "category": "HOBBIES",
+    "current_stock": 252,
+    "unit_cost": "18.89",
+    "safety_buffer_days": 7,
+    "dir": 102.1,
+    "stockout_risk": 0.039,
+    "status": "overstocked",
+    "inventory_value": "4760.28",
+    "sales_velocity": {
+      "avg_7d": 54.05,
+      "avg_30d": 52.33,
+      "avg_90d": 48.14,
+      "trend_7d": 1,
+      "trend_30d": 1
+    },
+    "suppliers": [
+      {
+        "supplier_id": "SUPPLIER_1",
+        "supplier_name": "Supplier 1",
+        "moq": 36,
+        "lead_time_days": 5,
+        "is_primary": true
+      },
+      {
+        "supplier_id": "SUPPLIER_3",
+        "supplier_name": "Supplier 3",
+        "moq": 46,
+        "lead_time_days": 10,
+        "is_primary": false
+      }
+    ],
+    "locations": [
+      {
+        "location_id": "WAREHOUSE_1",
+        "location_name": "Main Warehouse",
+        "current_stock": 176
+      }
+    ]
+  },
+  {
+    "item_id": "M5_FOODS_1_166",
+    "product_name": "Product M5_FOODS_1_166",
+    "category": "FOODS",
+    "current_stock": 238,
+    "unit_cost": "54.32",
+    "safety_buffer_days": 7,
+    "dir": 106.9,
+    "stockout_risk": 0.162,
+    "status": "overstocked",
+    "inventory_value": "12928.16",
+    "sales_velocity": {
+      "avg_7d": 23,
+      "avg_30d": 24.81,
+      "avg_90d": 21.37,
+      "trend_7d": -1,
+      "trend_30d": 1
+    },
+    "suppliers": [
+      {
+        "supplier_id": "SUPPLIER_2",
+        "supplier_name": "Supplier 2",
+        "moq": 62,
+        "lead_time_days": 8,
+        "is_primary": true
+      }
+    ],
+    "locations": [
+      {
+        "location_id": "WAREHOUSE_1",
+        "location_name": "Main Warehouse",
+        "current_stock": 166
+      },
+      {
+        "location_id": "STORE_1",
+        "location_name": "Store Front",
+        "current_stock": 71
+      }
+    ]
+  },
+  {
+    "item_id": "M5_ELECTRONICS_1_167",
+    "product_name": "Product M5_ELECTRONICS_1_167",
+    "category": "ELECTRONICS",
+    "current_stock": 85,
+    "unit_cost": "39.19",
+    "safety_buffer_days": 7,
+    "dir": 261.8,
+    "stockout_risk": 0.009,
+    "status": "overstocked",
+    "inventory_value": "3331.15",
+    "sales_velocity": {
+      "avg_7d": 35.99,
+      "avg_30d": 35.57,
+      "avg_90d": 33.21,
+      "trend_7d": 1,
+      "trend_30d": 1
+    },
+    "suppliers": [
+      {
+        "supplier_id": "SUPPLIER_3",
+        "supplier_name": "Supplier 3",
+        "moq": 35,
+        "lead_time_days": 5,
+        "is_primary": true
+      }
+    ],
+    "locations": [
+      {
+        "location_id": "WAREHOUSE_1",
+        "location_name": "Main Warehouse",
+        "current_stock": 59
+      }
+    ]
+  },
+  {
+    "item_id": "M5_HOUSEHOLD_1_168",
+    "product_name": "Product M5_HOUSEHOLD_1_168",
+    "category": "HOUSEHOLD",
+    "current_stock": 354,
+    "unit_cost": "50.31",
+    "safety_buffer_days": 7,
+    "dir": 179,
+    "stockout_risk": 0.004,
+    "status": "overstocked",
+    "inventory_value": "17809.74",
+    "sales_velocity": {
+      "avg_7d": 37.92,
+      "avg_30d": 35.72,
+      "avg_90d": 40.25,
+      "trend_7d": 1,
+      "trend_30d": -1
+    },
+    "suppliers": [
+      {
+        "supplier_id": "SUPPLIER_4",
+        "supplier_name": "Supplier 4",
+        "moq": 53,
+        "lead_time_days": 11,
+        "is_primary": true
+      },
+      {
+        "supplier_id": "SUPPLIER_1",
+        "supplier_name": "Supplier 1",
+        "moq": 55,
+        "lead_time_days": 4,
+        "is_primary": false
+      }
+    ],
+    "locations": [
+      {
+        "location_id": "WAREHOUSE_1",
+        "location_name": "Main Warehouse",
+        "current_stock": 247
+      },
+      {
+        "location_id": "STORE_1",
+        "location_name": "Store Front",
+        "current_stock": 106
+      }
+    ]
+  },
+  {
+    "item_id": "M5_HOBBIES_1_169",
+    "product_name": "Product M5_HOBBIES_1_169",
+    "category": "HOBBIES",
+    "current_stock": 316,
+    "unit_cost": "26.53",
+    "safety_buffer_days": 7,
+    "dir": 140.5,
+    "stockout_risk": 0.03,
+    "status": "overstocked",
+    "inventory_value": "8383.48",
+    "sales_velocity": {
+      "avg_7d": 47.56,
+      "avg_30d": 50.04,
+      "avg_90d": 52.44,
+      "trend_7d": -1,
+      "trend_30d": -1
+    },
+    "suppliers": [
+      {
+        "supplier_id": "SUPPLIER_5",
+        "supplier_name": "Supplier 5",
+        "moq": 33,
+        "lead_time_days": 6,
+        "is_primary": true
+      }
+    ],
+    "locations": [
+      {
+        "location_id": "WAREHOUSE_1",
+        "location_name": "Main Warehouse",
+        "current_stock": 221
+      }
+    ]
+  },
+  {
+    "item_id": "M5_FOODS_1_170",
+    "product_name": "Product M5_FOODS_1_170",
+    "category": "FOODS",
+    "current_stock": 206,
+    "unit_cost": "56.34",
+    "safety_buffer_days": 7,
+    "dir": 196.3,
+    "stockout_risk": 0.134,
+    "status": "overstocked",
+    "inventory_value": "11606.04",
+    "sales_velocity": {
+      "avg_7d": 56.57,
+      "avg_30d": 56.46,
+      "avg_90d": 56.04,
+      "trend_7d": 1,
+      "trend_30d": 1
+    },
+    "suppliers": [
+      {
+        "supplier_id": "SUPPLIER_1",
+        "supplier_name": "Supplier 1",
+        "moq": 77,
+        "lead_time_days": 9,
+        "is_primary": true
+      }
+    ],
+    "locations": [
+      {
+        "location_id": "WAREHOUSE_1",
+        "location_name": "Main Warehouse",
+        "current_stock": 144
+      },
+      {
+        "location_id": "STORE_1",
+        "location_name": "Store Front",
+        "current_stock": 61
+      }
+    ]
+  },
+  {
+    "item_id": "M5_ELECTRONICS_1_171",
+    "product_name": "Product M5_ELECTRONICS_1_171",
+    "category": "ELECTRONICS",
+    "current_stock": 50,
+    "unit_cost": "43.46",
+    "safety_buffer_days": 7,
+    "dir": 278.3,
+    "stockout_risk": 0.083,
+    "status": "overstocked",
+    "inventory_value": "2173.00",
+    "sales_velocity": {
+      "avg_7d": 30.49,
+      "avg_30d": 31.83,
+      "avg_90d": 28.82,
+      "trend_7d": -1,
+      "trend_30d": 1
+    },
+    "suppliers": [
+      {
+        "supplier_id": "SUPPLIER_2",
+        "supplier_name": "Supplier 2",
+        "moq": 78,
+        "lead_time_days": 7,
+        "is_primary": true
+      },
+      {
+        "supplier_id": "SUPPLIER_4",
+        "supplier_name": "Supplier 4",
+        "moq": 84,
+        "lead_time_days": 9,
+        "is_primary": false
+      }
+    ],
+    "locations": [
+      {
+        "location_id": "WAREHOUSE_1",
+        "location_name": "Main Warehouse",
+        "current_stock": 35
+      }
+    ]
+  },
+  {
+    "item_id": "M5_HOUSEHOLD_1_172",
+    "product_name": "Product M5_HOUSEHOLD_1_172",
+    "category": "HOUSEHOLD",
+    "current_stock": 326,
+    "unit_cost": "32.65",
+    "safety_buffer_days": 7,
+    "dir": 193.9,
+    "stockout_risk": 0.145,
+    "status": "overstocked",
+    "inventory_value": "10643.90",
+    "sales_velocity": {
+      "avg_7d": 50.8,
+      "avg_30d": 51.29,
+      "avg_90d": 51.53,
+      "trend_7d": -1,
+      "trend_30d": -1
+    },
+    "suppliers": [
+      {
+        "supplier_id": "SUPPLIER_3",
+        "supplier_name": "Supplier 3",
+        "moq": 23,
+        "lead_time_days": 11,
+        "is_primary": true
+      }
+    ],
+    "locations": [
+      {
+        "location_id": "WAREHOUSE_1",
+        "location_name": "Main Warehouse",
+        "current_stock": 228
+      },
+      {
+        "location_id": "STORE_1",
+        "location_name": "Store Front",
+        "current_stock": 97
+      }
+    ]
+  },
+  {
+    "item_id": "M5_HOBBIES_1_173",
+    "product_name": "Product M5_HOBBIES_1_173",
+    "category": "HOBBIES",
+    "current_stock": 241,
+    "unit_cost": "41.14",
+    "safety_buffer_days": 7,
+    "dir": 140.8,
+    "stockout_risk": 0.149,
+    "status": "overstocked",
+    "inventory_value": "9914.74",
+    "sales_velocity": {
+      "avg_7d": 21.39,
+      "avg_30d": 19.01,
+      "avg_90d": 23.21,
+      "trend_7d": 1,
+      "trend_30d": -1
+    },
+    "suppliers": [
+      {
+        "supplier_id": "SUPPLIER_4",
+        "supplier_name": "Supplier 4",
+        "moq": 88,
+        "lead_time_days": 6,
+        "is_primary": true
+      }
+    ],
+    "locations": [
+      {
+        "location_id": "WAREHOUSE_1",
+        "location_name": "Main Warehouse",
+        "current_stock": 168
+      }
+    ]
+  },
+  {
+    "item_id": "M5_FOODS_1_174",
+    "product_name": "Product M5_FOODS_1_174",
+    "category": "FOODS",
+    "current_stock": 167,
+    "unit_cost": "45.64",
+    "safety_buffer_days": 7,
+    "dir": 233.3,
+    "stockout_risk": 0.022,
+    "status": "overstocked",
+    "inventory_value": "7621.88",
+    "sales_velocity": {
+      "avg_7d": 11.16,
+      "avg_30d": 13.57,
+      "avg_90d": 17.77,
+      "trend_7d": -1,
+      "trend_30d": -1
+    },
+    "suppliers": [
+      {
+        "supplier_id": "SUPPLIER_5",
+        "supplier_name": "Supplier 5",
+        "moq": 25,
+        "lead_time_days": 4,
+        "is_primary": true
+      },
+      {
+        "supplier_id": "SUPPLIER_2",
+        "supplier_name": "Supplier 2",
+        "moq": 67,
+        "lead_time_days": 5,
+        "is_primary": false
+      }
+    ],
+    "locations": [
+      {
+        "location_id": "WAREHOUSE_1",
+        "location_name": "Main Warehouse",
+        "current_stock": 116
+      },
+      {
+        "location_id": "STORE_1",
+        "location_name": "Store Front",
+        "current_stock": 50
+      }
+    ]
+  },
+  {
+    "item_id": "M5_ELECTRONICS_1_175",
+    "product_name": "Product M5_ELECTRONICS_1_175",
+    "category": "ELECTRONICS",
+    "current_stock": 76,
+    "unit_cost": "30.79",
+    "safety_buffer_days": 7,
+    "dir": 284.2,
+    "stockout_risk": 0.01,
+    "status": "overstocked",
+    "inventory_value": "2340.04",
+    "sales_velocity": {
+      "avg_7d": 24.55,
+      "avg_30d": 26.99,
+      "avg_90d": 28.33,
+      "trend_7d": -1,
+      "trend_30d": -1
+    },
+    "suppliers": [
+      {
+        "supplier_id": "SUPPLIER_1",
+        "supplier_name": "Supplier 1",
+        "moq": 94,
+        "lead_time_days": 5,
+        "is_primary": true
+      }
+    ],
+    "locations": [
+      {
+        "location_id": "WAREHOUSE_1",
+        "location_name": "Main Warehouse",
+        "current_stock": 53
+      }
+    ]
+  },
+  {
+    "item_id": "M5_HOUSEHOLD_1_176",
+    "product_name": "Product M5_HOUSEHOLD_1_176",
+    "category": "HOUSEHOLD",
+    "current_stock": 522,
+    "unit_cost": "52.66",
+    "safety_buffer_days": 7,
+    "dir": 155.2,
+    "stockout_risk": 0.18,
+    "status": "overstocked",
+    "inventory_value": "27488.52",
+    "sales_velocity": {
+      "avg_7d": 18.36,
+      "avg_30d": 16.99,
+      "avg_90d": 12.56,
+      "trend_7d": 1,
+      "trend_30d": 1
+    },
+    "suppliers": [
+      {
+        "supplier_id": "SUPPLIER_2",
+        "supplier_name": "Supplier 2",
+        "moq": 62,
+        "lead_time_days": 10,
+        "is_primary": true
+      }
+    ],
+    "locations": [
+      {
+        "location_id": "WAREHOUSE_1",
+        "location_name": "Main Warehouse",
+        "current_stock": 365
+      },
+      {
+        "location_id": "STORE_1",
+        "location_name": "Store Front",
+        "current_stock": 156
+      }
+    ]
+  },
+  {
+    "item_id": "M5_HOBBIES_1_177",
+    "product_name": "Product M5_HOBBIES_1_177",
+    "category": "HOBBIES",
+    "current_stock": 422,
+    "unit_cost": "46.47",
+    "safety_buffer_days": 7,
+    "dir": 248.8,
+    "stockout_risk": 0.159,
+    "status": "overstocked",
+    "inventory_value": "19610.34",
+    "sales_velocity": {
+      "avg_7d": 25.22,
+      "avg_30d": 25.36,
+      "avg_90d": 25.44,
+      "trend_7d": -1,
+      "trend_30d": -1
+    },
+    "suppliers": [
+      {
+        "supplier_id": "SUPPLIER_3",
+        "supplier_name": "Supplier 3",
+        "moq": 107,
+        "lead_time_days": 6,
+        "is_primary": true
+      },
+      {
+        "supplier_id": "SUPPLIER_5",
+        "supplier_name": "Supplier 5",
+        "moq": 104,
+        "lead_time_days": 4,
+        "is_primary": false
+      }
+    ],
+    "locations": [
+      {
+        "location_id": "WAREHOUSE_1",
+        "location_name": "Main Warehouse",
+        "current_stock": 295
+      }
+    ]
+  },
+  {
+    "item_id": "M5_FOODS_1_178",
+    "product_name": "Product M5_FOODS_1_178",
+    "category": "FOODS",
+    "current_stock": 384,
+    "unit_cost": "37.58",
+    "safety_buffer_days": 7,
+    "dir": 275.1,
+    "stockout_risk": 0.07,
+    "status": "overstocked",
+    "inventory_value": "14430.72",
+    "sales_velocity": {
+      "avg_7d": 28.07,
+      "avg_30d": 28.9,
+      "avg_90d": 31.15,
+      "trend_7d": -1,
+      "trend_30d": -1
+    },
+    "suppliers": [
+      {
+        "supplier_id": "SUPPLIER_4",
+        "supplier_name": "Supplier 4",
+        "moq": 68,
+        "lead_time_days": 3,
+        "is_primary": true
+      }
+    ],
+    "locations": [
+      {
+        "location_id": "WAREHOUSE_1",
+        "location_name": "Main Warehouse",
+        "current_stock": 268
+      },
+      {
+        "location_id": "STORE_1",
+        "location_name": "Store Front",
+        "current_stock": 115
+      }
+    ]
+  },
+  {
+    "item_id": "M5_ELECTRONICS_1_179",
+    "product_name": "Product M5_ELECTRONICS_1_179",
+    "category": "ELECTRONICS",
+    "current_stock": 449,
+    "unit_cost": "44.74",
+    "safety_buffer_days": 7,
+    "dir": 118.3,
+    "stockout_risk": 0.092,
+    "status": "overstocked",
+    "inventory_value": "20088.26",
+    "sales_velocity": {
+      "avg_7d": 53.13,
+      "avg_30d": 53.97,
+      "avg_90d": 55.27,
+      "trend_7d": -1,
+      "trend_30d": -1
+    },
+    "suppliers": [
+      {
+        "supplier_id": "SUPPLIER_5",
+        "supplier_name": "Supplier 5",
+        "moq": 25,
+        "lead_time_days": 6,
+        "is_primary": true
+      }
+    ],
+    "locations": [
+      {
+        "location_id": "WAREHOUSE_1",
+        "location_name": "Main Warehouse",
+        "current_stock": 314
+      }
+    ]
+  },
+  {
+    "item_id": "M5_HOUSEHOLD_1_180",
+    "product_name": "Product M5_HOUSEHOLD_1_180",
+    "category": "HOUSEHOLD",
+    "current_stock": 189,
+    "unit_cost": "46.28",
+    "safety_buffer_days": 7,
+    "dir": 159.2,
+    "stockout_risk": 0.136,
+    "status": "overstocked",
+    "inventory_value": "8746.92",
+    "sales_velocity": {
+      "avg_7d": 24.13,
+      "avg_30d": 26.44,
+      "avg_90d": 26.05,
+      "trend_7d": -1,
+      "trend_30d": 1
+    },
+    "suppliers": [
+      {
+        "supplier_id": "SUPPLIER_1",
+        "supplier_name": "Supplier 1",
+        "moq": 37,
+        "lead_time_days": 11,
+        "is_primary": true
+      },
+      {
+        "supplier_id": "SUPPLIER_3",
+        "supplier_name": "Supplier 3",
+        "moq": 40,
+        "lead_time_days": 13,
+        "is_primary": false
+      }
+    ],
+    "locations": [
+      {
+        "location_id": "WAREHOUSE_1",
+        "location_name": "Main Warehouse",
+        "current_stock": 132
+      },
+      {
+        "location_id": "STORE_1",
+        "location_name": "Store Front",
+        "current_stock": 56
+      }
+    ]
+  },
+  {
+    "item_id": "M5_HOBBIES_1_181",
+    "product_name": "Product M5_HOBBIES_1_181",
+    "category": "HOBBIES",
+    "current_stock": 58,
+    "unit_cost": "46.67",
+    "safety_buffer_days": 7,
+    "dir": 226.4,
+    "stockout_risk": 0.11,
+    "status": "overstocked",
+    "inventory_value": "2706.86",
+    "sales_velocity": {
+      "avg_7d": 15.89,
+      "avg_30d": 14.42,
+      "avg_90d": 10.66,
+      "trend_7d": 1,
+      "trend_30d": 1
+    },
+    "suppliers": [
+      {
+        "supplier_id": "SUPPLIER_2",
+        "supplier_name": "Supplier 2",
+        "moq": 80,
+        "lead_time_days": 8,
+        "is_primary": true
+      }
+    ],
+    "locations": [
+      {
+        "location_id": "WAREHOUSE_1",
+        "location_name": "Main Warehouse",
+        "current_stock": 40
+      }
+    ]
+  },
+  {
+    "item_id": "M5_FOODS_1_182",
+    "product_name": "Product M5_FOODS_1_182",
+    "category": "FOODS",
+    "current_stock": 303,
+    "unit_cost": "31.43",
+    "safety_buffer_days": 7,
+    "dir": 292.6,
+    "stockout_risk": 0.192,
+    "status": "overstocked",
+    "inventory_value": "9523.29",
+    "sales_velocity": {
+      "avg_7d": 46.04,
+      "avg_30d": 48.37,
+      "avg_90d": 52.33,
+      "trend_7d": -1,
+      "trend_30d": -1
+    },
+    "suppliers": [
+      {
+        "supplier_id": "SUPPLIER_3",
+        "supplier_name": "Supplier 3",
+        "moq": 67,
+        "lead_time_days": 15,
+        "is_primary": true
+      }
+    ],
+    "locations": [
+      {
+        "location_id": "WAREHOUSE_1",
+        "location_name": "Main Warehouse",
+        "current_stock": 212
+      },
+      {
+        "location_id": "STORE_1",
+        "location_name": "Store Front",
+        "current_stock": 90
+      }
+    ]
+  },
+  {
+    "item_id": "M5_ELECTRONICS_1_183",
+    "product_name": "Product M5_ELECTRONICS_1_183",
+    "category": "ELECTRONICS",
+    "current_stock": 401,
+    "unit_cost": "37.30",
+    "safety_buffer_days": 7,
+    "dir": 190.5,
+    "stockout_risk": 0.116,
+    "status": "overstocked",
+    "inventory_value": "14957.30",
+    "sales_velocity": {
+      "avg_7d": 43.06,
+      "avg_30d": 42.39,
+      "avg_90d": 44.91,
+      "trend_7d": 1,
+      "trend_30d": -1
+    },
+    "suppliers": [
+      {
+        "supplier_id": "SUPPLIER_4",
+        "supplier_name": "Supplier 4",
+        "moq": 32,
+        "lead_time_days": 11,
+        "is_primary": true
+      },
+      {
+        "supplier_id": "SUPPLIER_1",
+        "supplier_name": "Supplier 1",
+        "moq": 34,
+        "lead_time_days": 7,
+        "is_primary": false
+      }
+    ],
+    "locations": [
+      {
+        "location_id": "WAREHOUSE_1",
+        "location_name": "Main Warehouse",
+        "current_stock": 280
+      }
+    ]
+  },
+  {
+    "item_id": "M5_HOUSEHOLD_1_184",
+    "product_name": "Product M5_HOUSEHOLD_1_184",
+    "category": "HOUSEHOLD",
+    "current_stock": 313,
+    "unit_cost": "15.44",
+    "safety_buffer_days": 7,
+    "dir": 223.3,
+    "stockout_risk": 0.018,
+    "status": "overstocked",
+    "inventory_value": "4832.72",
+    "sales_velocity": {
+      "avg_7d": 19.58,
+      "avg_30d": 19.37,
+      "avg_90d": 15.87,
+      "trend_7d": 1,
+      "trend_30d": 1
+    },
+    "suppliers": [
+      {
+        "supplier_id": "SUPPLIER_5",
+        "supplier_name": "Supplier 5",
+        "moq": 100,
+        "lead_time_days": 4,
+        "is_primary": true
+      }
+    ],
+    "locations": [
+      {
+        "location_id": "WAREHOUSE_1",
+        "location_name": "Main Warehouse",
+        "current_stock": 219
+      },
+      {
+        "location_id": "STORE_1",
+        "location_name": "Store Front",
+        "current_stock": 93
+      }
+    ]
+  },
+  {
+    "item_id": "M5_HOBBIES_1_185",
+    "product_name": "Product M5_HOBBIES_1_185",
+    "category": "HOBBIES",
+    "current_stock": 527,
+    "unit_cost": "32.94",
+    "safety_buffer_days": 7,
+    "dir": 213.6,
+    "stockout_risk": 0.092,
+    "status": "overstocked",
+    "inventory_value": "17359.38",
+    "sales_velocity": {
+      "avg_7d": 45.09,
+      "avg_30d": 47.12,
+      "avg_90d": 46.51,
+      "trend_7d": -1,
+      "trend_30d": 1
+    },
+    "suppliers": [
+      {
+        "supplier_id": "SUPPLIER_1",
+        "supplier_name": "Supplier 1",
+        "moq": 53,
+        "lead_time_days": 12,
+        "is_primary": true
+      }
+    ],
+    "locations": [
+      {
+        "location_id": "WAREHOUSE_1",
+        "location_name": "Main Warehouse",
+        "current_stock": 368
+      }
+    ]
+  },
+  {
+    "item_id": "M5_FOODS_1_186",
+    "product_name": "Product M5_FOODS_1_186",
+    "category": "FOODS",
+    "current_stock": 146,
+    "unit_cost": "25.16",
+    "safety_buffer_days": 7,
+    "dir": 266.4,
+    "stockout_risk": 0.107,
+    "status": "overstocked",
+    "inventory_value": "3673.36",
+    "sales_velocity": {
+      "avg_7d": 55.95,
+      "avg_30d": 55.83,
+      "avg_90d": 52.02,
+      "trend_7d": 1,
+      "trend_30d": 1
+    },
+    "suppliers": [
+      {
+        "supplier_id": "SUPPLIER_2",
+        "supplier_name": "Supplier 2",
+        "moq": 64,
+        "lead_time_days": 8,
+        "is_primary": true
+      },
+      {
+        "supplier_id": "SUPPLIER_4",
+        "supplier_name": "Supplier 4",
+        "moq": 20,
+        "lead_time_days": 13,
+        "is_primary": false
+      }
+    ],
+    "locations": [
+      {
+        "location_id": "WAREHOUSE_1",
+        "location_name": "Main Warehouse",
+        "current_stock": 102
+      },
+      {
+        "location_id": "STORE_1",
+        "location_name": "Store Front",
+        "current_stock": 43
+      }
+    ]
+  },
+  {
+    "item_id": "M5_ELECTRONICS_1_187",
+    "product_name": "Product M5_ELECTRONICS_1_187",
+    "category": "ELECTRONICS",
+    "current_stock": 138,
+    "unit_cost": "10.11",
+    "safety_buffer_days": 7,
+    "dir": 193.8,
+    "stockout_risk": 0.078,
+    "status": "overstocked",
+    "inventory_value": "1395.18",
+    "sales_velocity": {
+      "avg_7d": 22.02,
+      "avg_30d": 20.43,
+      "avg_90d": 17.19,
+      "trend_7d": 1,
+      "trend_30d": 1
+    },
+    "suppliers": [
+      {
+        "supplier_id": "SUPPLIER_3",
+        "supplier_name": "Supplier 3",
+        "moq": 16,
+        "lead_time_days": 6,
+        "is_primary": true
+      }
+    ],
+    "locations": [
+      {
+        "location_id": "WAREHOUSE_1",
+        "location_name": "Main Warehouse",
+        "current_stock": 96
+      }
+    ]
+  },
+  {
+    "item_id": "M5_HOUSEHOLD_1_188",
+    "product_name": "Product M5_HOUSEHOLD_1_188",
+    "category": "HOUSEHOLD",
+    "current_stock": 402,
+    "unit_cost": "34.48",
+    "safety_buffer_days": 7,
+    "dir": 208.5,
+    "stockout_risk": 0.167,
+    "status": "overstocked",
+    "inventory_value": "13860.96",
+    "sales_velocity": {
+      "avg_7d": 59.69,
+      "avg_30d": 60.93,
+      "avg_90d": 57.45,
+      "trend_7d": -1,
+      "trend_30d": 1
+    },
+    "suppliers": [
+      {
+        "supplier_id": "SUPPLIER_4",
+        "supplier_name": "Supplier 4",
+        "moq": 10,
+        "lead_time_days": 11,
+        "is_primary": true
+      }
+    ],
+    "locations": [
+      {
+        "location_id": "WAREHOUSE_1",
+        "location_name": "Main Warehouse",
+        "current_stock": 281
+      },
+      {
+        "location_id": "STORE_1",
+        "location_name": "Store Front",
+        "current_stock": 120
+      }
+    ]
+  },
+  {
+    "item_id": "M5_HOBBIES_1_189",
+    "product_name": "Product M5_HOBBIES_1_189",
+    "category": "HOBBIES",
+    "current_stock": 363,
+    "unit_cost": "48.73",
+    "safety_buffer_days": 7,
+    "dir": 125.9,
+    "stockout_risk": 0.15,
+    "status": "overstocked",
+    "inventory_value": "17688.99",
+    "sales_velocity": {
+      "avg_7d": 48.82,
+      "avg_30d": 47.56,
+      "avg_90d": 46.5,
+      "trend_7d": 1,
+      "trend_30d": 1
+    },
+    "suppliers": [
+      {
+        "supplier_id": "SUPPLIER_5",
+        "supplier_name": "Supplier 5",
+        "moq": 47,
+        "lead_time_days": 13,
+        "is_primary": true
+      },
+      {
+        "supplier_id": "SUPPLIER_2",
+        "supplier_name": "Supplier 2",
+        "moq": 51,
+        "lead_time_days": 14,
+        "is_primary": false
+      }
+    ],
+    "locations": [
+      {
+        "location_id": "WAREHOUSE_1",
+        "location_name": "Main Warehouse",
+        "current_stock": 254
+      }
+    ]
+  },
+  {
+    "item_id": "M5_FOODS_1_190",
+    "product_name": "Product M5_FOODS_1_190",
+    "category": "FOODS",
+    "current_stock": 120,
+    "unit_cost": "15.90",
+    "safety_buffer_days": 7,
+    "dir": 133.6,
+    "stockout_risk": 0.037,
+    "status": "overstocked",
+    "inventory_value": "1908.00",
+    "sales_velocity": {
+      "avg_7d": 54.3,
+      "avg_30d": 54.89,
+      "avg_90d": 53.71,
+      "trend_7d": -1,
+      "trend_30d": 1
+    },
+    "suppliers": [
+      {
+        "supplier_id": "SUPPLIER_1",
+        "supplier_name": "Supplier 1",
+        "moq": 101,
+        "lead_time_days": 16,
+        "is_primary": true
+      }
+    ],
+    "locations": [
+      {
+        "location_id": "WAREHOUSE_1",
+        "location_name": "Main Warehouse",
+        "current_stock": 84
+      },
+      {
+        "location_id": "STORE_1",
+        "location_name": "Store Front",
+        "current_stock": 36
+      }
+    ]
+  },
+  {
+    "item_id": "M5_ELECTRONICS_1_191",
+    "product_name": "Product M5_ELECTRONICS_1_191",
+    "category": "ELECTRONICS",
+    "current_stock": 308,
+    "unit_cost": "54.20",
+    "safety_buffer_days": 7,
+    "dir": 249.6,
+    "stockout_risk": 0.173,
+    "status": "overstocked",
+    "inventory_value": "16693.60",
+    "sales_velocity": {
+      "avg_7d": 42.56,
+      "avg_30d": 43.48,
+      "avg_90d": 41.44,
+      "trend_7d": -1,
+      "trend_30d": 1
+    },
+    "suppliers": [
+      {
+        "supplier_id": "SUPPLIER_2",
+        "supplier_name": "Supplier 2",
+        "moq": 92,
+        "lead_time_days": 4,
+        "is_primary": true
+      }
+    ],
+    "locations": [
+      {
+        "location_id": "WAREHOUSE_1",
+        "location_name": "Main Warehouse",
+        "current_stock": 215
+      }
+    ]
+  },
+  {
+    "item_id": "M5_HOUSEHOLD_1_192",
+    "product_name": "Product M5_HOUSEHOLD_1_192",
+    "category": "HOUSEHOLD",
+    "current_stock": 172,
+    "unit_cost": "25.98",
+    "safety_buffer_days": 7,
+    "dir": 163.4,
+    "stockout_risk": 0.111,
+    "status": "overstocked",
+    "inventory_value": "4468.56",
+    "sales_velocity": {
+      "avg_7d": 55.22,
+      "avg_30d": 52.78,
+      "avg_90d": 51.27,
+      "trend_7d": 1,
+      "trend_30d": 1
+    },
+    "suppliers": [
+      {
+        "supplier_id": "SUPPLIER_3",
+        "supplier_name": "Supplier 3",
+        "moq": 19,
+        "lead_time_days": 12,
+        "is_primary": true
+      },
+      {
+        "supplier_id": "SUPPLIER_5",
+        "supplier_name": "Supplier 5",
+        "moq": 86,
+        "lead_time_days": 10,
+        "is_primary": false
+      }
+    ],
+    "locations": [
+      {
+        "location_id": "WAREHOUSE_1",
+        "location_name": "Main Warehouse",
+        "current_stock": 120
+      },
+      {
+        "location_id": "STORE_1",
+        "location_name": "Store Front",
+        "current_stock": 51
+      }
+    ]
+  },
+  {
+    "item_id": "M5_HOBBIES_1_193",
+    "product_name": "Product M5_HOBBIES_1_193",
+    "category": "HOBBIES",
+    "current_stock": 533,
+    "unit_cost": "55.44",
+    "safety_buffer_days": 7,
+    "dir": 238.3,
+    "stockout_risk": 0.009,
+    "status": "overstocked",
+    "inventory_value": "29549.52",
+    "sales_velocity": {
+      "avg_7d": 36.93,
+      "avg_30d": 36.45,
+      "avg_90d": 34.02,
+      "trend_7d": 1,
+      "trend_30d": 1
+    },
+    "suppliers": [
+      {
+        "supplier_id": "SUPPLIER_4",
+        "supplier_name": "Supplier 4",
+        "moq": 103,
+        "lead_time_days": 14,
+        "is_primary": true
+      }
+    ],
+    "locations": [
+      {
+        "location_id": "WAREHOUSE_1",
+        "location_name": "Main Warehouse",
+        "current_stock": 373
+      }
+    ]
+  },
+  {
+    "item_id": "M5_FOODS_1_194",
+    "product_name": "Product M5_FOODS_1_194",
+    "category": "FOODS",
+    "current_stock": 74,
+    "unit_cost": "26.98",
+    "safety_buffer_days": 7,
+    "dir": 278.6,
+    "stockout_risk": 0.177,
+    "status": "overstocked",
+    "inventory_value": "1996.52",
+    "sales_velocity": {
+      "avg_7d": 29.03,
+      "avg_30d": 30.66,
+      "avg_90d": 28.75,
+      "trend_7d": -1,
+      "trend_30d": 1
+    },
+    "suppliers": [
+      {
+        "supplier_id": "SUPPLIER_5",
+        "supplier_name": "Supplier 5",
+        "moq": 70,
+        "lead_time_days": 9,
+        "is_primary": true
+      }
+    ],
+    "locations": [
+      {
+        "location_id": "WAREHOUSE_1",
+        "location_name": "Main Warehouse",
+        "current_stock": 51
+      },
+      {
+        "location_id": "STORE_1",
+        "location_name": "Store Front",
+        "current_stock": 22
+      }
+    ]
+  },
+  {
+    "item_id": "M5_ELECTRONICS_1_195",
+    "product_name": "Product M5_ELECTRONICS_1_195",
+    "category": "ELECTRONICS",
+    "current_stock": 230,
+    "unit_cost": "53.71",
+    "safety_buffer_days": 7,
+    "dir": 113.4,
+    "stockout_risk": 0.184,
+    "status": "overstocked",
+    "inventory_value": "12353.30",
+    "sales_velocity": {
+      "avg_7d": 57.79,
+      "avg_30d": 57.61,
+      "avg_90d": 55.68,
+      "trend_7d": 1,
+      "trend_30d": 1
+    },
+    "suppliers": [
+      {
+        "supplier_id": "SUPPLIER_1",
+        "supplier_name": "Supplier 1",
+        "moq": 93,
+        "lead_time_days": 3,
+        "is_primary": true
+      },
+      {
+        "supplier_id": "SUPPLIER_3",
+        "supplier_name": "Supplier 3",
+        "moq": 65,
+        "lead_time_days": 14,
+        "is_primary": false
+      }
+    ],
+    "locations": [
+      {
+        "location_id": "WAREHOUSE_1",
+        "location_name": "Main Warehouse",
+        "current_stock": 161
+      }
+    ]
+  },
+  {
+    "item_id": "M5_HOUSEHOLD_1_196",
+    "product_name": "Product M5_HOUSEHOLD_1_196",
+    "category": "HOUSEHOLD",
+    "current_stock": 270,
+    "unit_cost": "13.17",
+    "safety_buffer_days": 7,
+    "dir": 153.9,
+    "stockout_risk": 0.176,
+    "status": "overstocked",
+    "inventory_value": "3555.90",
+    "sales_velocity": {
+      "avg_7d": 13.24,
+      "avg_30d": 14.31,
+      "avg_90d": 10.08,
+      "trend_7d": -1,
+      "trend_30d": 1
+    },
+    "suppliers": [
+      {
+        "supplier_id": "SUPPLIER_2",
+        "supplier_name": "Supplier 2",
+        "moq": 25,
+        "lead_time_days": 4,
+        "is_primary": true
+      }
+    ],
+    "locations": [
+      {
+        "location_id": "WAREHOUSE_1",
+        "location_name": "Main Warehouse",
+        "current_stock": 189
+      },
+      {
+        "location_id": "STORE_1",
+        "location_name": "Store Front",
+        "current_stock": 81
+      }
+    ]
+  },
+  {
+    "item_id": "M5_HOBBIES_1_197",
+    "product_name": "Product M5_HOBBIES_1_197",
+    "category": "HOBBIES",
+    "current_stock": 78,
+    "unit_cost": "50.27",
+    "safety_buffer_days": 7,
+    "dir": 291.4,
+    "stockout_risk": 0.099,
+    "status": "overstocked",
+    "inventory_value": "3921.06",
+    "sales_velocity": {
+      "avg_7d": 11.3,
+      "avg_30d": 8.81,
+      "avg_90d": 13.69,
+      "trend_7d": 1,
+      "trend_30d": -1
+    },
+    "suppliers": [
+      {
+        "supplier_id": "SUPPLIER_3",
+        "supplier_name": "Supplier 3",
+        "moq": 40,
+        "lead_time_days": 16,
+        "is_primary": true
+      }
+    ],
+    "locations": [
+      {
+        "location_id": "WAREHOUSE_1",
+        "location_name": "Main Warehouse",
+        "current_stock": 54
+      }
+    ]
+  },
+  {
+    "item_id": "M5_FOODS_1_198",
+    "product_name": "Product M5_FOODS_1_198",
+    "category": "FOODS",
+    "current_stock": 76,
+    "unit_cost": "32.74",
+    "safety_buffer_days": 7,
+    "dir": 280.5,
+    "stockout_risk": 0.162,
+    "status": "overstocked",
+    "inventory_value": "2488.24",
+    "sales_velocity": {
+      "avg_7d": 50.62,
+      "avg_30d": 52.13,
+      "avg_90d": 50.72,
+      "trend_7d": -1,
+      "trend_30d": 1
+    },
+    "suppliers": [
+      {
+        "supplier_id": "SUPPLIER_4",
+        "supplier_name": "Supplier 4",
+        "moq": 13,
+        "lead_time_days": 11,
+        "is_primary": true
+      },
+      {
+        "supplier_id": "SUPPLIER_1",
+        "supplier_name": "Supplier 1",
+        "moq": 98,
+        "lead_time_days": 9,
+        "is_primary": false
+      }
+    ],
+    "locations": [
+      {
+        "location_id": "WAREHOUSE_1",
+        "location_name": "Main Warehouse",
+        "current_stock": 53
+      },
+      {
+        "location_id": "STORE_1",
+        "location_name": "Store Front",
+        "current_stock": 22
+      }
+    ]
+  },
+  {
+    "item_id": "M5_ELECTRONICS_1_199",
+    "product_name": "Product M5_ELECTRONICS_1_199",
+    "category": "ELECTRONICS",
+    "current_stock": 534,
+    "unit_cost": "56.94",
+    "safety_buffer_days": 7,
+    "dir": 135.5,
+    "stockout_risk": 0.011,
+    "status": "overstocked",
+    "inventory_value": "30405.96",
+    "sales_velocity": {
+      "avg_7d": 29.54,
+      "avg_30d": 30,
+      "avg_90d": 27.76,
+      "trend_7d": -1,
+      "trend_30d": 1
+    },
+    "suppliers": [
+      {
+        "supplier_id": "SUPPLIER_5",
+        "supplier_name": "Supplier 5",
+        "moq": 65,
+        "lead_time_days": 9,
+        "is_primary": true
+      }
+    ],
+    "locations": [
+      {
+        "location_id": "WAREHOUSE_1",
+        "location_name": "Main Warehouse",
+        "current_stock": 373
+      }
+    ]
+  },
+  {
+    "item_id": "M5_HOUSEHOLD_1_200",
+    "product_name": "Product M5_HOUSEHOLD_1_200",
+    "category": "HOUSEHOLD",
+    "current_stock": 342,
+    "unit_cost": "48.62",
+    "safety_buffer_days": 7,
+    "dir": 210.2,
+    "stockout_risk": 0.103,
+    "status": "overstocked",
+    "inventory_value": "16628.04",
+    "sales_velocity": {
+      "avg_7d": 56.26,
+      "avg_30d": 54.27,
+      "avg_90d": 58.58,
+      "trend_7d": 1,
+      "trend_30d": -1
+    },
+    "suppliers": [
+      {
+        "supplier_id": "SUPPLIER_1",
+        "supplier_name": "Supplier 1",
+        "moq": 25,
+        "lead_time_days": 6,
+        "is_primary": true
+      }
+    ],
+    "locations": [
+      {
+        "location_id": "WAREHOUSE_1",
+        "location_name": "Main Warehouse",
+        "current_stock": 239
+      },
+      {
+        "location_id": "STORE_1",
+        "location_name": "Store Front",
+        "current_stock": 102
+      }
+    ]
+  }
+]

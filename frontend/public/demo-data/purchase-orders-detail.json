@@ -1,0 +1,1092 @@
+[
+  {
+    "id": "po_0001",
+    "po_number": "PO-2025-0001",
+    "supplier_id": "SUPPLIER_4",
+    "supplier_name": "Supplier 4",
+    "status": "shipped",
+    "order_date": "2025-11-06",
+    "expected_delivery_date": "2025-11-28",
+    "total_amount": 4562.66,
+    "shipping_method": "Express",
+    "shipping_unit": null,
+    "notes": null,
+    "created_by": "demo@forecaster-enterprise.com",
+    "items": [
+      {
+        "id": "PO_1_ITEM_1",
+        "item_id": "M5_ELECTRONICS_1_103",
+        "product_name": "Product M5_ELECTRONICS_1_103",
+        "quantity": 37,
+        "unit_cost": "12.06",
+        "total_price": "446.22",
+        "packaging_unit": "box",
+        "packaging_qty": 12
+      },
+      {
+        "id": "PO_1_ITEM_2",
+        "item_id": "M5_ELECTRONICS_1_099",
+        "product_name": "Product M5_ELECTRONICS_1_099",
+        "quantity": 67,
+        "unit_cost": "23.86",
+        "total_price": "1598.62",
+        "packaging_unit": null,
+        "packaging_qty": null
+      },
+      {
+        "id": "PO_1_ITEM_3",
+        "item_id": "M5_ELECTRONICS_1_051",
+        "product_name": "Product M5_ELECTRONICS_1_051",
+        "quantity": 54,
+        "unit_cost": "12.09",
+        "total_price": "652.86",
+        "packaging_unit": "box",
+        "packaging_qty": 12
+      },
+      {
+        "id": "PO_1_ITEM_4",
+        "item_id": "M5_HOBBIES_1_161",
+        "product_name": "Product M5_HOBBIES_1_161",
+        "quantity": 64,
+        "unit_cost": "29.14",
+        "total_price": "1864.96",
+        "packaging_unit": null,
+        "packaging_qty": null
+      }
+    ],
+    "created_at": "2025-11-06T10:47:44.546Z",
+    "updated_at": "2025-11-06T10:47:44.546Z"
+  },
+  {
+    "id": "po_0002",
+    "po_number": "PO-2025-0002",
+    "supplier_id": "SUPPLIER_6",
+    "supplier_name": "Supplier 6",
+    "status": "confirmed",
+    "order_date": "2025-11-07",
+    "expected_delivery_date": "2025-11-25",
+    "total_amount": 11087.72,
+    "shipping_method": null,
+    "shipping_unit": null,
+    "notes": null,
+    "created_by": "demo@forecaster-enterprise.com",
+    "items": [
+      {
+        "id": "PO_2_ITEM_1",
+        "item_id": "M5_HOBBIES_1_165",
+        "product_name": "Product M5_HOBBIES_1_165",
+        "quantity": 99,
+        "unit_cost": "18.89",
+        "total_price": "1870.11",
+        "packaging_unit": "box",
+        "packaging_qty": 12
+      },
+      {
+        "id": "PO_2_ITEM_2",
+        "item_id": "M5_HOUSEHOLD_1_100",
+        "product_name": "Product M5_HOUSEHOLD_1_100",
+        "quantity": 109,
+        "unit_cost": "10.14",
+        "total_price": "1105.26",
+        "packaging_unit": null,
+        "packaging_qty": null
+      },
+      {
+        "id": "PO_2_ITEM_3",
+        "item_id": "M5_FOODS_1_062",
+        "product_name": "Product M5_FOODS_1_062",
+        "quantity": 107,
+        "unit_cost": "45.07",
+        "total_price": "4822.49",
+        "packaging_unit": "box",
+        "packaging_qty": 12
+      },
+      {
+        "id": "PO_2_ITEM_4",
+        "item_id": "M5_HOBBIES_1_113",
+        "product_name": "Product M5_HOBBIES_1_113",
+        "quantity": 63,
+        "unit_cost": "52.22",
+        "total_price": "3289.86",
+        "packaging_unit": null,
+        "packaging_qty": null
+      }
+    ],
+    "created_at": "2025-11-07T10:47:44.546Z",
+    "updated_at": "2025-11-07T10:47:44.546Z"
+  },
+  {
+    "id": "po_0003",
+    "po_number": "PO-2025-0003",
+    "supplier_id": "SUPPLIER_10",
+    "supplier_name": "Supplier 10",
+    "status": "pending",
+    "order_date": "2025-11-08",
+    "expected_delivery_date": "2025-11-25",
+    "total_amount": 11663.54,
+    "shipping_method": "Standard",
+    "shipping_unit": "pallet",
+    "notes": null,
+    "created_by": "demo@forecaster-enterprise.com",
+    "items": [
+      {
+        "id": "PO_3_ITEM_1",
+        "item_id": "M5_ELECTRONICS_1_155",
+        "product_name": "Product M5_ELECTRONICS_1_155",
+        "quantity": 46,
+        "unit_cost": "40.11",
+        "total_price": "1845.06",
+        "packaging_unit": "box",
+        "packaging_qty": 12
+      },
+      {
+        "id": "PO_3_ITEM_2",
+        "item_id": "M5_HOBBIES_1_193",
+        "product_name": "Product M5_HOBBIES_1_193",
+        "quantity": 53,
+        "unit_cost": "55.44",
+        "total_price": "2938.32",
+        "packaging_unit": null,
+        "packaging_qty": null
+      },
+      {
+        "id": "PO_3_ITEM_3",
+        "item_id": "M5_HOUSEHOLD_1_116",
+        "product_name": "Product M5_HOUSEHOLD_1_116",
+        "quantity": 104,
+        "unit_cost": "48.79",
+        "total_price": "5074.16",
+        "packaging_unit": "box",
+        "packaging_qty": 12
+      },
+      {
+        "id": "PO_3_ITEM_4",
+        "item_id": "M5_HOUSEHOLD_1_044",
+        "product_name": "Product M5_HOUSEHOLD_1_044",
+        "quantity": 84,
+        "unit_cost": "21.50",
+        "total_price": "1806.00",
+        "packaging_unit": null,
+        "packaging_qty": null
+      }
+    ],
+    "created_at": "2025-11-08T10:47:44.546Z",
+    "updated_at": "2025-11-08T10:47:44.546Z"
+  },
+  {
+    "id": "po_0004",
+    "po_number": "PO-2025-0004",
+    "supplier_id": "SUPPLIER_3",
+    "supplier_name": "Supplier 3",
+    "status": "confirmed",
+    "order_date": "2025-11-13",
+    "expected_delivery_date": "2025-11-28",
+    "total_amount": 18044.1,
+    "shipping_method": "Express",
+    "shipping_unit": null,
+    "notes": null,
+    "created_by": "demo@forecaster-enterprise.com",
+    "items": [
+      {
+        "id": "PO_4_ITEM_1",
+        "item_id": "M5_ELECTRONICS_1_023",
+        "product_name": "Product M5_ELECTRONICS_1_023",
+        "quantity": 94,
+        "unit_cost": "57.27",
+        "total_price": "5383.38",
+        "packaging_unit": "box",
+        "packaging_qty": 12
+      },
+      {
+        "id": "PO_4_ITEM_2",
+        "item_id": "M5_HOBBIES_1_109",
+        "product_name": "Product M5_HOBBIES_1_109",
+        "quantity": 44,
+        "unit_cost": "51.45",
+        "total_price": "2263.80",
+        "packaging_unit": null,
+        "packaging_qty": null
+      },
+      {
+        "id": "PO_4_ITEM_3",
+        "item_id": "M5_HOBBIES_1_069",
+        "product_name": "Product M5_HOBBIES_1_069",
+        "quantity": 88,
+        "unit_cost": "59.52",
+        "total_price": "5237.76",
+        "packaging_unit": "box",
+        "packaging_qty": 12
+      },
+      {
+        "id": "PO_4_ITEM_4",
+        "item_id": "M5_HOUSEHOLD_1_156",
+        "product_name": "Product M5_HOUSEHOLD_1_156",
+        "quantity": 102,
+        "unit_cost": "50.58",
+        "total_price": "5159.16",
+        "packaging_unit": null,
+        "packaging_qty": null
+      }
+    ],
+    "created_at": "2025-11-13T10:47:44.546Z",
+    "updated_at": "2025-11-13T10:47:44.546Z"
+  },
+  {
+    "id": "po_0005",
+    "po_number": "PO-2025-0005",
+    "supplier_id": "SUPPLIER_4",
+    "supplier_name": "Supplier 4",
+    "status": "confirmed",
+    "order_date": "2025-10-26",
+    "expected_delivery_date": "2025-11-15",
+    "total_amount": 8284.38,
+    "shipping_method": null,
+    "shipping_unit": null,
+    "notes": "Notes for order PO-2025-0005",
+    "created_by": "demo@forecaster-enterprise.com",
+    "items": [
+      {
+        "id": "PO_5_ITEM_1",
+        "item_id": "M5_FOODS_1_122",
+        "product_name": "Product M5_FOODS_1_122",
+        "quantity": 70,
+        "unit_cost": "18.60",
+        "total_price": "1302.00",
+        "packaging_unit": "box",
+        "packaging_qty": 12
+      },
+      {
+        "id": "PO_5_ITEM_2",
+        "item_id": "M5_ELECTRONICS_1_051",
+        "product_name": "Product M5_ELECTRONICS_1_051",
+        "quantity": 41,
+        "unit_cost": "12.09",
+        "total_price": "495.69",
+        "packaging_unit": null,
+        "packaging_qty": null
+      },
+      {
+        "id": "PO_5_ITEM_3",
+        "item_id": "M5_FOODS_1_022",
+        "product_name": "Product M5_FOODS_1_022",
+        "quantity": 65,
+        "unit_cost": "47.70",
+        "total_price": "3100.50",
+        "packaging_unit": "box",
+        "packaging_qty": 12
+      },
+      {
+        "id": "PO_5_ITEM_4",
+        "item_id": "M5_HOBBIES_1_153",
+        "product_name": "Product M5_HOBBIES_1_153",
+        "quantity": 37,
+        "unit_cost": "25.83",
+        "total_price": "955.71",
+        "packaging_unit": null,
+        "packaging_qty": null
+      },
+      {
+        "id": "PO_5_ITEM_5",
+        "item_id": "M5_HOBBIES_1_001",
+        "product_name": "Product M5_HOBBIES_1_001",
+        "quantity": 104,
+        "unit_cost": "23.37",
+        "total_price": "2430.48",
+        "packaging_unit": "box",
+        "packaging_qty": 12
+      }
+    ],
+    "created_at": "2025-10-26T10:47:44.546Z",
+    "updated_at": "2025-10-26T10:47:44.546Z"
+  },
+  {
+    "id": "po_0006",
+    "po_number": "PO-2025-0006",
+    "supplier_id": "SUPPLIER_6",
+    "supplier_name": "Supplier 6",
+    "status": "confirmed",
+    "order_date": "2025-11-04",
+    "expected_delivery_date": "2025-11-18",
+    "total_amount": 5897.38,
+    "shipping_method": "Standard",
+    "shipping_unit": "pallet",
+    "notes": null,
+    "created_by": "demo@forecaster-enterprise.com",
+    "items": [
+      {
+        "id": "PO_6_ITEM_1",
+        "item_id": "M5_ELECTRONICS_1_199",
+        "product_name": "Product M5_ELECTRONICS_1_199",
+        "quantity": 23,
+        "unit_cost": "56.94",
+        "total_price": "1309.62",
+        "packaging_unit": "box",
+        "packaging_qty": 12
+      },
+      {
+        "id": "PO_6_ITEM_2",
+        "item_id": "M5_HOUSEHOLD_1_020",
+        "product_name": "Product M5_HOUSEHOLD_1_020",
+        "quantity": 26,
+        "unit_cost": "54.63",
+        "total_price": "1420.38",
+        "packaging_unit": null,
+        "packaging_qty": null
+      },
+      {
+        "id": "PO_6_ITEM_3",
+        "item_id": "M5_FOODS_1_058",
+        "product_name": "Product M5_FOODS_1_058",
+        "quantity": 86,
+        "unit_cost": "36.83",
+        "total_price": "3167.38",
+        "packaging_unit": "box",
+        "packaging_qty": 12
+      }
+    ],
+    "created_at": "2025-11-04T10:47:44.546Z",
+    "updated_at": "2025-11-04T10:47:44.546Z"
+  },
+  {
+    "id": "po_0007",
+    "po_number": "PO-2025-0007",
+    "supplier_id": "SUPPLIER_5",
+    "supplier_name": "Supplier 5",
+    "status": "confirmed",
+    "order_date": "2025-12-13",
+    "expected_delivery_date": "2026-01-01",
+    "total_amount": 7225.4,
+    "shipping_method": "Express",
+    "shipping_unit": null,
+    "notes": null,
+    "created_by": "demo@forecaster-enterprise.com",
+    "items": [
+      {
+        "id": "PO_7_ITEM_1",
+        "item_id": "M5_FOODS_1_182",
+        "product_name": "Product M5_FOODS_1_182",
+        "quantity": 68,
+        "unit_cost": "31.43",
+        "total_price": "2137.24",
+        "packaging_unit": "box",
+        "packaging_qty": 12
+      },
+      {
+        "id": "PO_7_ITEM_2",
+        "item_id": "M5_FOODS_1_150",
+        "product_name": "Product M5_FOODS_1_150",
+        "quantity": 35,
+        "unit_cost": "12.10",
+        "total_price": "423.50",
+        "packaging_unit": null,
+        "packaging_qty": null
+      },
+      {
+        "id": "PO_7_ITEM_3",
+        "item_id": "M5_HOBBIES_1_073",
+        "product_name": "Product M5_HOBBIES_1_073",
+        "quantity": 91,
+        "unit_cost": "51.26",
+        "total_price": "4664.66",
+        "packaging_unit": "box",
+        "packaging_qty": 12
+      }
+    ],
+    "created_at": "2025-12-13T10:47:44.546Z",
+    "updated_at": "2025-12-13T10:47:44.546Z"
+  },
+  {
+    "id": "po_0008",
+    "po_number": "PO-2025-0008",
+    "supplier_id": "SUPPLIER_5",
+    "supplier_name": "Supplier 5",
+    "status": "pending",
+    "order_date": "2025-11-22",
+    "expected_delivery_date": "2025-12-12",
+    "total_amount": 12453.54,
+    "shipping_method": null,
+    "shipping_unit": null,
+    "notes": null,
+    "created_by": "demo@forecaster-enterprise.com",
+    "items": [
+      {
+        "id": "PO_8_ITEM_1",
+        "item_id": "M5_FOODS_1_190",
+        "product_name": "Product M5_FOODS_1_190",
+        "quantity": 91,
+        "unit_cost": "15.90",
+        "total_price": "1446.90",
+        "packaging_unit": "box",
+        "packaging_qty": 12
+      },
+      {
+        "id": "PO_8_ITEM_2",
+        "item_id": "M5_FOODS_1_050",
+        "product_name": "Product M5_FOODS_1_050",
+        "quantity": 32,
+        "unit_cost": "13.93",
+        "total_price": "445.76",
+        "packaging_unit": null,
+        "packaging_qty": null
+      },
+      {
+        "id": "PO_8_ITEM_3",
+        "item_id": "M5_HOBBIES_1_121",
+        "product_name": "Product M5_HOBBIES_1_121",
+        "quantity": 66,
+        "unit_cost": "25.77",
+        "total_price": "1700.82",
+        "packaging_unit": "box",
+        "packaging_qty": 12
+      },
+      {
+        "id": "PO_8_ITEM_4",
+        "item_id": "M5_ELECTRONICS_1_183",
+        "product_name": "Product M5_ELECTRONICS_1_183",
+        "quantity": 88,
+        "unit_cost": "37.30",
+        "total_price": "3282.40",
+        "packaging_unit": null,
+        "packaging_qty": null
+      },
+      {
+        "id": "PO_8_ITEM_5",
+        "item_id": "M5_FOODS_1_170",
+        "product_name": "Product M5_FOODS_1_170",
+        "quantity": 99,
+        "unit_cost": "56.34",
+        "total_price": "5577.66",
+        "packaging_unit": "box",
+        "packaging_qty": 12
+      }
+    ],
+    "created_at": "2025-11-22T10:47:44.546Z",
+    "updated_at": "2025-11-22T10:47:44.546Z"
+  },
+  {
+    "id": "po_0009",
+    "po_number": "PO-2025-0009",
+    "supplier_id": "SUPPLIER_6",
+    "supplier_name": "Supplier 6",
+    "status": "confirmed",
+    "order_date": "2025-11-21",
+    "expected_delivery_date": "2025-12-05",
+    "total_amount": 13551.71,
+    "shipping_method": "Standard",
+    "shipping_unit": "pallet",
+    "notes": null,
+    "created_by": "demo@forecaster-enterprise.com",
+    "items": [
+      {
+        "id": "PO_9_ITEM_1",
+        "item_id": "M5_FOODS_1_062",
+        "product_name": "Product M5_FOODS_1_062",
+        "quantity": 89,
+        "unit_cost": "45.07",
+        "total_price": "4011.23",
+        "packaging_unit": "box",
+        "packaging_qty": 12
+      },
+      {
+        "id": "PO_9_ITEM_2",
+        "item_id": "M5_HOBBIES_1_029",
+        "product_name": "Product M5_HOBBIES_1_029",
+        "quantity": 84,
+        "unit_cost": "47.60",
+        "total_price": "3998.40",
+        "packaging_unit": null,
+        "packaging_qty": null
+      },
+      {
+        "id": "PO_9_ITEM_3",
+        "item_id": "M5_FOODS_1_090",
+        "product_name": "Product M5_FOODS_1_090",
+        "quantity": 37,
+        "unit_cost": "55.00",
+        "total_price": "2035.00",
+        "packaging_unit": "box",
+        "packaging_qty": 12
+      },
+      {
+        "id": "PO_9_ITEM_4",
+        "item_id": "M5_FOODS_1_178",
+        "product_name": "Product M5_FOODS_1_178",
+        "quantity": 46,
+        "unit_cost": "37.58",
+        "total_price": "1728.68",
+        "packaging_unit": null,
+        "packaging_qty": null
+      },
+      {
+        "id": "PO_9_ITEM_5",
+        "item_id": "M5_HOBBIES_1_057",
+        "product_name": "Product M5_HOBBIES_1_057",
+        "quantity": 117,
+        "unit_cost": "15.20",
+        "total_price": "1778.40",
+        "packaging_unit": "box",
+        "packaging_qty": 12
+      }
+    ],
+    "created_at": "2025-11-21T10:47:44.546Z",
+    "updated_at": "2025-11-21T10:47:44.546Z"
+  },
+  {
+    "id": "po_0010",
+    "po_number": "PO-2025-0010",
+    "supplier_id": "SUPPLIER_4",
+    "supplier_name": "Supplier 4",
+    "status": "pending",
+    "order_date": "2025-10-28",
+    "expected_delivery_date": "2025-11-18",
+    "total_amount": 9521.46,
+    "shipping_method": "Express",
+    "shipping_unit": null,
+    "notes": "Notes for order PO-2025-0010",
+    "created_by": "demo@forecaster-enterprise.com",
+    "items": [
+      {
+        "id": "PO_10_ITEM_1",
+        "item_id": "M5_ELECTRONICS_1_023",
+        "product_name": "Product M5_ELECTRONICS_1_023",
+        "quantity": 87,
+        "unit_cost": "57.27",
+        "total_price": "4982.49",
+        "packaging_unit": "box",
+        "packaging_qty": 12
+      },
+      {
+        "id": "PO_10_ITEM_2",
+        "item_id": "M5_HOBBIES_1_057",
+        "product_name": "Product M5_HOBBIES_1_057",
+        "quantity": 91,
+        "unit_cost": "15.20",
+        "total_price": "1383.20",
+        "packaging_unit": null,
+        "packaging_qty": null
+      },
+      {
+        "id": "PO_10_ITEM_3",
+        "item_id": "M5_HOUSEHOLD_1_128",
+        "product_name": "Product M5_HOUSEHOLD_1_128",
+        "quantity": 105,
+        "unit_cost": "12.87",
+        "total_price": "1351.35",
+        "packaging_unit": "box",
+        "packaging_qty": 12
+      },
+      {
+        "id": "PO_10_ITEM_4",
+        "item_id": "M5_ELECTRONICS_1_079",
+        "product_name": "Product M5_ELECTRONICS_1_079",
+        "quantity": 83,
+        "unit_cost": "21.74",
+        "total_price": "1804.42",
+        "packaging_unit": null,
+        "packaging_qty": null
+      }
+    ],
+    "created_at": "2025-10-28T10:47:44.546Z",
+    "updated_at": "2025-10-28T10:47:44.546Z"
+  },
+  {
+    "id": "po_0011",
+    "po_number": "PO-2025-0011",
+    "supplier_id": "SUPPLIER_9",
+    "supplier_name": "Supplier 9",
+    "status": "pending",
+    "order_date": "2025-12-16",
+    "expected_delivery_date": "2025-12-26",
+    "total_amount": 2297.27,
+    "shipping_method": null,
+    "shipping_unit": null,
+    "notes": null,
+    "created_by": "demo@forecaster-enterprise.com",
+    "items": [
+      {
+        "id": "PO_11_ITEM_1",
+        "item_id": "M5_FOODS_1_158",
+        "product_name": "Product M5_FOODS_1_158",
+        "quantity": 31,
+        "unit_cost": "29.57",
+        "total_price": "916.67",
+        "packaging_unit": "box",
+        "packaging_qty": 12
+      },
+      {
+        "id": "PO_11_ITEM_2",
+        "item_id": "M5_HOBBIES_1_145",
+        "product_name": "Product M5_HOBBIES_1_145",
+        "quantity": 45,
+        "unit_cost": "30.68",
+        "total_price": "1380.60",
+        "packaging_unit": null,
+        "packaging_qty": null
+      }
+    ],
+    "created_at": "2025-12-16T10:47:44.546Z",
+    "updated_at": "2025-12-16T10:47:44.546Z"
+  },
+  {
+    "id": "po_0012",
+    "po_number": "PO-2025-0012",
+    "supplier_id": "SUPPLIER_8",
+    "supplier_name": "Supplier 8",
+    "status": "pending",
+    "order_date": "2025-10-30",
+    "expected_delivery_date": "2025-11-06",
+    "total_amount": 10681.82,
+    "shipping_method": "Standard",
+    "shipping_unit": "pallet",
+    "notes": null,
+    "created_by": "demo@forecaster-enterprise.com",
+    "items": [
+      {
+        "id": "PO_12_ITEM_1",
+        "item_id": "M5_FOODS_1_150",
+        "product_name": "Product M5_FOODS_1_150",
+        "quantity": 50,
+        "unit_cost": "12.10",
+        "total_price": "605.00",
+        "packaging_unit": "box",
+        "packaging_qty": 12
+      },
+      {
+        "id": "PO_12_ITEM_2",
+        "item_id": "M5_HOBBIES_1_029",
+        "product_name": "Product M5_HOBBIES_1_029",
+        "quantity": 81,
+        "unit_cost": "47.60",
+        "total_price": "3855.60",
+        "packaging_unit": null,
+        "packaging_qty": null
+      },
+      {
+        "id": "PO_12_ITEM_3",
+        "item_id": "M5_HOBBIES_1_033",
+        "product_name": "Product M5_HOBBIES_1_033",
+        "quantity": 87,
+        "unit_cost": "14.94",
+        "total_price": "1299.78",
+        "packaging_unit": "box",
+        "packaging_qty": 12
+      },
+      {
+        "id": "PO_12_ITEM_4",
+        "item_id": "M5_HOUSEHOLD_1_060",
+        "product_name": "Product M5_HOUSEHOLD_1_060",
+        "quantity": 41,
+        "unit_cost": "58.71",
+        "total_price": "2407.11",
+        "packaging_unit": null,
+        "packaging_qty": null
+      },
+      {
+        "id": "PO_12_ITEM_5",
+        "item_id": "M5_FOODS_1_026",
+        "product_name": "Product M5_FOODS_1_026",
+        "quantity": 91,
+        "unit_cost": "27.63",
+        "total_price": "2514.33",
+        "packaging_unit": "box",
+        "packaging_qty": 12
+      }
+    ],
+    "created_at": "2025-10-30T10:47:44.546Z",
+    "updated_at": "2025-10-30T10:47:44.546Z"
+  },
+  {
+    "id": "po_0013",
+    "po_number": "PO-2025-0013",
+    "supplier_id": "SUPPLIER_2",
+    "supplier_name": "Supplier 2",
+    "status": "pending",
+    "order_date": "2025-10-24",
+    "expected_delivery_date": "2025-11-08",
+    "total_amount": 4995.75,
+    "shipping_method": "Express",
+    "shipping_unit": null,
+    "notes": null,
+    "created_by": "demo@forecaster-enterprise.com",
+    "items": [
+      {
+        "id": "PO_13_ITEM_1",
+        "item_id": "M5_HOUSEHOLD_1_100",
+        "product_name": "Product M5_HOUSEHOLD_1_100",
+        "quantity": 65,
+        "unit_cost": "10.14",
+        "total_price": "659.10",
+        "packaging_unit": "box",
+        "packaging_qty": 12
+      },
+      {
+        "id": "PO_13_ITEM_2",
+        "item_id": "M5_HOBBIES_1_009",
+        "product_name": "Product M5_HOBBIES_1_009",
+        "quantity": 115,
+        "unit_cost": "37.71",
+        "total_price": "4336.65",
+        "packaging_unit": null,
+        "packaging_qty": null
+      }
+    ],
+    "created_at": "2025-10-24T09:47:44.546Z",
+    "updated_at": "2025-10-24T09:47:44.546Z"
+  },
+  {
+    "id": "po_0014",
+    "po_number": "PO-2025-0014",
+    "supplier_id": "SUPPLIER_1",
+    "supplier_name": "Supplier 1",
+    "status": "confirmed",
+    "order_date": "2025-10-25",
+    "expected_delivery_date": "2025-11-08",
+    "total_amount": 8928.06,
+    "shipping_method": null,
+    "shipping_unit": null,
+    "notes": null,
+    "created_by": "demo@forecaster-enterprise.com",
+    "items": [
+      {
+        "id": "PO_14_ITEM_1",
+        "item_id": "M5_HOBBIES_1_049",
+        "product_name": "Product M5_HOBBIES_1_049",
+        "quantity": 87,
+        "unit_cost": "47.25",
+        "total_price": "4110.75",
+        "packaging_unit": "box",
+        "packaging_qty": 12
+      },
+      {
+        "id": "PO_14_ITEM_2",
+        "item_id": "M5_FOODS_1_166",
+        "product_name": "Product M5_FOODS_1_166",
+        "quantity": 58,
+        "unit_cost": "54.32",
+        "total_price": "3150.56",
+        "packaging_unit": null,
+        "packaging_qty": null
+      },
+      {
+        "id": "PO_14_ITEM_3",
+        "item_id": "M5_HOBBIES_1_041",
+        "product_name": "Product M5_HOBBIES_1_041",
+        "quantity": 59,
+        "unit_cost": "28.25",
+        "total_price": "1666.75",
+        "packaging_unit": "box",
+        "packaging_qty": 12
+      }
+    ],
+    "created_at": "2025-10-25T09:47:44.546Z",
+    "updated_at": "2025-10-25T09:47:44.546Z"
+  },
+  {
+    "id": "po_0015",
+    "po_number": "PO-2025-0015",
+    "supplier_id": "SUPPLIER_7",
+    "supplier_name": "Supplier 7",
+    "status": "pending",
+    "order_date": "2025-11-15",
+    "expected_delivery_date": "2025-11-20",
+    "total_amount": 5819.9,
+    "shipping_method": "Standard",
+    "shipping_unit": "pallet",
+    "notes": "Notes for order PO-2025-0015",
+    "created_by": "demo@forecaster-enterprise.com",
+    "items": [
+      {
+        "id": "PO_15_ITEM_1",
+        "item_id": "M5_FOODS_1_126",
+        "product_name": "Product M5_FOODS_1_126",
+        "quantity": 61,
+        "unit_cost": "37.66",
+        "total_price": "2297.26",
+        "packaging_unit": "box",
+        "packaging_qty": 12
+      },
+      {
+        "id": "PO_15_ITEM_2",
+        "item_id": "M5_FOODS_1_194",
+        "product_name": "Product M5_FOODS_1_194",
+        "quantity": 88,
+        "unit_cost": "26.98",
+        "total_price": "2374.24",
+        "packaging_unit": null,
+        "packaging_qty": null
+      },
+      {
+        "id": "PO_15_ITEM_3",
+        "item_id": "M5_FOODS_1_118",
+        "product_name": "Product M5_FOODS_1_118",
+        "quantity": 33,
+        "unit_cost": "34.80",
+        "total_price": "1148.40",
+        "packaging_unit": "box",
+        "packaging_qty": 12
+      }
+    ],
+    "created_at": "2025-11-15T10:47:44.546Z",
+    "updated_at": "2025-11-15T10:47:44.546Z"
+  },
+  {
+    "id": "po_0016",
+    "po_number": "PO-2025-0016",
+    "supplier_id": "SUPPLIER_7",
+    "supplier_name": "Supplier 7",
+    "status": "confirmed",
+    "order_date": "2025-11-17",
+    "expected_delivery_date": "2025-11-25",
+    "total_amount": 5545.61,
+    "shipping_method": "Express",
+    "shipping_unit": null,
+    "notes": null,
+    "created_by": "demo@forecaster-enterprise.com",
+    "items": [
+      {
+        "id": "PO_16_ITEM_1",
+        "item_id": "M5_HOUSEHOLD_1_164",
+        "product_name": "Product M5_HOUSEHOLD_1_164",
+        "quantity": 65,
+        "unit_cost": "30.40",
+        "total_price": "1976.00",
+        "packaging_unit": "box",
+        "packaging_qty": 12
+      },
+      {
+        "id": "PO_16_ITEM_2",
+        "item_id": "M5_HOBBIES_1_077",
+        "product_name": "Product M5_HOBBIES_1_077",
+        "quantity": 87,
+        "unit_cost": "41.03",
+        "total_price": "3569.61",
+        "packaging_unit": null,
+        "packaging_qty": null
+      }
+    ],
+    "created_at": "2025-11-17T10:47:44.546Z",
+    "updated_at": "2025-11-17T10:47:44.546Z"
+  },
+  {
+    "id": "po_0017",
+    "po_number": "PO-2025-0017",
+    "supplier_id": "SUPPLIER_7",
+    "supplier_name": "Supplier 7",
+    "status": "confirmed",
+    "order_date": "2025-11-20",
+    "expected_delivery_date": "2025-11-25",
+    "total_amount": 12864.58,
+    "shipping_method": null,
+    "shipping_unit": null,
+    "notes": null,
+    "created_by": "demo@forecaster-enterprise.com",
+    "items": [
+      {
+        "id": "PO_17_ITEM_1",
+        "item_id": "M5_HOBBIES_1_069",
+        "product_name": "Product M5_HOBBIES_1_069",
+        "quantity": 116,
+        "unit_cost": "59.52",
+        "total_price": "6904.32",
+        "packaging_unit": "box",
+        "packaging_qty": 12
+      },
+      {
+        "id": "PO_17_ITEM_2",
+        "item_id": "M5_ELECTRONICS_1_087",
+        "product_name": "Product M5_ELECTRONICS_1_087",
+        "quantity": 91,
+        "unit_cost": "36.91",
+        "total_price": "3358.81",
+        "packaging_unit": null,
+        "packaging_qty": null
+      },
+      {
+        "id": "PO_17_ITEM_3",
+        "item_id": "M5_HOUSEHOLD_1_080",
+        "product_name": "Product M5_HOUSEHOLD_1_080",
+        "quantity": 47,
+        "unit_cost": "55.35",
+        "total_price": "2601.45",
+        "packaging_unit": "box",
+        "packaging_qty": 12
+      }
+    ],
+    "created_at": "2025-11-20T10:47:44.546Z",
+    "updated_at": "2025-11-20T10:47:44.546Z"
+  },
+  {
+    "id": "po_0018",
+    "po_number": "PO-2025-0018",
+    "supplier_id": "SUPPLIER_2",
+    "supplier_name": "Supplier 2",
+    "status": "confirmed",
+    "order_date": "2025-12-04",
+    "expected_delivery_date": "2025-12-17",
+    "total_amount": 15962.05,
+    "shipping_method": "Standard",
+    "shipping_unit": "pallet",
+    "notes": null,
+    "created_by": "demo@forecaster-enterprise.com",
+    "items": [
+      {
+        "id": "PO_18_ITEM_1",
+        "item_id": "M5_HOUSEHOLD_1_152",
+        "product_name": "Product M5_HOUSEHOLD_1_152",
+        "quantity": 83,
+        "unit_cost": "54.65",
+        "total_price": "4535.95",
+        "packaging_unit": "box",
+        "packaging_qty": 12
+      },
+      {
+        "id": "PO_18_ITEM_2",
+        "item_id": "M5_FOODS_1_094",
+        "product_name": "Product M5_FOODS_1_094",
+        "quantity": 105,
+        "unit_cost": "58.26",
+        "total_price": "6117.30",
+        "packaging_unit": null,
+        "packaging_qty": null
+      },
+      {
+        "id": "PO_18_ITEM_3",
+        "item_id": "M5_FOODS_1_054",
+        "product_name": "Product M5_FOODS_1_054",
+        "quantity": 38,
+        "unit_cost": "26.20",
+        "total_price": "995.60",
+        "packaging_unit": "box",
+        "packaging_qty": 12
+      },
+      {
+        "id": "PO_18_ITEM_4",
+        "item_id": "M5_HOUSEHOLD_1_112",
+        "product_name": "Product M5_HOUSEHOLD_1_112",
+        "quantity": 82,
+        "unit_cost": "52.60",
+        "total_price": "4313.20",
+        "packaging_unit": null,
+        "packaging_qty": null
+      }
+    ],
+    "created_at": "2025-12-04T10:47:44.546Z",
+    "updated_at": "2025-12-04T10:47:44.546Z"
+  },
+  {
+    "id": "po_0019",
+    "po_number": "PO-2025-0019",
+    "supplier_id": "SUPPLIER_6",
+    "supplier_name": "Supplier 6",
+    "status": "pending",
+    "order_date": "2025-12-06",
+    "expected_delivery_date": "2025-12-22",
+    "total_amount": 12065.11,
+    "shipping_method": "Express",
+    "shipping_unit": null,
+    "notes": null,
+    "created_by": "demo@forecaster-enterprise.com",
+    "items": [
+      {
+        "id": "PO_19_ITEM_1",
+        "item_id": "M5_HOBBIES_1_117",
+        "product_name": "Product M5_HOBBIES_1_117",
+        "quantity": 45,
+        "unit_cost": "56.63",
+        "total_price": "2548.35",
+        "packaging_unit": "box",
+        "packaging_qty": 12
+      },
+      {
+        "id": "PO_19_ITEM_2",
+        "item_id": "M5_ELECTRONICS_1_003",
+        "product_name": "Product M5_ELECTRONICS_1_003",
+        "quantity": 93,
+        "unit_cost": "19.85",
+        "total_price": "1846.05",
+        "packaging_unit": null,
+        "packaging_qty": null
+      },
+      {
+        "id": "PO_19_ITEM_3",
+        "item_id": "M5_HOBBIES_1_153",
+        "product_name": "Product M5_HOBBIES_1_153",
+        "quantity": 81,
+        "unit_cost": "25.83",
+        "total_price": "2092.23",
+        "packaging_unit": "box",
+        "packaging_qty": 12
+      },
+      {
+        "id": "PO_19_ITEM_4",
+        "item_id": "M5_ELECTRONICS_1_063",
+        "product_name": "Product M5_ELECTRONICS_1_063",
+        "quantity": 73,
+        "unit_cost": "58.16",
+        "total_price": "4245.68",
+        "packaging_unit": null,
+        "packaging_qty": null
+      },
+      {
+        "id": "PO_19_ITEM_5",
+        "item_id": "M5_HOBBIES_1_029",
+        "product_name": "Product M5_HOBBIES_1_029",
+        "quantity": 28,
+        "unit_cost": "47.60",
+        "total_price": "1332.80",
+        "packaging_unit": "box",
+        "packaging_qty": 12
+      }
+    ],
+    "created_at": "2025-12-06T10:47:44.546Z",
+    "updated_at": "2025-12-06T10:47:44.546Z"
+  },
+  {
+    "id": "po_0020",
+    "po_number": "PO-2025-0020",
+    "supplier_id": "SUPPLIER_6",
+    "supplier_name": "Supplier 6",
+    "status": "confirmed",
+    "order_date": "2025-11-18",
+    "expected_delivery_date": "2025-11-30",
+    "total_amount": 5752.92,
+    "shipping_method": null,
+    "shipping_unit": null,
+    "notes": "Notes for order PO-2025-0020",
+    "created_by": "demo@forecaster-enterprise.com",
+    "items": [
+      {
+        "id": "PO_20_ITEM_1",
+        "item_id": "M5_FOODS_1_182",
+        "product_name": "Product M5_FOODS_1_182",
+        "quantity": 75,
+        "unit_cost": "31.43",
+        "total_price": "2357.25",
+        "packaging_unit": "box",
+        "packaging_qty": 12
+      },
+      {
+        "id": "PO_20_ITEM_2",
+        "item_id": "M5_FOODS_1_026",
+        "product_name": "Product M5_FOODS_1_026",
+        "quantity": 53,
+        "unit_cost": "27.63",
+        "total_price": "1464.39",
+        "packaging_unit": null,
+        "packaging_qty": null
+      },
+      {
+        "id": "PO_20_ITEM_3",
+        "item_id": "M5_HOUSEHOLD_1_096",
+        "product_name": "Product M5_HOUSEHOLD_1_096",
+        "quantity": 78,
+        "unit_cost": "24.76",
+        "total_price": "1931.28",
+        "packaging_unit": "box",
+        "packaging_qty": 12
+      }
+    ],
+    "created_at": "2025-11-18T10:47:44.546Z",
+    "updated_at": "2025-11-18T10:47:44.546Z"
+  }
+]

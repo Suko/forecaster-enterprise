@@ -14,6 +14,25 @@ export default defineEventHandler(async (event) => {
     const { email, password } = await readValidatedBody(event, bodySchema.parse);
 
     const config = useRuntimeConfig();
+    
+    // Check if demo mode is enabled
+    if (config.public.demoMode) {
+      // In demo mode, accept any credentials or demo credentials
+      const demoUser = {
+        email: email || "demo@forecaster-enterprise.com",
+        name: "Demo User",
+        role: "admin",
+      };
+
+      // Set demo session
+      await setUserSession(event, {
+        user: demoUser,
+        accessToken: "demo-token",
+      });
+
+      return {};
+    }
+
     // Use private apiBaseUrl for server-side calls (reaches backend via Docker network)
     const apiBaseUrl = config.apiBaseUrl;
 

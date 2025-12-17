@@ -51,6 +51,8 @@ dist/
 .env.production
 .env.backup
 
+.cursorrules
+.cursor
 # IDE
 .vscode/
 .idea/

@@ -1,0 +1,69 @@
+{
+  "metrics": {
+    "total_inventory_value": "2900000",
+    "total_skus": 200,
+    "understocked_count": 23,
+    "overstocked_count": 95,
+    "understocked_value": "450000",
+    "overstocked_value": "1200000"
+  },
+  "top_understocked": [
+    {
+      "item_id": "M5_HOUSEHOLD_1_334",
+      "product_name": "Product M5_HOUSEHOLD_1_334",
+      "dir": 1.3,
+      "stockout_risk": 0.944
+    },
+    {
+      "item_id": "M5_HOBBIES_1_387",
+      "product_name": "Product M5_HOBBIES_1_387",
+      "dir": 2.3,
+      "stockout_risk": 0.894
+    },
+    {
+      "item_id": "M5_HOBBIES_1_404",
+      "product_name": "Product M5_HOBBIES_1_404",
+      "dir": 2.8,
+      "stockout_risk": 0.889
+    },
+    {
+      "item_id": "M5_HOBBIES_1_209",
+      "product_name": "Product M5_HOBBIES_1_209",
+      "dir": 2.1,
+      "stockout_risk": 0.884
+    },
+    {
+      "item_id": "M5_HOUSEHOLD_1_370",
+      "product_name": "Product M5_HOUSEHOLD_1_370",
+      "dir": 2.7,
+      "stockout_risk": 0.857
+    }
+  ],
+  "top_overstocked": [
+    {
+      "item_id": "M5_HOUSEHOLD_1_082",
+      "product_name": "Product M5_HOUSEHOLD_1_082",
+      "dir": 368.7
+    },
+    {
+      "item_id": "M5_HOUSEHOLD_1_086",
+      "product_name": "Product M5_HOUSEHOLD_1_086",
+      "dir": 351.1
+    },
+    {
+      "item_id": "M5_HOUSEHOLD_1_048",
+      "product_name": "Product M5_HOUSEHOLD_1_048",
+      "dir": 251.5
+    },
+    {
+      "item_id": "M5_HOUSEHOLD_1_027",
+      "product_name": "Product M5_HOUSEHOLD_1_027",
+      "dir": 236.3
+    },
+    {
+      "item_id": "M5_HOUSEHOLD_1_439",
+      "product_name": "Product M5_HOUSEHOLD_1_439",
+      "dir": 194.1
+    }
+  ]
+}

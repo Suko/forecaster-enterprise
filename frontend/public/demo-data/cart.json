@@ -1,0 +1,57 @@
+{
+  "items": [
+    {
+      "id": "cart_1765968464545_0",
+      "session_id": "demo-session",
+      "item_id": "M5_HOBBIES_1_181",
+      "supplier_id": "SUPPLIER_2",
+      "quantity": 42,
+      "unit_cost": "46.67",
+      "total_price": "1960.14",
+      "packaging_unit": null,
+      "packaging_qty": null,
+      "notes": null,
+      "product_name": "Product M5_HOBBIES_1_181",
+      "supplier_name": "Supplier 2",
+      "moq": 80,
+      "created_at": "2025-12-17T10:47:44.545Z",
+      "updated_at": "2025-12-17T10:47:44.546Z"
+    },
+    {
+      "id": "cart_1765968464546_1",
+      "session_id": "demo-session",
+      "item_id": "M5_HOBBIES_1_037",
+      "supplier_id": "SUPPLIER_3",
+      "quantity": 25,
+      "unit_cost": "26.35",
+      "total_price": "658.75",
+      "packaging_unit": null,
+      "packaging_qty": null,
+      "notes": null,
+      "product_name": "Product M5_HOBBIES_1_037",
+      "supplier_name": "Supplier 3",
+      "moq": 44,
+      "created_at": "2025-12-17T10:47:44.546Z",
+      "updated_at": "2025-12-17T10:47:44.546Z"
+    },
+    {
+      "id": "cart_1765968464546_2",
+      "session_id": "demo-session",
+      "item_id": "M5_ELECTRONICS_1_103",
+      "supplier_id": "SUPPLIER_4",
+      "quantity": 52,
+      "unit_cost": "12.06",
+      "total_price": "627.12",
+      "packaging_unit": null,
+      "packaging_qty": null,
+      "notes": null,
+      "product_name": "Product M5_ELECTRONICS_1_103",
+      "supplier_name": "Supplier 4",
+      "moq": 46,
+      "created_at": "2025-12-17T10:47:44.546Z",
+      "updated_at": "2025-12-17T10:47:44.546Z"
+    }
+  ],
+  "total_items": 119,
+  "total_value": "3246.01"
+}

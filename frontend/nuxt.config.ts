@@ -22,6 +22,7 @@ export default defineNuxtConfig({
     // Override at runtime with NUXT_PUBLIC_API_BASE_URL env var
     public: {
       apiBaseUrl: "http://localhost:8000",
+      demoMode: process.env.NUXT_PUBLIC_DEMO_MODE === 'true',
     },
   },
   // Note: nuxt-auth-utils automatically uses HttpOnly cookies

@@ -291,17 +291,7 @@ class InventoryService:
         """
         task_key = f"{client_id}:refresh"
         
-        # Check if refresh already in progress (thread-safe)
-        async with _forecast_refresh_lock:
-            if task_key in _forecast_refresh_tasks:
-                task = _forecast_refresh_tasks[task_key]
-                if not task.done():
-                    logger.info(f"Forecast refresh already in progress for client {client_id}")
-                    return
-                # Task is done but not cleaned up - remove it
-                del _forecast_refresh_tasks[task_key]
-        
-        # Create background task
+        # Create background task function
         async def refresh_task():
             # Create new database session for background task
             from models.database import get_async_session_local
@@ -329,11 +319,18 @@ class InventoryService:
                         if task_key in _forecast_refresh_tasks:
                             del _forecast_refresh_tasks[task_key]
         
-        # Start background task (fire and forget)
-        task = asyncio.create_task(refresh_task())
-        
-        # Register task (thread-safe)
+        # Check if refresh already in progress and create/register task atomically (thread-safe)
         async with _forecast_refresh_lock:
+            if task_key in _forecast_refresh_tasks:
+                task = _forecast_refresh_tasks[task_key]
+                if not task.done():
+                    logger.info(f"Forecast refresh already in progress for client {client_id}")
+                    return
+                # Task is done but not cleaned up - remove it
+                del _forecast_refresh_tasks[task_key]
+            
+            # Create and register task atomically (prevents race condition)
+            task = asyncio.create_task(refresh_task())
             _forecast_refresh_tasks[task_key] = task
 
     async def get_products(

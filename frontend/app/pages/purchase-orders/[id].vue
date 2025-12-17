@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import type { PurchaseOrder } from "~/types/order";
 import type { Supplier } from "~/types/supplier";
-import { logger } from "~~/server/utils/logger";
 
 definePageMeta({
   layout: "dashboard",
@@ -60,7 +59,6 @@ const loadPo = async () => {
       try {
         supplier.value = await fetchSupplier(data.supplier_id);
       } catch (err: any) {
-        logger.error("Fetch supplier error", { error: err });
         const wasAuthError = await handleAuthError(err);
         if (!wasAuthError) {
           supplierError.value = err.message || "Failed to load supplier";
@@ -70,7 +68,6 @@ const loadPo = async () => {
       }
     }
   } catch (err: any) {
-    logger.error("Load purchase order error", { error: err });
     const wasAuthError = await handleAuthError(err);
     if (wasAuthError) return;
     error.value = err.message || "Failed to load purchase order";
@@ -87,7 +84,6 @@ const onSaveStatus = async () => {
     po.value = updated;
     toast.add({ title: "Status updated", description: updated.status, color: "success" });
   } catch (err: any) {
-    logger.error("Update purchase order status error", { error: err });
     const wasAuthError = await handleAuthError(err);
     if (wasAuthError) return;
     toast.add({

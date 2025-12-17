@@ -2,7 +2,6 @@
 import type { Supplier } from "~/types/supplier";
 import type { Product, ProductListResponse } from "~/types/product";
 import type { ProductSupplierCondition } from "~/types/inventory";
-import { logger } from "~~/server/utils/logger";
 
 definePageMeta({
   layout: "dashboard",
@@ -59,7 +58,6 @@ const loadSupplier = async () => {
   try {
     supplier.value = await fetchSupplier(supplierId.value);
   } catch (err: any) {
-    logger.error("Load supplier error", { error: err });
     const wasAuthError = await handleAuthError(err);
     if (wasAuthError) return;
     error.value = err.message || "Failed to load supplier";
@@ -89,7 +87,6 @@ const loadProducts = async (page: number = productsPage.value) => {
     // Load product-supplier conditions for each product
     await loadProductConditions();
   } catch (err: any) {
-    logger.error("Load products error", { error: err });
     const wasAuthError = await handleAuthError(err);
     if (wasAuthError) return;
     productsError.value = err.message || "Failed to load products";
@@ -156,9 +153,8 @@ const loadProductConditions = async () => {
       if (condition) {
         conditionsMap.set(product.item_id, condition);
       }
-    } catch (err) {
-      // Silently fail for individual products
-      logger.warning(`Failed to load conditions for product ${product.item_id}`, { error: err });
+    } catch {
+      // Silently fail for individual products - errors logged on server side
     }
   }
 
@@ -232,7 +228,6 @@ const saveProductCondition = async (product: Product) => {
     editingProductId.value = null;
     editingProductForm.value = null;
   } catch (err: any) {
-    logger.error("Save product condition error", { error: err });
     const wasAuthError = await handleAuthError(err);
     if (wasAuthError) return;
 
@@ -286,7 +281,6 @@ const resetToDefault = async (product: Product) => {
       color: "success",
     });
   } catch (err: any) {
-    logger.error("Reset product condition error", { error: err });
     const wasAuthError = await handleAuthError(err);
     if (wasAuthError) return;
 
@@ -403,7 +397,6 @@ const performSave = async (applyToExistingProducts: boolean) => {
     // Reload product conditions in case they were affected
     await loadProductConditions();
   } catch (err: any) {
-    logger.error("Update supplier error", { error: err });
     const wasAuthError = await handleAuthError(err);
     if (wasAuthError) return;
     error.value = err.message || "Failed to update supplier";

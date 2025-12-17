@@ -71,11 +71,11 @@ write_status() {
     
     if [ "$valid" = "true" ]; then
         cat > "$LICENSE_STATUS_FILE" <<EOF
-{"valid":true,"checkedAt":"$timestamp"}
+{"valid":true,"checkedAt":"$timestamp","machineId":"$MACHINE_ID"}
 EOF
     else
         cat > "$LICENSE_STATUS_FILE" <<EOF
-{"valid":false,"reason":"$reason","checkedAt":"$timestamp"}
+{"valid":false,"reason":"$reason","checkedAt":"$timestamp","machineId":"$MACHINE_ID"}
 EOF
     fi
 }

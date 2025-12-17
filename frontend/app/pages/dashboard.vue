@@ -178,7 +178,6 @@
 
 <script setup lang="ts">
 import type { DashboardResponse } from "~/types/dashboard";
-import { logger } from "~~/server/utils/logger";
 
 definePageMeta({
   layout: "dashboard",
@@ -205,7 +204,6 @@ const loadDashboard = async () => {
     const data = await $fetch<DashboardResponse>("/api/dashboard");
     dashboardData.value = data;
   } catch (err: any) {
-    logger.error("Error loading dashboard", { error: err });
     // Handle 401 errors - redirect to login
     const wasAuthError = await handleAuthError(err);
     if (wasAuthError) {

@@ -1,5 +1,4 @@
 import * as Sentry from "@sentry/nuxt";
-import { readFileSync, existsSync } from "fs";
 
 /**
  * Centralized logging utility
@@ -12,7 +11,7 @@ interface LogContext {
   [key: string]: any;
 }
 
-// Machine ID cache - set by license-status endpoint or read from file
+// Machine ID cache - set by license-status endpoint
 let cachedMachineId: string | null = null;
 
 /**
@@ -23,27 +22,10 @@ export function setMachineId(machineId: string | null): void {
 }
 
 /**
- * Get the cached machine ID, falling back to reading from file if not set
+ * Get the cached machine ID
  */
 export function getMachineId(): string | null {
-  if (cachedMachineId) return cachedMachineId;
-
-  // Fallback: read from file if cache is empty (e.g., first log before license check)
-  try {
-    const statusFilePath = "/license-data/license-status.json";
-    if (existsSync(statusFilePath)) {
-      const content = readFileSync(statusFilePath, "utf-8");
-      const status = JSON.parse(content);
-      if (status.machineId) {
-        cachedMachineId = status.machineId;
-        return cachedMachineId;
-      }
-    }
-  } catch {
-    // Silently fail - machine ID is optional
-  }
-
-  return null;
+  return cachedMachineId;
 }
 
 /**

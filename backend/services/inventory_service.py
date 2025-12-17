@@ -3,12 +3,15 @@ Inventory Service
 
 Business logic for inventory management operations.
 """
-from typing import Optional, List, Dict
+from typing import Optional, List, Dict, Tuple
 from uuid import UUID
+from datetime import date, timedelta, datetime
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select, and_, or_, func
+from sqlalchemy import select, and_, or_, func, text
 from sqlalchemy.sql import desc, asc
 from decimal import Decimal
+import asyncio
+import logging
 
 from models.product import Product
 from models.stock import StockLevel
@@ -16,8 +19,11 @@ from models.location import Location
 from models.supplier import Supplier
 from models.product_supplier import ProductSupplierCondition
 from models.settings import ClientSettings
+from models.forecast import ForecastRun, ForecastResult
 from services.metrics_service import MetricsService
 from schemas.inventory import ProductFilters, ProductResponse, ProductDetailResponse, ProductMetrics, SupplierSummary, LocationStockSummary
+
+logger = logging.getLogger(__name__)
 
 
 class InventoryService:
@@ -26,6 +32,7 @@ class InventoryService:
     def __init__(self, db: AsyncSession):
         self.db = db
         self.metrics_service = MetricsService(db)
+        self._forecast_refresh_tasks: Dict[str, asyncio.Task] = {}  # Track background refresh tasks
 
     async def get_primary_supplier_id(
         self,
@@ -168,6 +175,124 @@ class InventoryService:
         # System default
         return 7
 
+    async def _get_latest_forecast_demand(
+        self,
+        client_id: UUID,
+        item_id: str,
+        max_age_days: int = 7
+    ) -> Tuple[Optional[Decimal], bool]:
+        """
+        Get latest forecast demand for an item.
+        
+        Returns:
+            Tuple of (forecasted_demand_30d, is_fresh)
+            - forecasted_demand_30d: Total forecasted demand for next 30 days, or None if no forecast
+            - is_fresh: True if forecast is < max_age_days old, False if stale or missing
+        """
+        try:
+            # Find latest forecast run for this client
+            cutoff_date = datetime.utcnow() - timedelta(days=max_age_days)
+            
+            forecast_run_result = await self.db.execute(
+                select(ForecastRun)
+                .where(
+                    and_(
+                        ForecastRun.client_id == client_id,
+                        ForecastRun.status == "completed",
+                        ForecastRun.created_at >= cutoff_date
+                    )
+                )
+                .order_by(ForecastRun.created_at.desc())
+                .limit(1)
+            )
+            forecast_run = forecast_run_result.scalar_one_or_none()
+            
+            if not forecast_run:
+                return None, False
+            
+            # Check if this item is in the forecast run
+            item_ids = forecast_run.item_ids or []
+            if item_id not in item_ids:
+                return None, False
+            
+            # Get forecast results for this item (next 30 days from today)
+            today = date.today()
+            end_date = today + timedelta(days=30)
+            
+            # Use recommended method or primary model
+            method = forecast_run.recommended_method or forecast_run.primary_model
+            
+            forecast_results = await self.db.execute(
+                select(ForecastResult)
+                .where(
+                    and_(
+                        ForecastResult.forecast_run_id == forecast_run.forecast_run_id,
+                        ForecastResult.item_id == item_id,
+                        ForecastResult.method == method,
+                        ForecastResult.date >= today,
+                        ForecastResult.date < end_date
+                    )
+                )
+            )
+            results = forecast_results.scalars().all()
+            
+            if not results:
+                return None, False
+            
+            # Sum forecasted demand for next 30 days
+            total_demand = sum(Decimal(str(r.point_forecast)) for r in results)
+            
+            return total_demand, True
+            
+        except Exception as e:
+            logger.warning(f"Error getting forecast demand for {item_id}: {e}")
+            return None, False
+
+    async def _trigger_forecast_refresh(
+        self,
+        client_id: UUID,
+        item_ids: List[str],
+        user_id: str = "system"
+    ) -> None:
+        """
+        Trigger background forecast refresh for items.
+        Non-blocking - runs in background task.
+        """
+        # Check if refresh already in progress for this client
+        task_key = f"{client_id}:refresh"
+        if task_key in self._forecast_refresh_tasks:
+            task = self._forecast_refresh_tasks[task_key]
+            if not task.done():
+                logger.info(f"Forecast refresh already in progress for client {client_id}")
+                return
+        
+        # Create background task
+        async def refresh_task():
+            try:
+                from forecasting.services.forecast_service import ForecastService
+                forecast_service = ForecastService(self.db)
+                
+                logger.info(f"Starting background forecast refresh for {len(item_ids)} items")
+                await forecast_service.generate_forecast(
+                    client_id=str(client_id),
+                    user_id=user_id,
+                    item_ids=item_ids,
+                    prediction_length=30,
+                    primary_model="chronos-2",
+                    include_baseline=False
+                )
+                logger.info(f"Forecast refresh completed for client {client_id}")
+            except Exception as e:
+                logger.error(f"Forecast refresh failed for client {client_id}: {e}")
+            finally:
+                # Clean up task tracking
+                if task_key in self._forecast_refresh_tasks:
+                    del self._forecast_refresh_tasks[task_key]
+        
+        # Start background task (fire and forget)
+        task = asyncio.create_task(refresh_task())
+        self._forecast_refresh_tasks[task_key] = task
+
     async def get_products(
         self,
         client_id: UUID,
@@ -241,13 +366,31 @@ class InventoryService:
         # Calculate total pages
         total_pages = (total + page_size - 1) // page_size if total > 0 else 0
 
+        # Batch check for stale forecasts and trigger refresh if needed
+        item_ids_list = [p.item_id for p in products]
+        stale_items = []
+        for item_id in item_ids_list:
+            _, is_fresh = await self._get_latest_forecast_demand(client_id, item_id)
+            if not is_fresh:
+                stale_items.append(item_id)
+        
+        # Trigger background refresh for stale items (non-blocking)
+        if stale_items:
+            await self._trigger_forecast_refresh(client_id, stale_items)
+
         # Compute metrics for each product
         items_with_metrics = []
         for product in products:
-            # Get metrics for this product
+            # Get forecast demand if available
+            forecast_demand, using_forecast = await self._get_latest_forecast_demand(
+                client_id, product.item_id
+            )
+            
+            # Get metrics for this product (will use forecast if provided)
             metrics = await self.metrics_service.compute_product_metrics(
                 client_id=client_id,
-                item_id=product.item_id
+                item_id=product.item_id,
+                forecasted_demand_30d=forecast_demand if using_forecast else None
             )
 
             # Get all suppliers for this product
@@ -348,6 +491,7 @@ class InventoryService:
                 stockout_risk=metrics.get("stockout_risk"),
                 inventory_value=metrics.get("inventory_value", Decimal("0.00")),
                 status=metrics.get("status", "unknown"),
+                using_forecast=using_forecast,
                 # Add all suppliers
                 suppliers=suppliers_list if suppliers_list else None,
                 # Add stock per location

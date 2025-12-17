@@ -72,6 +72,7 @@ class ProductResponse(ProductBase):
     stockout_risk: Optional[Decimal] = None
     inventory_value: Optional[Decimal] = None
     status: Optional[str] = None
+    using_forecast: Optional[bool] = Field(None, description="True if metrics use forecast data, False if using historical data")
     # All suppliers for this product (for list views)
     suppliers: Optional[List[SupplierSummary]] = None
     # Stock per location

@@ -19,6 +19,7 @@ from models.stock import StockLevel
 from models.location import Location
 from models.settings import ClientSettings
 from models.product_supplier import ProductSupplierCondition
+from models.forecast import ForecastRun, ForecastResult
 from services.metrics_service import MetricsService
 from forecasting.services.data_validator import DataValidator
 import pandas as pd
@@ -53,6 +54,7 @@ class DataValidationService:
             "data_completeness": {},
             "computed_metrics": {},
             "frontend_consistency": {},
+            "forecast_validation": {},
             "summary": {
                 "total_errors": 0,
                 "total_warnings": 0,
@@ -86,6 +88,12 @@ class DataValidationService:
             report["frontend_consistency"] = consistency
             report["summary"]["total_errors"] += len(consistency.get("errors", []))
             report["summary"]["total_warnings"] += len(consistency.get("warnings", []))
+
+        # 5. Forecast Validation
+        forecast_validation = await self._validate_forecasts(client_id)
+        report["forecast_validation"] = forecast_validation
+        report["summary"]["total_errors"] += len(forecast_validation.get("errors", []))
+        report["summary"]["total_warnings"] += len(forecast_validation.get("warnings", []))
 
         # Final validation status
         report["summary"]["is_valid"] = report["summary"]["total_errors"] == 0
@@ -502,4 +510,165 @@ class DataValidationService:
             "errors": errors,
             "warnings": warnings,
             "info": info
+        }
+
+    async def _validate_forecasts(self, client_id: UUID) -> Dict[str, Any]:
+        """
+        Validate forecast quality and completeness.
+        
+        Checks:
+        - Forecast exists for active products
+        - Forecast is recent (< 7 days old)
+        - Forecast completeness (all 30 days predicted)
+        - Forecast accuracy metrics (if actuals available)
+        """
+        from datetime import datetime
+        
+        errors = []
+        warnings = []
+        info = []
+        
+        # Get all active products
+        products_result = await self.db.execute(
+            select(Product).where(Product.client_id == client_id)
+        )
+        products = products_result.scalars().all()
+        item_ids = [p.item_id for p in products]
+        
+        if not item_ids:
+            info.append("No products found - skipping forecast validation")
+            return {
+                "errors": errors,
+                "warnings": warnings,
+                "info": info
+            }
+        
+        # Check for latest forecast run
+        cutoff_date = datetime.utcnow() - timedelta(days=7)
+        forecast_run_result = await self.db.execute(
+            select(ForecastRun)
+            .where(
+                and_(
+                    ForecastRun.client_id == client_id,
+                    ForecastRun.status == "completed",
+                    ForecastRun.created_at >= cutoff_date
+                )
+            )
+            .order_by(ForecastRun.created_at.desc())
+            .limit(1)
+        )
+        forecast_run = forecast_run_result.scalar_one_or_none()
+        
+        if not forecast_run:
+            warnings.append(
+                f"No fresh forecast found (last forecast > 7 days old or no forecast exists). "
+                f"System will use historical data for metrics."
+            )
+            return {
+                "errors": errors,
+                "warnings": warnings,
+                "info": info
+            }
+        
+        # Check forecast age
+        forecast_age_days = (datetime.utcnow() - forecast_run.created_at).days
+        if forecast_age_days >= 7:
+            warnings.append(
+                f"Forecast is {forecast_age_days} days old (recommended: < 7 days). "
+                f"Consider refreshing forecasts."
+            )
+        else:
+            info.append(
+                f"Forecast is {forecast_age_days} days old (fresh, < 7 days)"
+            )
+        
+        # Check which items have forecasts
+        forecast_item_ids = set(forecast_run.item_ids or [])
+        missing_items = set(item_ids) - forecast_item_ids
+        
+        if missing_items:
+            warnings.append(
+                f"{len(missing_items)} products missing forecasts: {', '.join(list(missing_items)[:10])}"
+                + (f" (and {len(missing_items) - 10} more)" if len(missing_items) > 10 else "")
+            )
+        
+        # Check forecast completeness (all 30 days predicted)
+        today = date.today()
+        end_date = today + timedelta(days=30)
+        method = forecast_run.recommended_method or forecast_run.primary_model
+        
+        forecast_results = await self.db.execute(
+            select(
+                ForecastResult.item_id,
+                func.count(ForecastResult.date).label("day_count")
+            )
+            .where(
+                and_(
+                    ForecastResult.forecast_run_id == forecast_run.forecast_run_id,
+                    ForecastResult.method == method,
+                    ForecastResult.date >= today,
+                    ForecastResult.date < end_date
+                )
+            )
+            .group_by(ForecastResult.item_id)
+        )
+        
+        incomplete_items = []
+        for row in forecast_results:
+            item_id, day_count = row
+            if day_count < 30:
+                incomplete_items.append(f"{item_id} ({day_count}/30 days)")
+        
+        if incomplete_items:
+            warnings.append(
+                f"{len(incomplete_items)} items have incomplete forecasts: "
+                + ", ".join(incomplete_items[:5])
+                + (f" (and {len(incomplete_items) - 5} more)" if len(incomplete_items) > 5 else "")
+            )
+        
+        # Check forecast accuracy (if actuals available)
+        accuracy_result = await self.db.execute(
+            select(func.count(ForecastResult.result_id))
+            .where(
+                and_(
+                    ForecastResult.forecast_run_id == forecast_run.forecast_run_id,
+                    ForecastResult.actual_value.isnot(None)
+                )
+            )
+        )
+        actuals_count = accuracy_result.scalar() or 0
+        
+        if actuals_count > 0:
+            info.append(
+                f"Forecast accuracy tracking: {actuals_count} actual values backfilled. "
+                f"Use /api/v1/forecast/forecasts/quality/{{item_id}} to view accuracy metrics."
+            )
+        else:
+            info.append(
+                "No actual values backfilled yet. Backfill actuals to track forecast accuracy."
+            )
+        
+        # Summary
+        items_with_forecasts = len(forecast_item_ids)
+        coverage_pct = (items_with_forecasts / len(item_ids) * 100) if item_ids else 0
+        
+        if coverage_pct < 50:
+            warnings.append(
+                f"Low forecast coverage: {coverage_pct:.1f}% of products have forecasts "
+                f"({items_with_forecasts}/{len(item_ids)})"
+            )
+        else:
+            info.append(
+                f"Forecast coverage: {coverage_pct:.1f}% ({items_with_forecasts}/{len(item_ids)} products)"
+            )
+        
+        return {
+            "errors": errors,
+            "warnings": warnings,
+            "info": info,
+            "forecast_run_id": str(forecast_run.forecast_run_id),
+            "forecast_age_days": forecast_age_days,
+            "coverage_percentage": round(coverage_pct, 1),
+            "items_with_forecasts": items_with_forecasts,
+            "total_items": len(item_ids)
         }

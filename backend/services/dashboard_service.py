@@ -3,19 +3,24 @@ Dashboard Service
 
 Calculates dashboard KPIs and aggregates.
 """
-from typing import List, Dict, Optional
+from typing import List, Dict, Optional, Tuple
 from uuid import UUID
-from datetime import date, timedelta
+from datetime import date, timedelta, datetime
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, func, and_, or_, text
 from decimal import Decimal
+import asyncio
+import logging
 
 from models.product import Product
 from models.stock import StockLevel
 from models.settings import ClientSettings
 from models.product_supplier import ProductSupplierCondition
+from models.forecast import ForecastRun, ForecastResult
 from services.metrics_service import MetricsService
 from schemas.inventory import DashboardMetrics, TopProduct, DashboardResponse
+
+logger = logging.getLogger(__name__)
 
 
 class DashboardService:
@@ -24,6 +29,133 @@ class DashboardService:
     def __init__(self, db: AsyncSession):
         self.db = db
         self.metrics_service = MetricsService(db)
+        self._forecast_refresh_tasks: Dict[str, asyncio.Task] = {}  # Track background refresh tasks
+
+    async def _batch_get_latest_forecast_demand(
+        self,
+        client_id: UUID,
+        item_ids: List[str],
+        max_age_days: int = 7
+    ) -> Dict[str, Tuple[Optional[Decimal], bool]]:
+        """
+        Batch get latest forecast demand for multiple items.
+        
+        Returns:
+            Dict mapping item_id to (forecasted_demand_30d, is_fresh)
+        """
+        result = {}
+        
+        try:
+            # Find latest forecast run for this client
+            cutoff_date = datetime.utcnow() - timedelta(days=max_age_days)
+            
+            forecast_run_result = await self.db.execute(
+                select(ForecastRun)
+                .where(
+                    and_(
+                        ForecastRun.client_id == client_id,
+                        ForecastRun.status == "completed",
+                        ForecastRun.created_at >= cutoff_date
+                    )
+                )
+                .order_by(ForecastRun.created_at.desc())
+                .limit(1)
+            )
+            forecast_run = forecast_run_result.scalar_one_or_none()
+            
+            if not forecast_run:
+                # No fresh forecast - return None for all items
+                return {item_id: (None, False) for item_id in item_ids}
+            
+            # Check which items are in the forecast run
+            forecast_item_ids = set(forecast_run.item_ids or [])
+            
+            # Get forecast results for all items (next 30 days from today)
+            today = date.today()
+            end_date = today + timedelta(days=30)
+            method = forecast_run.recommended_method or forecast_run.primary_model
+            
+            # Batch query forecast results
+            forecast_results = await self.db.execute(
+                select(ForecastResult)
+                .where(
+                    and_(
+                        ForecastResult.forecast_run_id == forecast_run.forecast_run_id,
+                        ForecastResult.item_id.in_(item_ids),
+                        ForecastResult.method == method,
+                        ForecastResult.date >= today,
+                        ForecastResult.date < end_date
+                    )
+                )
+            )
+            results = forecast_results.scalars().all()
+            
+            # Group by item_id and sum
+            forecast_by_item: Dict[str, List[Decimal]] = {}
+            for r in results:
+                if r.item_id not in forecast_by_item:
+                    forecast_by_item[r.item_id] = []
+                forecast_by_item[r.item_id].append(Decimal(str(r.point_forecast)))
+            
+            # Build result dict
+            for item_id in item_ids:
+                if item_id in forecast_item_ids and item_id in forecast_by_item:
+                    total_demand = sum(forecast_by_item[item_id])
+                    result[item_id] = (total_demand, True)
+                else:
+                    result[item_id] = (None, False)
+                    
+        except Exception as e:
+            logger.warning(f"Error batch getting forecast demand: {e}")
+            # Return None for all items on error
+            return {item_id: (None, False) for item_id in item_ids}
+        
+        return result
+
+    async def _trigger_forecast_refresh(
+        self,
+        client_id: UUID,
+        item_ids: List[str],
+        user_id: str = "system"
+    ) -> None:
+        """
+        Trigger background forecast refresh for items.
+        Non-blocking - runs in background task.
+        """
+        # Check if refresh already in progress for this client
+        task_key = f"{client_id}:refresh"
+        if task_key in self._forecast_refresh_tasks:
+            task = self._forecast_refresh_tasks[task_key]
+            if not task.done():
+                logger.info(f"Forecast refresh already in progress for client {client_id}")
+                return
+        
+        # Create background task
+        async def refresh_task():
+            try:
+                from forecasting.services.forecast_service import ForecastService
+                forecast_service = ForecastService(self.db)
+                
+                logger.info(f"Starting background forecast refresh for {len(item_ids)} items")
+                await forecast_service.generate_forecast(
+                    client_id=str(client_id),
+                    user_id=user_id,
+                    item_ids=item_ids,
+                    prediction_length=30,
+                    primary_model="chronos-2",
+                    include_baseline=False
+                )
+                logger.info(f"Forecast refresh completed for client {client_id}")
+            except Exception as e:
+                logger.error(f"Forecast refresh failed for client {client_id}: {e}")
+            finally:
+                # Clean up task tracking
+                if task_key in self._forecast_refresh_tasks:
+                    del self._forecast_refresh_tasks[task_key]
+        
+        # Start background task (fire and forget)
+        task = asyncio.create_task(refresh_task())
+        self._forecast_refresh_tasks[task_key] = task
 
     async def get_dashboard_data(self, client_id: UUID) -> DashboardResponse:
         """
@@ -70,7 +202,15 @@ class DashboardService:
                 stock_by_item[sl.item_id] = 0
             stock_by_item[sl.item_id] += sl.current_stock
 
-        # Batch load average daily demands
+        # Batch check for stale forecasts and trigger refresh if needed
+        forecast_demands = await self._batch_get_latest_forecast_demand(client_id, item_ids)
+        stale_items = [item_id for item_id, (_, is_fresh) in forecast_demands.items() if not is_fresh]
+        
+        # Trigger background refresh for stale items (non-blocking)
+        if stale_items:
+            await self._trigger_forecast_refresh(client_id, stale_items)
+
+        # Batch load average daily demands (fallback for items without forecasts)
         avg_demands = await self._batch_get_average_daily_demand(client_id, item_ids)
 
         # Batch load supplier conditions
@@ -112,7 +252,17 @@ class DashboardService:
 
         for product in products:
             current_stock = stock_by_item.get(product.item_id, 0)
-            avg_demand = avg_demands.get(product.item_id)
+            
+            # Use forecast if available, otherwise use historical
+            forecast_demand, using_forecast = forecast_demands.get(product.item_id, (None, False))
+            avg_demand = None
+            
+            if using_forecast and forecast_demand and forecast_demand > 0:
+                # Use forecasted demand (30-day total / 30 = daily average)
+                avg_demand = forecast_demand / Decimal("30")
+            else:
+                # Fall back to historical average
+                avg_demand = avg_demands.get(product.item_id)
 
             # Calculate DIR
             dir_value = None

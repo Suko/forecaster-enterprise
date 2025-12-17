@@ -2,7 +2,7 @@ import * as Sentry from "@sentry/nuxt";
 
 const config = useRuntimeConfig();
 Sentry.init({
-  dsn: "https://807db02f3d58f65c7caf28b0f074c0b4@o1296949.ingest.us.sentry.io/4510544006348800",
+  dsn: process.env.NUXT_PUBLIC_SENTRY_DSN || "",
 
   // We recommend adjusting this value in production, or using tracesSampler
   // for finer control

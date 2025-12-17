@@ -10,6 +10,7 @@ const bodySchema = z.object({
 export default defineEventHandler(async (event) => {
   const clientIP = getClientIP(event);
   const userAgent = getUserAgent(event);
+  let securityLogged = false;
 
   try {
     const { email, password } = await readValidatedBody(event, bodySchema.parse);
@@ -62,6 +63,7 @@ export default defineEventHandler(async (event) => {
         ip: clientIP,
         userAgent: userAgent,
       });
+      securityLogged = true;
 
       return {};
     }
@@ -73,6 +75,7 @@ export default defineEventHandler(async (event) => {
       userAgent: userAgent,
       details: { reason: "Invalid credentials or no token received" },
     });
+    securityLogged = true;
 
     throw createError({
       statusCode: 401,
@@ -83,8 +86,8 @@ export default defineEventHandler(async (event) => {
     const errorData = error?.data;
     const errorMessage = error?.statusMessage;
 
-    // Log security events for authentication failures
-    if (statusCode === 401 || statusCode === 429) {
+    // Log security events for authentication failures (only if not already logged)
+    if (!securityLogged && (statusCode === 401 || statusCode === 429)) {
       logSecurityEvent({
         type: statusCode === 429 ? "rate_limit" : "login_failure",
         email: errorData?.email,

@@ -63,6 +63,7 @@ sentry.*.config.ts
 *.swo
 *~
 .DS_Store
+.cursorrules
 
 # Database
 *.db

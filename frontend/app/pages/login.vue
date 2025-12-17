@@ -34,6 +34,7 @@ definePageMeta({
 });
 
 const { loggedIn, fetch: refreshSession } = useUserSession();
+const { isDemoMode } = useDemoMode();
 const route = useRoute();
 const isSubmitting = ref(false);
 const error = ref<string | null>(null);
@@ -46,6 +47,11 @@ const returnTo = computed(() => {
   }
   return "/dashboard";
 });
+
+// In demo mode, redirect to dashboard immediately (demo auth will handle login)
+if (isDemoMode.value) {
+  await navigateTo(returnTo.value);
+}
 
 // Redirect if already logged in
 if (loggedIn.value) {

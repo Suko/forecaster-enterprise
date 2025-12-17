@@ -43,4 +43,10 @@ definePageMeta({
 });
 
 const { loggedIn } = useUserSession();
+const { isDemoMode } = useDemoMode();
+
+// In demo mode, redirect to dashboard immediately
+if (isDemoMode.value) {
+  await navigateTo('/dashboard');
+}
 </script>

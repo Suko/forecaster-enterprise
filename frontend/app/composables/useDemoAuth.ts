@@ -5,33 +5,33 @@
  */
 
 export const useDemoAuth = () => {
-  const { user, fetch: refreshSession } = useUserSession();
-  
+  const { user, fetch: refreshSession, clear: clearSession } = useUserSession();
+  const { isDemoMode } = useDemoMode();
+
   /**
    * Auto-login with demo user
    * In demo mode, we bypass the real auth and set a demo session cookie
    */
   const loginDemo = async () => {
-    // For demo mode, call the login API with demo credentials
-    // The server will handle setting the session cookie
-    try {
-      if (typeof window !== 'undefined') {
-        // Call login API with demo credentials
-        // The server will handle setting the session cookie
+    if (isDemoMode.value) {
+      // Directly set a demo session without calling a backend API
+      try {
         await $fetch('/api/login', {
           method: 'POST',
           body: {
             email: 'demo@forecaster-enterprise.com',
-            password: 'demo', // Demo password
+            password: 'demo',
           },
         });
-        
-        // Refresh session to get user data
-        await refreshSession();
+        await refreshSession(); // Ensure the session is loaded
+      } catch (err) {
+        // If login fails, try to set session directly via client-side
+        console.warn('Demo login API call failed, trying direct session:', err);
+        // The login.post.ts server route should handle this, but if it fails,
+        // the middleware will allow access anyway in demo mode
       }
-    } catch (err) {
-      // If login fails, log but don't worry - middleware will handle it
-      console.warn('Demo login attempt:', err);
+    } else {
+      console.warn('Attempted to call loginDemo outside of demo mode.');
     }
   };
   

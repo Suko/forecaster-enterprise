@@ -436,4 +436,4 @@ These are managed entirely within our system. You don't need to provide these fr
 
 **Document Owner:** Product Team  
 **Last Updated:** 2025-01-27  
-**Related Docs:** [Data Model](./DATA_MODEL.md) (technical details), [System Contracts](./system/CONTRACTS.md) (technical specifications), [Quick Start](./QUICK_START.md) (setup guide)
+**Related Docs:** [Data Model](./DATA_MODEL.md) (technical details), [System Contracts](./system/CONTRACTS.md) (technical specifications), [Quick Start](./setup/QUICK_START.md) (setup guide)

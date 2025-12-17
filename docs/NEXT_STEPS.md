@@ -28,18 +28,27 @@ Backend MVP (Phases 1-4) is **complete** ✅, and frontend MVP is **~87% complet
 
 **Inventory Page:**
 - [ ] Row actions (view details, edit, add to cart)
-- [ ] Quick filter buttons (Understocked, Overstocked, All)
-- [ ] Export to CSV functionality
-- [ ] Column visibility toggle
+- [ ] Status tabs and quick filters
+- [ ] Cart indicators and bulk actions
+- [ ] Export functionality (Excel/CSV)
+- [ ] Column management
+- [ ] Enhanced product information display
+- [ ] **Product Detail Page** — Full SKU view with history + forecast chart ⭐
+
+**See Full Plan:** [Inventory Improvements](features/INVENTORY_IMPROVEMENTS.md)
+
+
 
 **Recommendations Page:**
-- [ ] Dismiss recommendation functionality
-- [ ] Empty state handling
-- [ ] Complete AG Grid AI Toolkit integration (if backend LLM service available)
+- [ ] **DEPRECATE** - Merge functionality into Inventory and Cart pages
+  - Inventory "Needs Action" tab → Shows products needing attention
+  - Cart page → Shows Order Suggestions with suggested quantities
+  - See: [Purchase Order Improvements](features/PURCHASE_ORDER_IMPROVEMENTS.md) for Order Suggestions in Cart
 
 **Integration:**
 - [ ] Cart badge in header
 - [ ] Add to cart from inventory page
+- [ ] Last sync date indicator in header
 
 **Estimated Time:** 1 week
 
@@ -54,7 +63,7 @@ Backend MVP (Phases 1-4) is **complete** ✅, and frontend MVP is **~87% complet
 
 **Frontend (OPTIONAL):**
 - [ ] Create reusable `EmptyState.vue` component
-- [ ] Add empty states to Dashboard, Inventory, and Recommendations pages
+- [ ] Add empty states to Dashboard, Inventory, and Cart pages
 - [ ] Add contextual help messages
 
 **Estimated Time:** 1 week
@@ -184,7 +193,7 @@ CREATE TABLE product_exclusions (
 - ❌ No working orders
 - ❌ No production operations
 
-**See Full Plan:** [Working Orders Feature Plan](WORKING_ORDERS_FEATURE.md)
+**See Full Plan:** [Working Orders Feature Plan](features/WORKING_ORDERS_FEATURE.md)
 
 **High-Level Phases:**
 1. **Foundation** - Raw Materials & BOM Structure (1-2 weeks)
@@ -225,7 +234,7 @@ CREATE TABLE product_exclusions (
 - [Frontend Roadmap](frontend/FRONTEND_ROADMAP.md) - Frontend MVP development plan
 - [User Stories](USER_STORIES.md) - Feature requirements
 - [Workflows](WORKFLOWS.md) - System workflows and decision loops
-- [Quick Start](QUICK_START.md) - Setup instructions
+- [Quick Start](setup/QUICK_START.md) - Setup instructions
 - [Data Requirements](DATA_REQUIREMENTS.md) - User-facing guide on what data is required vs. app-managed
 
 ---
@@ -238,4 +247,11 @@ CREATE TABLE product_exclusions (
 
 ## Feature Documentation
 
-- [Working Orders Feature Plan](WORKING_ORDERS_FEATURE.md) - Complete manufacturing/production order system (Phase 11)
+- [Working Orders Feature Plan](features/WORKING_ORDERS_FEATURE.md) - Complete manufacturing/production order system (Phase 11)
+- [Inventory Improvements](features/INVENTORY_IMPROVEMENTS.md) - Comprehensive inventory page enhancements
+- [Purchase Order Improvements](features/PURCHASE_ORDER_IMPROVEMENTS.md) - PO UI/UX improvements, expected delivery dates, cart enhancements
+- [Dashboard Improvements](features/DASHBOARD_IMPROVEMENTS.md) - Dashboard enhancements, trend charts, interactive KPIs
+
+**Note:** Recommendations page is deprecated. Its functionality is merged into:
+- **Inventory** → "Needs Action" tab (status-based filtering)
+- **Cart** → Order Suggestions panel (suggested quantities, priorities)

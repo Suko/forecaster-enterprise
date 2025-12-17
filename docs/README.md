@@ -128,9 +128,9 @@
 
 | View | Key Documents |
 |------|---------------|
-| **👨‍💻 Developer** | [Quick Start](QUICK_START.md) → [Next Steps](NEXT_STEPS.md) → [API Reference](backend/API_REFERENCE.md) → [Architecture](backend/ARCHITECTURE.md) |
+| **👨‍💻 Developer** | [Quick Start](setup/QUICK_START.md) → [Next Steps](NEXT_STEPS.md) → [API Reference](backend/API_REFERENCE.md) → [Architecture](backend/ARCHITECTURE.md) |
 | **📊 Product Manager** | [Next Steps](NEXT_STEPS.md) → [User Stories](USER_STORIES.md) → [Workflows](WORKFLOWS.md) → [Roadmaps](backend/BACKEND_ROADMAP.md) |
-| **🔧 DevOps** | [Quick Start](QUICK_START.md) → [Development Setup](DEVELOPMENT_SETUP.md) → [ENV Management](ENV_MANAGEMENT.md) → [Security Audit](SECURITY_AUDIT_REPORT.md) |
+| **🔧 DevOps** | [Quick Start](setup/QUICK_START.md) → [Development Setup](setup/DEVELOPMENT_SETUP.md) → [ENV Management](setup/ENV_MANAGEMENT.md) → [Security Audit](reference/SECURITY_AUDIT_REPORT.md) |
 | **📚 Reference** | [API Reference](backend/API_REFERENCE.md) → [Data Model](DATA_MODEL.md) → [System Contracts](system/CONTRACTS.md) → [Standards](standards/STANDARDS.md) |
 | **🎯 Current Work** | [Next Steps](NEXT_STEPS.md) - 4-week development plan |
 
@@ -140,8 +140,8 @@
 <summary><strong>👨‍💻 For Developers</strong> - Setup, APIs, Architecture</summary>
 
 **Getting Started:**
-- [Quick Start](QUICK_START.md) - One-command setup
-- [Development Setup](DEVELOPMENT_SETUP.md) - Docker & local development
+- [Quick Start](setup/QUICK_START.md) - One-command setup
+- [Development Setup](setup/DEVELOPMENT_SETUP.md) - Docker & local development
 - [Next Steps](NEXT_STEPS.md) - Current development priorities
 
 **Backend:**
@@ -156,7 +156,7 @@
 
 **Data & Models:**
 - [Data Model](DATA_MODEL.md) - Database schema
-- [M5 Data Mapping](M5_DATA_MAPPING.md) - Dataset mapping
+- [M5 Data Mapping](reference/M5_DATA_MAPPING.md) - Dataset mapping
 
 </details>
 
@@ -182,17 +182,17 @@
 <summary><strong>🔧 For DevOps/Setup</strong> - Environment, Deployment, Configuration</summary>
 
 **Setup:**
-- [Quick Start](QUICK_START.md) - One-command setup guide
-- [Development Setup](DEVELOPMENT_SETUP.md) - Docker & local development
-- [Setup Script Guide](SETUP_SCRIPT_GUIDE.md) - Detailed setup options
-- [Environment Management](ENV_MANAGEMENT.md) - Environment variables guide
+- [Quick Start](setup/QUICK_START.md) - One-command setup guide
+- [Development Setup](setup/DEVELOPMENT_SETUP.md) - Docker & local development
+- [Setup Script Guide](setup/SETUP_SCRIPT_GUIDE.md) - Detailed setup options
+- [Environment Management](setup/ENV_MANAGEMENT.md) - Environment variables guide
 
 **Data:**
-- [Shared Test Data](SHARED_TEST_DATA_SUPABASE.md) - Test data workflow
-- [M5 Data Mapping](M5_DATA_MAPPING.md) - Dataset mapping
+- [Shared Test Data](setup/SHARED_TEST_DATA_SUPABASE.md) - Test data workflow
+- [M5 Data Mapping](reference/M5_DATA_MAPPING.md) - Dataset mapping
 
 **Security:**
-- [Security Audit Report](SECURITY_AUDIT_REPORT.md) - Security findings
+- [Security Audit Report](reference/SECURITY_AUDIT_REPORT.md) - Security findings
 
 </details>
 
@@ -209,7 +209,7 @@
 
 **Data:**
 - [Data Model](DATA_MODEL.md) - Database schema and relationships
-- [M5 Data Mapping](M5_DATA_MAPPING.md) - How M5 dataset is mapped
+- [M5 Data Mapping](reference/M5_DATA_MAPPING.md) - How M5 dataset is mapped
 
 **Guides:**
 - [Supplier Management Guide](backend/SUPPLIER_MANAGEMENT_GUIDE.md) - MOQ, Lead Time
@@ -240,10 +240,10 @@
 
 | Document | Purpose |
 |----------|---------|
-| [Quick Start](QUICK_START.md) | One-command setup guide |
+| [Quick Start](setup/QUICK_START.md) | One-command setup guide |
 | [Next Steps](NEXT_STEPS.md) | **Current development priorities** |
 | [Demo Wow Features](DEMO_WOW_FEATURES.md) | **UI features for impressive demos** |
-| [Development Setup](DEVELOPMENT_SETUP.md) | Docker & local development |
+| [Development Setup](setup/DEVELOPMENT_SETUP.md) | Docker & local development |
 | [Data Model](DATA_MODEL.md) | Database schema and sync strategy |
 | [System Contracts](system/CONTRACTS.md) | Auth, security, naming conventions |
 
@@ -254,16 +254,28 @@
 ```
 docs/
 ├── README.md                     # This file
-├── QUICK_START.md                # One-command setup
 ├── NEXT_STEPS.md                 # Current development priorities
-├── DEMO_WOW_FEATURES.md          # UI features for impressive demos
-├── DEVELOPMENT_SETUP.md          # Docker & local development (consolidated)
-├── SETUP_SCRIPT_GUIDE.md         # Detailed setup options
-├── ENV_MANAGEMENT.md             # Environment variables guide
 ├── DATA_MODEL.md                 # Database schema
-├── M5_DATA_MAPPING.md            # M5 dataset mapping
-├── SHARED_TEST_DATA_SUPABASE.md  # Shared test data workflow
-├── SECURITY_AUDIT_REPORT.md      # Security audit findings
+├── DATA_REQUIREMENTS.md          # User-facing data requirements
+├── USER_STORIES.md               # Feature requirements
+├── WORKFLOWS.md                  # System workflows
+│
+├── setup/                        # Setup & development
+│   ├── QUICK_START.md            # One-command setup
+│   ├── DEVELOPMENT_SETUP.md      # Docker & local development
+│   ├── SETUP_SCRIPT_GUIDE.md     # Detailed setup options
+│   ├── ENV_MANAGEMENT.md         # Environment variables guide
+│   └── SHARED_TEST_DATA_SUPABASE.md  # Shared test data workflow
+│
+├── features/                     # Feature planning
+│   ├── WORKING_ORDERS_FEATURE.md # Working Orders feature plan
+│   ├── INVENTORY_IMPROVEMENTS.md # Inventory page enhancements
+│   ├── PURCHASE_ORDER_IMPROVEMENTS.md # Purchase Order UI/UX improvements
+│   └── DASHBOARD_IMPROVEMENTS.md # Dashboard enhancements
+│
+├── reference/                    # Reference docs
+│   ├── M5_DATA_MAPPING.md        # M5 dataset mapping
+│   └── SECURITY_AUDIT_REPORT.md  # Security audit findings
 ├── USER_STORIES.md               # Feature requirements
 ├── WORKFLOWS.md                  # System workflows
 │
@@ -313,7 +325,7 @@ Uses real M5 forecasting competition data.
 
 ### Development Setup
 
-See [DEVELOPMENT_SETUP.md](DEVELOPMENT_SETUP.md) for:
+See [DEVELOPMENT_SETUP.md](setup/DEVELOPMENT_SETUP.md) for:
 - Hybrid development (Docker DB + Local backend)
 - Full Docker setup
 - Environment configuration
@@ -338,7 +350,7 @@ See [DEVELOPMENT_SETUP.md](DEVELOPMENT_SETUP.md) for:
 
 ### Data
 - [Data Model](DATA_MODEL.md) - Schema and relationships
-- [M5 Data Mapping](M5_DATA_MAPPING.md) - How M5 dataset is mapped
+- [M5 Data Mapping](reference/M5_DATA_MAPPING.md) - How M5 dataset is mapped
 - [System Contracts](system/CONTRACTS.md) - Naming conventions (`item_id`, not `sku`)
 
 ### Frontend

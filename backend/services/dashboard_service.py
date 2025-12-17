@@ -119,19 +119,19 @@ class DashboardService:
             if current_stock > 0 and avg_demand and avg_demand > 0:
                 dir_value = Decimal(current_stock) / avg_demand
 
-            # Calculate stockout risk
+            # Calculate stockout risk (0-1 decimal, frontend multiplies by 100)
             stockout_risk = None
             if current_stock <= 0:
-                stockout_risk = Decimal("100.00")
+                stockout_risk = Decimal("1.00")  # 100% = 1.0
             elif dir_value:
                 lead_time = lead_times.get(product.item_id) or 14
                 total_required = lead_time + settings.safety_buffer_days
                 if dir_value < total_required:
                     if total_required > 0:
-                        risk = Decimal("100.00") * (Decimal("1.00") - (dir_value / Decimal(str(total_required))))
-                        stockout_risk = max(Decimal("0.00"), min(Decimal("100.00"), risk))
+                        risk = Decimal("1.00") - (dir_value / Decimal(str(total_required)))
+                        stockout_risk = max(Decimal("0.00"), min(Decimal("1.00"), risk))
                     else:
-                        stockout_risk = Decimal("100.00")
+                        stockout_risk = Decimal("1.00")
                 else:
                     stockout_risk = Decimal("0.00")
 

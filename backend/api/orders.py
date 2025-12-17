@@ -369,8 +369,8 @@ async def get_order_suggestions(
             required_stock = forecasted + (Decimal("30") * forecasted / Decimal("30"))  # Simplified
             suggested_qty = max(condition.moq, int(required_stock - Decimal(metrics["current_stock"])))
 
-        # Only suggest if stockout risk is high
-        if metrics.get("stockout_risk") and metrics["stockout_risk"] > 50:
+        # Only suggest if stockout risk is high (0.50 = 50% in 0-1 decimal range)
+        if metrics.get("stockout_risk") and metrics["stockout_risk"] > 0.50:
             unit_cost = condition.supplier_cost or product.unit_cost
             total_cost = Decimal(suggested_qty) * unit_cost
             total_value += total_cost
@@ -389,7 +389,7 @@ async def get_order_suggestions(
                 lead_time_days=condition.lead_time_days,
                 unit_cost=unit_cost,
                 total_cost=total_cost,
-                reason=f"Stockout risk: {metrics.get('stockout_risk', 0):.1f}%"
+                reason=f"Stockout risk: {float(metrics.get('stockout_risk', 0) or 0) * 100:.1f}%"
             ))
 
     return OrderSuggestionsResponse(

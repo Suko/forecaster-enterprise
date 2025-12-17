@@ -93,7 +93,7 @@
   <!-- Column Visibility Selector -->
   <UModal
     v-model:open="showColumnSelector"
-    :ui="{ width: 'sm:max-w-md' }"
+    :ui="{ content: 'sm:max-w-md' }"
   >
     <template #content>
       <UCard>

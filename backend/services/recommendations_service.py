@@ -38,7 +38,7 @@ class RecommendationsService:
 
         Types:
         - REORDER: DIR < (lead_time + buffer)
-        - URGENT: Stockout risk > 70%
+        - URGENT: Stockout risk > 0.70 (70% in 0-1 decimal range)
         - REDUCE_ORDER: DIR > 90 days
         - DEAD_STOCK: No sales in X days
         - PROMOTE: DIR > 30 days, not in campaign
@@ -184,8 +184,9 @@ class RecommendationsService:
                 }
 
         elif rec_type == "URGENT":
-            if stockout_risk > 70:
-                reason = f"Stockout risk ({stockout_risk:.1f}%) > 70%"
+            # Stockout risk is now 0-1 decimal (0.70 = 70%)
+            if stockout_risk > 0.70:
+                reason = f"Stockout risk ({stockout_risk * 100:.1f}%) > 70%"
                 return {
                     "id": f"{product.item_id}_{supplier.id}_{rec_type}",
                     "type": rec_type,

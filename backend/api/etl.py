@@ -19,8 +19,10 @@ from schemas.etl import (
     SyncLocationsRequest,
     SyncResponse
 )
+from schemas.monitoring import ValidationRequest, ValidationReport
 from services.etl import ETLService
 from services.etl.connectors import BigQueryConnector, SQLConnector, ETLConnector
+from services.data_validation_service import DataValidationService
 
 
 router = APIRouter(prefix="/api/v1/etl", tags=["ETL"])
@@ -189,3 +191,29 @@ async def sync_locations(
             detail=f"Sync failed: {str(e)}"
         )
 
+
+@router.post("/validate", response_model=ValidationReport)
+async def validate_data(
+    request: ValidationRequest = ValidationRequest(),
+    client: Client = Depends(get_current_client),
+    db: AsyncSession = Depends(get_db)
+):
+    """
+    Validate data quality, completeness, and computed metrics
+
+    Requires authentication and client context.
+    Returns comprehensive validation report.
+    """
+    try:
+        service = DataValidationService(db)
+        report = await service.validate_all(
+            client_id=client.client_id,
+            include_computed_metrics=request.include_computed_metrics,
+            include_frontend_consistency=request.include_frontend_consistency
+        )
+        return ValidationReport(**report)
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Validation failed: {str(e)}"
+        )

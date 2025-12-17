@@ -199,18 +199,19 @@ class MetricsService:
         safety_buffer_days: Optional[int] = None
     ) -> Optional[Decimal]:
         """
-        Calculate stockout risk (0-100%).
+        Calculate stockout risk (0-1 decimal, where 1.0 = 100%).
 
         Risk increases when:
         - DIR < (lead_time_days + safety_buffer_days)
         - Current stock is low relative to forecasted demand
 
         Formula:
-        - If DIR < (lead_time + buffer): risk = 100 * (1 - DIR / (lead_time + buffer))
+        - If DIR < (lead_time + buffer): risk = 1 - DIR / (lead_time + buffer)
         - Otherwise: risk = 0
+        - Returns 0-1 range (frontend multiplies by 100 to show as percentage)
         """
         if current_stock <= 0:
-            return Decimal("100.00")  # Out of stock
+            return Decimal("1.00")  # Out of stock (100% = 1.0)
 
         if not dir_value:
             return None
@@ -231,12 +232,12 @@ class MetricsService:
         total_required_days = lead_time_days + safety_buffer_days
 
         if dir_value < total_required_days:
-            # Calculate risk: 0% when DIR = total_required_days, 100% when DIR = 0
+            # Calculate risk: 0 when DIR = total_required_days, 1.0 when DIR = 0
             if total_required_days > 0:
-                risk = Decimal("100.00") * (Decimal("1.00") - (dir_value / Decimal(str(total_required_days))))
-                return max(Decimal("0.00"), min(Decimal("100.00"), risk))
+                risk = Decimal("1.00") - (dir_value / Decimal(str(total_required_days)))
+                return max(Decimal("0.00"), min(Decimal("1.00"), risk))
             else:
-                return Decimal("100.00")
+                return Decimal("1.00")
 
         return Decimal("0.00")
 
@@ -363,7 +364,7 @@ class MetricsService:
                 "item_id": item_id,
                 "current_stock": 0,
                 "dir": None,
-                "stockout_risk": Decimal("100.00"),
+                "stockout_risk": Decimal("1.00"),  # 100% = 1.0
                 "forecasted_demand_30d": forecasted_demand_30d,
                 "inventory_value": Decimal("0.00"),
                 "status": "out_of_stock"

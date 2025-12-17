@@ -1,7 +1,7 @@
 # Backend Documentation
 
-**Status:** ✅ MVP Complete - Ready for Frontend  
-**Last Updated:** 2025-12-10
+**Status:** ✅ MVP Complete + Data Validation Complete  
+**Last Updated:** 2025-12-16
 
 ---
 
@@ -48,8 +48,17 @@ uv run pytest tests/test_api/test_inventory_api.py -v
 | **[ARCHITECTURE.md](./ARCHITECTURE.md)** | System architecture and design |
 | **[BACKEND_ROADMAP.md](./BACKEND_ROADMAP.md)** | Implementation history (Phases 1-4) |
 | **[FORECASTING_ROADMAP.md](./FORECASTING_ROADMAP.md)** | Forecasting module roadmap |
+| **[FORECASTING_INTEGRATION.md](./FORECASTING_INTEGRATION.md)** | Forecasting integration gap analysis |
 | **[SUPPLIER_MANAGEMENT_GUIDE.md](./SUPPLIER_MANAGEMENT_GUIDE.md)** | Supplier & MOQ management |
 | **[TEST_PLAN.md](./TEST_PLAN.md)** | Testing strategy and coverage |
+
+### Data Validation (✅ Completed)
+
+| Doc | Purpose |
+|-----|---------|
+| **[DATA_VALIDATION_API.md](./DATA_VALIDATION_API.md)** | Validation API reference |
+| **[VALIDATION_USAGE_GUIDE.md](./VALIDATION_USAGE_GUIDE.md)** | When and how to use validation |
+| **[VALIDATION_PROOF.md](./VALIDATION_PROOF.md)** | Proof & guarantees |
 
 ---
 
@@ -80,6 +89,10 @@ uv run pytest tests/test_api/test_inventory_api.py -v
 - `GET /api/v1/settings`
 - `PUT /api/v1/settings`
 
+### Monitoring & Validation
+- `GET /api/v1/monitoring/system/status` → System status
+- `POST /api/v1/etl/validate` → Data validation
+
 ---
 
 ## Key Info
@@ -94,4 +107,15 @@ uv run pytest tests/test_api/test_inventory_api.py -v
 
 - ✅ Inventory API: 9/9 passing
 - ✅ Core workflows: functional
+- ✅ Data Validation: Complete
 - Coverage: 59% overall, 100% models/schemas
+
+## Recent Completions
+
+### Data Validation (2025-12-16) ✅
+- `DataValidationService` - Unified validation service
+- `POST /api/v1/etl/validate` - Validation endpoint
+- `GET /api/v1/monitoring/system/status` - System status
+- Computed metrics validation (DIR, stockout risk, status)
+- Frontend-backend consistency checks
+- Real data tests

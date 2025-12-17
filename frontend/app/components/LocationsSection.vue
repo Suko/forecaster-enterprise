@@ -88,7 +88,7 @@
 
     <UModal
       v-model:open="showModal"
-      :ui="{ width: 'sm:max-w-md' }"
+      :ui="{ content: 'sm:max-w-md' }"
     >
       <template #content>
         <UCard>
@@ -183,7 +183,7 @@
 
     <UModal
       v-model:open="showDeleteModal"
-      :ui="{ width: 'sm:max-w-md' }"
+      :ui="{ content: 'sm:max-w-md' }"
     >
       <template #content>
         <UCard>

@@ -1,4 +1,3 @@
-import { logger } from "~~/server/utils/logger";
 import { authenticatedFetch } from "../../utils/api";
 
 /**
@@ -31,7 +30,6 @@ export default defineEventHandler(async (event) => {
       method: "POST",
     });
   } catch (error: any) {
-    logger.error("Create purchase order from cart error", { error });
     if (error.statusCode === 401) {
       throw createError({ statusCode: 401, statusMessage: "Not authenticated" });
     }

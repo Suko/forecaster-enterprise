@@ -1,5 +1,4 @@
 import { authenticatedFetch } from "../utils/api";
-import { logger } from "../utils/logger";
 import { logSecurityEvent, getClientIP, getUserAgent } from "../utils/security-logger";
 
 /**

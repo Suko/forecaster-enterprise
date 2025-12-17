@@ -15,8 +15,6 @@
  * Type errors for Nuxt auto-imports resolve after `nuxt prepare` generates types.
  */
 
-import { logger } from "~~/server/utils/logger";
-
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type RouteLocation = { path: string; [key: string]: any };
 
@@ -53,7 +51,6 @@ export default defineNuxtPlugin((nuxtApp) => {
 
       return (await response.json()) as LicenseStatus;
     } catch (error) {
-      logger.error("Error checking license status", { error });
       return null;
     }
   };

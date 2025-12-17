@@ -1,6 +1,6 @@
 import { readFile, stat } from "fs/promises";
 import { existsSync } from "fs";
-import { logger, setMachineId } from "../utils/logger";
+import { setMachineId } from "../utils/logger";
 
 interface LicenseStatus {
   valid: boolean;

@@ -1,6 +1,5 @@
 import { authenticatedFetch } from "../utils/api";
 import type { LocationListResponse } from "~/types/location";
-import { logger } from "../utils/logger";
 
 /**
  * Fetch locations from backend

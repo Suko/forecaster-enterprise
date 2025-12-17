@@ -1,4 +1,3 @@
-import { logger } from "~~/server/utils/logger";
 import { authenticatedFetch } from "../../utils/api";
 
 export default defineEventHandler(async (event) => {
@@ -14,7 +13,6 @@ export default defineEventHandler(async (event) => {
       method: "DELETE",
     });
   } catch (error: any) {
-    logger.error("Delete location error", { error });
     if (error.statusCode === 401) {
       throw createError({ statusCode: 401, statusMessage: "Not authenticated" });
     }

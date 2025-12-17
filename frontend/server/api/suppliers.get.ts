@@ -1,6 +1,5 @@
 import { authenticatedFetch } from "../utils/api";
 import type { SupplierListResponse } from "~/types/supplier";
-import { logger } from "../utils/logger";
 
 /**
  * Fetch suppliers from backend

@@ -1,4 +1,3 @@
-import { logger } from "~~/server/utils/logger";
 import { authenticatedFetch } from "../../utils/api";
 import type { Supplier } from "~/types/supplier";
 
@@ -26,7 +25,6 @@ export default defineEventHandler(async (event) => {
       }
     );
   } catch (error: any) {
-    logger.error("Update supplier error", { error });
     if (error.statusCode === 401) {
       throw createError({ statusCode: 401, statusMessage: "Not authenticated" });
     }

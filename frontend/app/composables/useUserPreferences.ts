@@ -1,5 +1,3 @@
-import { logger } from "~~/server/utils/logger";
-
 export interface UserPreferences {
   inventoryColumns?: {
     [field: string]: boolean; // true = visible, false = hidden
@@ -18,7 +16,6 @@ export const useUserPreferences = () => {
       preferences.value = response.preferences || {};
       return preferences.value;
     } catch (error: any) {
-      logger.error("Failed to fetch preferences", { error });
       return {};
     } finally {
       loading.value = false;
@@ -34,7 +31,6 @@ export const useUserPreferences = () => {
       });
       preferences.value = response.preferences || {};
     } catch (error: any) {
-      logger.error("Failed to update preferences", { error });
       throw error;
     } finally {
       loading.value = false;

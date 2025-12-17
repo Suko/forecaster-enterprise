@@ -1,6 +1,5 @@
 import { authenticatedFetch } from "../utils/api";
 import type { ProductListResponse } from "~/types/product";
-import { logger } from "../utils/logger";
 
 /**
  * Fetch products from backend

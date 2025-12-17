@@ -230,7 +230,6 @@ import { ref, computed, onMounted } from "vue";
 import { useLocations } from "~/composables/useLocations";
 import { useAuthError } from "~/composables/useAuthError";
 import type { Location, LocationCreate, LocationUpdate } from "~/types/location";
-import { logger } from "~~/server/utils/logger";
 
 const toast = useToast();
 
@@ -299,7 +298,6 @@ const loadLocations = async () => {
   } catch (err: any) {
     const wasAuthError = await handleAuthError(err);
     if (!wasAuthError) {
-      logger.error("Failed to load locations", { error: err });
     }
   } finally {
     loading.value = false;

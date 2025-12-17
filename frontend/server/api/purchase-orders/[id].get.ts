@@ -1,4 +1,3 @@
-import { logger } from "~~/server/utils/logger";
 import { authenticatedFetch } from "../../utils/api";
 
 /**

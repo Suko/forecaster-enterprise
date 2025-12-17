@@ -1,5 +1,4 @@
 import { authenticatedFetch } from "../utils/api";
-import { logger } from "../utils/logger";
 
 /**
  * List purchase orders

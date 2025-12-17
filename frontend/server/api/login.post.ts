@@ -10,6 +10,7 @@ const bodySchema = z.object({
 export default defineEventHandler(async (event) => {
   const clientIP = getClientIP(event);
   const userAgent = getUserAgent(event);
+  let securityLogged = false;
 
   try {
     const { email, password } = await readValidatedBody(event, bodySchema.parse);
@@ -24,7 +25,7 @@ export default defineEventHandler(async (event) => {
     formData.append("username", email); // OAuth2 uses 'username' field for email
     formData.append("password", password);
 
-    const response = await $fetch(`${apiBaseUrl}/auth/login`, {
+    const response = await $fetch<{ access_token: string }>(`${apiBaseUrl}/auth/login`, {
       method: "POST",
       headers: {
         "Content-Type": "application/x-www-form-urlencoded",
@@ -32,13 +33,8 @@ export default defineEventHandler(async (event) => {
       body: formData.toString(),
     });
 
-    if (
-      response &&
-      typeof response === "object" &&
-      response !== null &&
-      "access_token" in response
-    ) {
-      const accessToken = (response as any).access_token;
+    if (response?.access_token) {
+      const accessToken = response.access_token;
 
       // Fetch user info from backend using the token
       let userInfo = { email };
@@ -67,6 +63,7 @@ export default defineEventHandler(async (event) => {
         ip: clientIP,
         userAgent: userAgent,
       });
+      securityLogged = true;
 
       return {};
     }
@@ -78,26 +75,19 @@ export default defineEventHandler(async (event) => {
       userAgent: userAgent,
       details: { reason: "Invalid credentials or no token received" },
     });
+    securityLogged = true;
 
     throw createError({
       statusCode: 401,
       statusMessage: "Authentication failed",
     });
-  } catch (error: unknown) {
-    // Type-safe error handling
-    const statusCode =
-      error && typeof error === "object" && "statusCode" in error
-        ? (error as any).statusCode
-        : undefined;
-    const errorData =
-      error && typeof error === "object" && "data" in error ? (error as any).data : undefined;
-    const errorMessage =
-      error && typeof error === "object" && "statusMessage" in error
-        ? (error as any).statusMessage
-        : undefined;
+  } catch (error: any) {
+    const statusCode = error?.statusCode;
+    const errorData = error?.data;
+    const errorMessage = error?.statusMessage;
 
-    // Log security events for authentication failures
-    if (statusCode === 401 || statusCode === 429) {
+    // Log security events for authentication failures (only if not already logged)
+    if (!securityLogged && (statusCode === 401 || statusCode === 429)) {
       logSecurityEvent({
         type: statusCode === 429 ? "rate_limit" : "login_failure",
         email: errorData?.email,
@@ -123,9 +113,6 @@ export default defineEventHandler(async (event) => {
         data: errorData,
       });
     }
-
-    // Log unexpected errors for debugging
-    logger.error("Unexpected login error", { error });
 
     // Generic error response
     throw createError({

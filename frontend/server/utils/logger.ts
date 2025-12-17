@@ -11,6 +11,23 @@ interface LogContext {
   [key: string]: any;
 }
 
+// Machine ID cache - set by license-status endpoint
+let cachedMachineId: string | null = null;
+
+/**
+ * Set the machine ID (called by license-status endpoint)
+ */
+export function setMachineId(machineId: string | null): void {
+  cachedMachineId = machineId;
+}
+
+/**
+ * Get the cached machine ID
+ */
+export function getMachineId(): string | null {
+  return cachedMachineId;
+}
+
 /**
  * Log a message with appropriate level
  * Development: Console output
@@ -24,12 +41,22 @@ export function log(
 ): void {
   const isDevelopment = process.env.NODE_ENV === "development";
   const timestamp = new Date().toISOString();
+  const machineId = getMachineId();
+
+  // Enrich context with machine ID if available
+  const enrichedContext: LogContext = {
+    ...(machineId && { machineId }),
+    ...context,
+  };
 
   // Always log to console for server logs
-  const logPrefix = `[${timestamp}] [${level.toUpperCase()}]`;
-  const logMessage = context
-    ? `${logPrefix} ${message}\n${JSON.stringify(context, null, 2)}`
-    : `${logPrefix} ${message}`;
+  const logPrefix = machineId
+    ? `[${timestamp}] [${level.toUpperCase()}] [${machineId}]`
+    : `[${timestamp}] [${level.toUpperCase()}]`;
+  const logMessage =
+    Object.keys(enrichedContext).length > 0
+      ? `${logPrefix} ${message}\n${JSON.stringify(enrichedContext, null, 2)}`
+      : `${logPrefix} ${message}`;
 
   if (isDevelopment) {
     // Detailed console output in development
@@ -59,7 +86,7 @@ export function log(
       Sentry.addBreadcrumb({
         message,
         level: sentryLevel,
-        data: context,
+        data: enrichedContext,
         timestamp: Date.now() / 1000,
       });
 
@@ -70,15 +97,16 @@ export function log(
           Sentry.captureException(error, {
             level: sentryLevel,
             contexts: {
-              log: context,
+              log: enrichedContext,
             },
             tags: {
               log_level: level,
+              ...(machineId && { machine_id: machineId }),
             },
           });
         } else {
           // Use Sentry.logger for structured logging
-          const attributes = { ...context, error };
+          const attributes = { ...enrichedContext, error };
           if (level === "warning") {
             Sentry.logger.warn(message, attributes);
           } else {
@@ -86,9 +114,9 @@ export function log(
           }
         }
       } else if (level === "info") {
-        Sentry.logger.info(message, context);
+        Sentry.logger.info(message, enrichedContext);
       } else if (level === "debug") {
-        Sentry.logger.debug(message, context);
+        Sentry.logger.debug(message, enrichedContext);
       }
     } catch (err) {
       console.error("Failed to send log to Sentry:", err);

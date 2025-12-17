@@ -138,7 +138,6 @@ import "ag-grid-community/styles/ag-grid.css";
 import "ag-grid-community/styles/ag-theme-alpine.css";
 import type { ColDef, GridReadyEvent } from "ag-grid-community";
 import type { Product } from "~/types/product";
-import { logger } from "~~/server/utils/logger";
 
 // Register AG Grid modules
 ModuleRegistry.registerModules([AllCommunityModule]);
@@ -575,7 +574,6 @@ const loadProducts = async () => {
       return;
     }
     error.value = err.message || "Failed to load products";
-    logger.error("Products error", { error: err });
   } finally {
     loading.value = false;
   }
@@ -604,7 +602,7 @@ const loadSettings = async () => {
   } catch (err: any) {
     const wasAuthError = await handleAuthError(err);
     if (!wasAuthError) {
-      logger.error("Failed to load settings", { error: err });
+      // Error is already logged on server side
     }
   }
 };
@@ -626,7 +624,6 @@ const loadColumnPreferences = async () => {
   } catch (err: any) {
     const wasAuthError = await handleAuthError(err);
     if (!wasAuthError) {
-      logger.error("Failed to load column preferences", { error: err });
       // Set defaults if loading fails
       baseColumnDefs.forEach((col) => {
         const field = col.field as string;
@@ -640,8 +637,8 @@ const updateColumnVisibility = async () => {
   try {
     await setInventoryColumnVisibility(columnVisibility.value);
     // Grid will automatically update via computed columnDefs
-  } catch (err: any) {
-    logger.error("Failed to save column preferences", { error: err });
+  } catch {
+    // Error is already logged on server side
   }
 };
 

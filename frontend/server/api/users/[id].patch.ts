@@ -8,12 +8,16 @@ const bodySchema = z.object({
 });
 
 export default defineEventHandler(async (event) => {
-  // Require user session (auto-imported by nuxt-auth-utils)
-  await requireUserSession(event);
-  const id = getRouterParam(event, "id");
-  const body = await readValidatedBody(event, bodySchema.parse);
-  return await authenticatedFetch(event, `/auth/users/${id}`, {
-    method: "PATCH",
-    body: JSON.stringify(body),
-  });
+  try {
+    // Require user session (auto-imported by nuxt-auth-utils)
+    await requireUserSession(event);
+    const id = getRouterParam(event, "id");
+    const body = await readValidatedBody(event, bodySchema.parse);
+    return await authenticatedFetch(event, `/auth/users/${id}`, {
+      method: "PATCH",
+      body: JSON.stringify(body),
+    });
+  } catch (error: any) {
+    throw error;
+  }
 });

@@ -91,8 +91,6 @@
 </template>
 
 <script setup lang="ts">
-import { logger } from "~~/server/utils/logger";
-
 const { fetchSettings, updateSettings } = useSettings();
 const { handleAuthError } = useAuthError();
 
@@ -117,7 +115,6 @@ const loadSettings = async () => {
   } catch (err: any) {
     const wasAuthError = await handleAuthError(err);
     if (!wasAuthError) {
-      logger.error("Failed to load settings", { error: err });
     }
   } finally {
     loading.value = false;

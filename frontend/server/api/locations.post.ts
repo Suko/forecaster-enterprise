@@ -1,6 +1,5 @@
 import { authenticatedFetch } from "../utils/api";
 import type { Location } from "~/types/location";
-import { logger } from "../utils/logger";
 
 export default defineEventHandler(async (event) => {
   await requireUserSession(event);
@@ -13,7 +12,6 @@ export default defineEventHandler(async (event) => {
       body,
     });
   } catch (error: any) {
-    logger.error("Create location error", { error });
     if (error.statusCode === 401) {
       throw createError({ statusCode: 401, statusMessage: "Not authenticated" });
     }

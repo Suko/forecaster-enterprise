@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import type { Supplier } from "~/types/supplier";
-import { logger } from "~~/server/utils/logger";
 
 definePageMeta({
   layout: "dashboard",
@@ -46,7 +45,6 @@ const loadSuppliers = async (targetPage: number = page.value) => {
     totalPages.value = res.total_pages;
     page.value = res.page || targetPage;
   } catch (err: any) {
-    logger.error("Load suppliers error", { error: err });
     const wasAuthError = await handleAuthError(err);
     if (wasAuthError) return;
     error.value = err.message || "Failed to load suppliers";

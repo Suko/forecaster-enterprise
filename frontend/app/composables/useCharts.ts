@@ -4,7 +4,6 @@
  */
 
 import type { TimePeriod, TrendDataPoint } from "~/types/dashboard";
-import { logger } from "~~/server/utils/logger";
 
 export const useDashboardCharts = () => {
   const { apiCall } = useApi();
@@ -24,7 +23,6 @@ export const useDashboardCharts = () => {
 
       return [];
     } catch (error) {
-      logger.error("Error fetching trend data", { error });
       return [];
     }
   };

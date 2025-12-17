@@ -51,6 +51,11 @@ dist/
 .env.production
 .env.backup
 
+# Sentry configuration (contains DSN secrets)
+sentry.client.config.ts
+sentry.server.config.ts
+sentry.*.config.ts
+
 # IDE
 .vscode/
 .idea/

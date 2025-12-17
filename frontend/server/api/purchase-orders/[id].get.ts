@@ -1,4 +1,3 @@
-import { logger } from "~~/server/utils/logger";
 import { authenticatedFetch } from "../../utils/api";
 
 /**
@@ -16,7 +15,6 @@ export default defineEventHandler(async (event) => {
   try {
     return await authenticatedFetch(event, `/api/v1/purchase-orders/${encodeURIComponent(id)}`);
   } catch (error: any) {
-    logger.error("Fetch purchase order error", { error });
     if (error.statusCode === 401) {
       throw createError({ statusCode: 401, statusMessage: "Not authenticated" });
     }

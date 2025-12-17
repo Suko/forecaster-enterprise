@@ -1,11 +1,12 @@
 import { readFile, stat } from "fs/promises";
 import { existsSync } from "fs";
-import { logger } from "../utils/logger";
+import { setMachineId } from "../utils/logger";
 
 interface LicenseStatus {
   valid: boolean;
   reason?: string;
   checkedAt: string;
+  machineId?: string;
 }
 
 // Grace period from license-watcher (default 48 hours)
@@ -69,10 +70,14 @@ export default defineEventHandler(async (): Promise<LicenseStatus> => {
 
     const content = await readFile(statusFilePath, "utf-8");
     const status = JSON.parse(content) as LicenseStatus;
+
+    // Cache machine ID for logger
+    if (status.machineId) {
+      setMachineId(status.machineId);
+    }
+
     return status;
   } catch (error) {
-    // Error reading file - assume invalid to be safe
-    logger.error("Error reading license status file", { error });
     return {
       valid: false,
       reason: "license_check_error",

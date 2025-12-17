@@ -19,7 +19,7 @@ export default defineEventHandler((event) => {
   const cspDirectives = isProduction
     ? [
         "default-src 'self'",
-        "script-src 'self'",
+        "script-src 'self' 'unsafe-inline'", // unsafe-inline needed for Nuxt hydration scripts
         "style-src 'self' 'unsafe-inline'", // unsafe-inline needed for dynamic styles
         "img-src 'self' data: https:",
         "font-src 'self' data:",

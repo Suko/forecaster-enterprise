@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import type { PurchaseOrderListItem } from "~/types/order";
-import { logger } from "~~/server/utils/logger";
 
 definePageMeta({
   layout: "dashboard",
@@ -47,7 +46,6 @@ const loadOrders = async () => {
     });
     orders.value = res.items || [];
   } catch (err: any) {
-    logger.error("Load purchase orders error", { error: err });
     const wasAuthError = await handleAuthError(err);
     if (wasAuthError) return;
     error.value = err.message || "Failed to load purchase orders";

@@ -22,23 +22,12 @@ export default defineNuxtConfig({
     // Override at runtime with NUXT_PUBLIC_API_BASE_URL env var
     public: {
       apiBaseUrl: "http://localhost:8000",
-      sentry: {
-        dsn: process.env.NUXT_PUBLIC_SENTRY_DSN,
-        authToken: process.env.SENTRY_AUTH_TOKEN,
-      },
     },
   },
 
   sentry: {
-    org: "blaz-poklar",
-    project: "javascript-nuxt",
+    org: "forecaster-4b",
+    project: "forecast-frontend",
+    authToken: process.env.SENTRY_AUTH_TOKEN,
   },
-
-  sourcemap: {
-    client: "hidden",
-  },
-  // Note: nuxt-auth-utils automatically uses HttpOnly cookies
-  // Session cookies are encrypted and secure by default
-  // Configure via NUXT_SESSION_PASSWORD environment variable
-  // For production, ensure NUXT_SESSION_PASSWORD is set to a strong 32+ character secret
 });

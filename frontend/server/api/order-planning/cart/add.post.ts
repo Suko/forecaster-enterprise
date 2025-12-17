@@ -1,4 +1,3 @@
-import { logger } from "~~/server/utils/logger";
 import { authenticatedFetch } from "../../../utils/api";
 
 /**
@@ -18,7 +17,6 @@ export default defineEventHandler(async (event) => {
 
     return result;
   } catch (error: any) {
-    logger.error("Add to cart error", { error });
     if (error.statusCode === 401) {
       throw createError({
         statusCode: 401,

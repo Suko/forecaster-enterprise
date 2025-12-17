@@ -1,6 +1,5 @@
 import { authenticatedFetch } from "../utils/api";
 import type { ClientSettings, ClientSettingsUpdate } from "~/composables/useSettings";
-import { logger } from "../utils/logger";
 
 /**
  * Update client settings
@@ -17,7 +16,6 @@ export default defineEventHandler(async (event) => {
       body: JSON.stringify(body),
     });
   } catch (error: any) {
-    logger.error("Update settings error", { error });
     if (error.statusCode === 401) {
       throw createError({ statusCode: 401, statusMessage: "Not authenticated" });
     }

@@ -1,6 +1,5 @@
 import { authenticatedFetch } from "../utils/api";
 import type { ProductListResponse } from "~/types/product";
-import { logger } from "../utils/logger";
 
 /**
  * Fetch products from backend
@@ -24,7 +23,6 @@ export default defineEventHandler(async (event) => {
 
     return products;
   } catch (error: any) {
-    logger.error("Products fetch error", { error });
     if (error.statusCode === 401) {
       throw createError({
         statusCode: 401,

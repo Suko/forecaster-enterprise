@@ -2,7 +2,7 @@ export interface UserPreferences {
   inventoryColumns?: {
     [field: string]: boolean; // true = visible, false = hidden
   };
-  [key: string]: any; // Allow other preferences
+  [key: string]: unknown; // Allow other preferences
 }
 
 export const useUserPreferences = () => {
@@ -15,7 +15,7 @@ export const useUserPreferences = () => {
       const response = await $fetch<{ preferences: UserPreferences }>("/api/auth/me/preferences");
       preferences.value = response.preferences || {};
       return preferences.value;
-    } catch (error: any) {
+    } catch {
       return {};
     } finally {
       loading.value = false;
@@ -30,8 +30,6 @@ export const useUserPreferences = () => {
         body: { preferences: newPreferences },
       });
       preferences.value = response.preferences || {};
-    } catch (error: any) {
-      throw error;
     } finally {
       loading.value = false;
     }

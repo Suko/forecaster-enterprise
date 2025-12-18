@@ -1,6 +1,6 @@
 # Next Steps - Development Priorities
 
-**Last Updated:** 2025-01-27  
+**Last Updated:** 2025-12-17  
 **Status:** Active Development Plan  
 **Scope:** Post-MVP completion priorities
 
@@ -18,6 +18,28 @@ Backend MVP (Phases 1-4) is **complete** ✅, and frontend MVP is **~87% complet
 ---
 
 ## Current Priorities
+
+### 0. Forecasting Hardening (Hotfix)
+**Goal:** Ensure forecasts persist correctly and tenant isolation cannot be bypassed.
+
+- [x] Fix `ForecastService.generate_forecast()` success path (commit/return) so `forecast_runs`/`forecast_results` persist reliably
+- [x] Harden forecast endpoint auth/tenant isolation: only accept request-body `client_id` when a valid service key is present; otherwise require JWT-derived `client_id`
+- Reference flow + details: `docs/backend/forecasting/README.md`
+
+### 0.1 Backend/Frontend Contract Alignment (Blockers)
+**Goal:** Make backend, frontend, and docs agree before adding more UI features.
+
+**Compatibility Audit:** [Backend/Frontend Compatibility & Blockers](system/BACKEND_FRONTEND_COMPATIBILITY.md)
+
+- [x] Migrate auth base path to `/api/v1/auth/*` (keep `/auth/*` as deprecated alias during transition)
+- [x] Normalize `stockout_risk` scale across API + UI (recommend: **0–1 in API**, % only in UI)
+- [x] Fix `GET /api/v1/products` filtering gap (status/dir/risk/stock filters) using server-side metric filters (Option A: `inventory_metrics`)
+- [x] Deprecate Recommendations page (remove navigation + copy; focus on Inventory + Cart/PO)
+- [x] Update docs to match actual implementation (API reference + feature plans)
+  - [x] Added note to `API_REFERENCE.md` that it should be regenerated from OpenAPI schema
+  - [x] **Post-forecast hook implemented**: `ForecastService.generate_forecast()` now automatically refreshes `inventory_metrics` after successful forecast generation
+  - [x] **Scheduling option**: `backend/scripts/refresh_inventory_metrics.py` can still be run manually or via cron for full client refresh
+  - **Implementation**: Post-forecast hook in `backend/forecasting/services/forecast_service.py` calls `InventoryMetricsService.refresh_client_metrics()` after forecast completion
 
 ### 1. Frontend Polish (Charts, Row Actions, Filters) - **WEEK 3** (OPTIONAL)
 **Goal:** Complete MVP UX and user-facing features
@@ -40,10 +62,7 @@ Backend MVP (Phases 1-4) is **complete** ✅, and frontend MVP is **~87% complet
 
 
 **Recommendations Page:**
-- [ ] **DEPRECATE** - Merge functionality into Inventory and Cart pages
-  - Inventory "Needs Action" tab → Shows products needing attention
-  - Cart page → Shows Order Suggestions with suggested quantities
-  - See: [Purchase Order Improvements](features/PURCHASE_ORDER_IMPROVEMENTS.md) for Order Suggestions in Cart
+- [x] Deprecated and removed from the UI (use Inventory + Cart/Purchase Orders instead)
 
 **Integration:**
 - [ ] Cart badge in header
@@ -58,10 +77,12 @@ Backend MVP (Phases 1-4) is **complete** ✅, and frontend MVP is **~87% complet
 **Goal:** Improve first-time user experience
 
 **Backend:**
-- [ ] Create system status endpoint: `GET /api/v1/system/status`
+- [x] System status endpoint exists: `GET /api/v1/system/status`
+- [ ] Extend system status response to support onboarding/empty-states (clear next actions, per-data-type flags)
 - [ ] Enhance API responses with helpful messages when data is empty
 
 **Frontend (OPTIONAL):**
+- [ ] Add frontend proxy route: `GET /api/system/status` → backend `GET /api/v1/system/status`
 - [ ] Create reusable `EmptyState.vue` component
 - [ ] Add empty states to Dashboard, Inventory, and Cart pages
 - [ ] Add contextual help messages
@@ -92,6 +113,18 @@ Backend MVP (Phases 1-4) is **complete** ✅, and frontend MVP is **~87% complet
 ### Phase 6: Advanced Features
 - [ ] Marketing Campaigns API
 - [ ] Locations API (full CRUD)
+  - [ ] **Location Deletion Validation**: Prevent deletion of locations that have dependencies
+    - **Source of Truth**: Check these tables before allowing deletion:
+      - `stock_levels.location_id` - Products with stock at that location
+      - `ts_demand_daily.location_id` - Sales history records for that location
+      - `inventory_metrics.location_id` - Computed inventory metrics for that location
+    - **Current Implementation**: `LocationService.delete_location()` only checks `is_synced` flag
+    - **Required Enhancement**: Add validation queries to check all three tables before deletion
+  - [ ] **Deletion Workflow**: When attempting to delete a location with dependencies:
+    - Return clear error message listing what prevents deletion (e.g., "Location has 5 products with stock, 120 sales history records")
+    - Option 1: Require reassignment of stock/products to another location before deletion
+    - Option 2: Provide bulk reassignment endpoint to move all dependencies to another location
+    - Option 3: Allow deletion with cascade (delete all related stock/metrics/history) - **NOT RECOMMENDED** for data integrity
 - [ ] Analytics & Reporting endpoints
 - [ ] Export/Import functionality
 
@@ -220,18 +253,19 @@ CREATE TABLE product_exclusions (
 
 | Week | Focus | Deliverables |
 |------|-------|--------------|
-| **Week 1** | Frontend Polish (Optional) | Charts with real data, complete inventory features, cart integration |
-| **Week 2** | Empty State Handling | System status endpoint, empty state components (frontend optional) |
-| **Week 3** | ETL Scheduling | Automated daily sync, status tracking, error handling |
+| **Week 1** | Forecasting Hardening + Contract Alignment | Persist forecasts, enforce tenant isolation, align risk scales + paths |
+| **Week 2** | Empty State Handling | System status wiring + empty states (frontend optional) |
+| **Week 3** | Frontend Polish (Optional) | Inventory actions, filters/tabs, header indicators |
+| **Week 4** | ETL Scheduling | Automated daily sync, status tracking, error handling |
 
-**Total Timeline:** 3 weeks to production-ready MVP (if frontend polish is skipped)
+**Total Timeline:** 4 weeks to production-ready MVP (if frontend polish is skipped)
 
 ---
 
 ## Related Documentation
 
-- [Backend Roadmap](backend/BACKEND_ROADMAP.md) - Complete backend implementation plan
-- [Frontend Roadmap](frontend/FRONTEND_ROADMAP.md) - Frontend MVP development plan
+- [Backend Roadmap (Archive)](archive/backend/BACKEND_ROADMAP.md) - Historical implementation snapshot
+- [Frontend Roadmap (Archive)](archive/frontend/FRONTEND_ROADMAP.md) - Historical MVP plan snapshot
 - [User Stories](USER_STORIES.md) - Feature requirements
 - [Workflows](WORKFLOWS.md) - System workflows and decision loops
 - [Quick Start](setup/QUICK_START.md) - Setup instructions
@@ -240,8 +274,8 @@ CREATE TABLE product_exclusions (
 ---
 
 **Document Owner:** Development Team  
-**Last Updated:** 2025-01-27  
-**Next Review:** After ETL Scheduling completion
+**Last Updated:** 2025-12-17  
+**Next Review:** After Forecasting Hardening + Contract Alignment
 
 ---
 
@@ -251,6 +285,7 @@ CREATE TABLE product_exclusions (
 - [Inventory Improvements](features/INVENTORY_IMPROVEMENTS.md) - Comprehensive inventory page enhancements
 - [Purchase Order Improvements](features/PURCHASE_ORDER_IMPROVEMENTS.md) - PO UI/UX improvements, expected delivery dates, cart enhancements
 - [Dashboard Improvements](features/DASHBOARD_IMPROVEMENTS.md) - Dashboard enhancements, trend charts, interactive KPIs
+- [Backend/Frontend Compatibility & Blockers](system/BACKEND_FRONTEND_COMPATIBILITY.md) - Current mismatches + decisions
 
 **Note:** Recommendations page is deprecated. Its functionality is merged into:
 - **Inventory** → "Needs Action" tab (status-based filtering)

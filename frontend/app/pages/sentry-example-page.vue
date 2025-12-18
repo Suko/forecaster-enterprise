@@ -21,14 +21,14 @@ class SentryExampleFrontendError extends Error {
 const hasSentError = ref(false);
 const isConnected = ref(true);
 
-onMounted(async () => {
-  try {
-    const result = await Sentry.diagnoseSdkConnectivity();
-    isConnected.value = result !== "sentry-unreachable";
-  } catch (error) {
-    isConnected.value = false;
-  }
-});
+  onMounted(async () => {
+    try {
+      const result = await Sentry.diagnoseSdkConnectivity();
+      isConnected.value = result !== "sentry-unreachable";
+    } catch {
+      isConnected.value = false;
+    }
+  });
 
 async function getSentryData() {
   await Sentry.startSpan(

@@ -1,6 +1,6 @@
 # Inventory Page Improvements - Feature Plan
 
-**Last Updated:** 2025-01-27  
+**Last Updated:** 2025-12-17  
 **Status:** Planning Phase  
 **Scope:** Inventory management UI/UX improvements
 
@@ -517,10 +517,8 @@ Status      Days Left
 
 **Already Implemented — Products:**
 - ✅ `GET /api/v1/products` — Full metrics: `status`, `dir`, `stockout_risk`, `inventory_value`
-- ✅ `GET /api/v1/products?status=understocked` — Filter by status
-- ✅ `GET /api/v1/products?search=&category=&supplier_id=&location_id=` — All filters
-- ✅ `GET /api/v1/products?min_dir=&max_dir=&min_risk=&max_risk=` — Range filters
-- ✅ `GET /api/v1/products?sort=dir&order=asc` — Sorting
+- ⚠️ Filtering: query params are accepted, but backend currently applies only `search`, `category`, `supplier_id` (metrics filters are TODO)
+- ⚠️ Sorting: currently only supports `Product` columns (sorting by computed metrics like `dir` is TODO)
 - ✅ `GET /api/v1/products/{item_id}` — Product detail with all metrics
 - ✅ `GET /api/v1/products/{item_id}/suppliers` — All suppliers for product
 
@@ -553,15 +551,19 @@ Status      Days Left
   - `suggested_quantity`, `stockout_risk`, `reason`
   - Based on forecast + stock + lead time
 
-**Already Implemented — Forecasts:**
-- ✅ `GET /api/v1/forecasts/sku/{item_id}` — Forecast data for product
-  - Returns: `[{ date, point_forecast, lower_bound, upper_bound, method }]`
+**Already Implemented — Forecasting (Partial):**
+- ✅ `POST /api/v1/forecast` — Generate forecasts (returns predictions in response)
+- ✅ `GET /api/v1/skus/{item_id}/classification` — SKU classification (ABC/XYZ)
+- ⚠️ No “get forecast by SKU” read endpoint yet (see below)
 
 **Needs Implementation:**
 - [ ] `GET /api/v1/products` — Add `in_cart` field to response
+- [ ] `GET /api/v1/products` — Implement metrics-based filtering (`status`, `min_dir/max_dir`, `min_risk/max_risk`, `min_stock/max_stock`, `location_id`)
+- [ ] `GET /api/v1/products` — Implement sorting by computed metrics (`dir`, `stockout_risk`, `inventory_value`)
 - [ ] `POST /api/v1/order-planning/cart/bulk-add` — Bulk add to cart
 - [ ] Status counts for all statuses (dashboard only has understocked/overstocked counts)
 - [ ] `GET /api/v1/monitoring/last-sync` — Last sync timestamp (optional, can calculate client-side)
+- [ ] `GET /api/v1/forecasts/sku/{item_id}` — Forecast data for a single SKU (or alternative agreed endpoint)
 - [ ] 🆕 `GET /api/v1/products/{item_id}/history` — **Product history for chart**
   - Returns: `[{ date, units_sold, stock_level, promo_flag, holiday_flag, is_weekend }]`
   - Query params: `?start_date=YYYY-MM-DD&end_date=YYYY-MM-DD&limit=365`
@@ -585,9 +587,9 @@ interface ProductResponse {
   // Metrics (already computed!)
   current_stock: number;
   dir: number | null;           // Days of Inventory Remaining
-  stockout_risk: number | null; // 0-100 risk score
+  stockout_risk: number | null; // 0–1 decimal (multiply by 100 for % display)
   inventory_value: number;
-  status: 'out_of_stock' | 'understocked' | 'normal' | 'overstocked' | 'dead_stock' | 'unknown';
+  status: 'out_of_stock' | 'understocked' | 'normal' | 'overstocked' | 'unknown';
   using_forecast: boolean;      // True if forecast data used
   
   // Relations (already included!)
@@ -638,12 +640,12 @@ cart_quantity?: number; // Quantity in cart
 ## Related Documentation
 
 - [Purchase Order Improvements](PURCHASE_ORDER_IMPROVEMENTS.md) — Cart and PO flow
-- [Frontend Roadmap](../frontend/FRONTEND_ROADMAP.md) — Overall frontend plan
+- [Frontend Roadmap (Archived)](../archive/frontend/FRONTEND_ROADMAP.md) — Historical MVP plan snapshot
 - [Next Steps](../NEXT_STEPS.md) — Current priorities
+- [Backend/Frontend Compatibility & Blockers](../system/BACKEND_FRONTEND_COMPATIBILITY.md) — Current mismatches + decisions
 
 ---
 
 **Document Owner:** Development Team  
-**Last Updated:** 2025-01-27  
+**Last Updated:** 2025-12-17  
 **Status:** Planning Phase
-

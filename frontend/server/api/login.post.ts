@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { getErrorMessage, getErrorStatusCode } from "../utils/api";
 import { logSecurityEvent, getClientIP, getUserAgent } from "../utils/security-logger";
 import { logger } from "../utils/logger";
 
@@ -11,9 +12,11 @@ export default defineEventHandler(async (event) => {
   const clientIP = getClientIP(event);
   const userAgent = getUserAgent(event);
   let securityLogged = false;
+  let attemptedEmail: string | undefined;
 
   try {
     const { email, password } = await readValidatedBody(event, bodySchema.parse);
+    attemptedEmail = email;
 
     const config = useRuntimeConfig();
     // Use private apiBaseUrl for server-side calls (reaches backend via Docker network)
@@ -25,7 +28,7 @@ export default defineEventHandler(async (event) => {
     formData.append("username", email); // OAuth2 uses 'username' field for email
     formData.append("password", password);
 
-    const response = await $fetch<{ access_token: string }>(`${apiBaseUrl}/auth/login`, {
+    const response = await $fetch<{ access_token: string }>(`${apiBaseUrl}/api/v1/auth/login`, {
       method: "POST",
       headers: {
         "Content-Type": "application/x-www-form-urlencoded",
@@ -37,16 +40,16 @@ export default defineEventHandler(async (event) => {
       const accessToken = response.access_token;
 
       // Fetch user info from backend using the token
-      let userInfo = { email };
+      let userInfo: Record<string, unknown> = { email };
       try {
-        const userResponse = await $fetch(`${apiBaseUrl}/auth/me`, {
+        const userResponse = await $fetch<Record<string, unknown>>(`${apiBaseUrl}/api/v1/auth/me`, {
           headers: {
             Authorization: `Bearer ${accessToken}`,
           },
         });
-        userInfo = userResponse as any;
+        userInfo = userResponse;
       } catch (err) {
-        // If /auth/me fails, continue with email only
+        // If /api/v1/auth/me fails, continue with email only
         logger.warning("Failed to fetch user info", { error: err });
       }
 
@@ -81,21 +84,20 @@ export default defineEventHandler(async (event) => {
       statusCode: 401,
       statusMessage: "Authentication failed",
     });
-  } catch (error: any) {
-    const statusCode = error?.statusCode;
-    const errorData = error?.data;
-    const errorMessage = error?.statusMessage;
+  } catch (error: unknown) {
+    const statusCode = getErrorStatusCode(error);
+    const errorMessage = getErrorMessage(error);
 
     // Log security events for authentication failures (only if not already logged)
     if (!securityLogged && (statusCode === 401 || statusCode === 429)) {
       logSecurityEvent({
         type: statusCode === 429 ? "rate_limit" : "login_failure",
-        email: errorData?.email,
+        email: attemptedEmail,
         ip: clientIP,
         userAgent: userAgent,
         details: {
           statusCode,
-          message: errorData?.detail || errorMessage,
+          message: errorMessage,
         },
       });
     }
@@ -103,15 +105,6 @@ export default defineEventHandler(async (event) => {
     // Re-throw if it's already a proper error with status code
     if (statusCode) {
       throw error;
-    }
-
-    // Handle FastAPI error responses
-    if (errorData) {
-      throw createError({
-        statusCode: statusCode || 401,
-        statusMessage: errorData?.detail || "Login failed",
-        data: errorData,
-      });
     }
 
     // Generic error response

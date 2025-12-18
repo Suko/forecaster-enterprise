@@ -6,13 +6,10 @@
 import type { TimePeriod, TrendDataPoint } from "~/types/dashboard";
 
 export const useDashboardCharts = () => {
-  const { apiCall } = useApi();
-  const config = useRuntimeConfig();
-
   /**
    * Fetch trend data for dashboard charts
    */
-  const fetchTrendData = async (period: TimePeriod = "monthly"): Promise<TrendDataPoint[]> => {
+  const fetchTrendData = async (_period: TimePeriod = "monthly"): Promise<TrendDataPoint[]> => {
     try {
       // TODO: Update when backend endpoint is available
       // For now, return empty array
@@ -22,7 +19,7 @@ export const useDashboardCharts = () => {
       // return response
 
       return [];
-    } catch (error) {
+    } catch {
       return [];
     }
   };

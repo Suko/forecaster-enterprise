@@ -1,6 +1,7 @@
 <script setup lang="ts">
-import type { PurchaseOrder } from "~/types/order";
-import type { Supplier } from "~/types/supplier";
+ import type { PurchaseOrder } from "~/types/order";
+ import type { Supplier } from "~/types/supplier";
+ import { getErrorText } from "~/utils/error";
 
 definePageMeta({
   layout: "dashboard",
@@ -23,6 +24,8 @@ const supplierLoading = ref(false);
 const supplierError = ref<string | null>(null);
 const supplier = ref<Supplier | null>(null);
 
+type PurchaseOrderStatus = "pending" | "confirmed" | "shipped" | "received" | "cancelled";
+
 const statusOptions = [
   { label: "Pending", value: "pending" },
   { label: "Confirmed", value: "confirmed" },
@@ -31,9 +34,10 @@ const statusOptions = [
   { label: "Cancelled", value: "cancelled" },
 ];
 
-const selectedStatus = ref<"pending" | "confirmed" | "shipped" | "received" | "cancelled">(
-  "pending"
-);
+const selectedStatus = ref<PurchaseOrderStatus>("pending");
+
+const isKnownStatus = (value: string): value is PurchaseOrderStatus =>
+  statusOptions.some((status) => status.value === value);
 
 const formatMoney = (value: string | number) => {
   const num = Number(value || 0);
@@ -47,8 +51,8 @@ const loadPo = async () => {
   try {
     const data = await fetchPurchaseOrder(poId.value);
     po.value = data;
-    if (data.status && statusOptions.some((s) => s.value === data.status)) {
-      selectedStatus.value = data.status as any;
+    if (typeof data.status === "string" && isKnownStatus(data.status)) {
+      selectedStatus.value = data.status;
     }
 
     // Load supplier info (for contact details)
@@ -58,19 +62,19 @@ const loadPo = async () => {
       supplierLoading.value = true;
       try {
         supplier.value = await fetchSupplier(data.supplier_id);
-      } catch (err: any) {
+      } catch (err: unknown) {
         const wasAuthError = await handleAuthError(err);
         if (!wasAuthError) {
-          supplierError.value = err.message || "Failed to load supplier";
+          supplierError.value = getErrorText(err, "Failed to load supplier");
         }
       } finally {
         supplierLoading.value = false;
       }
     }
-  } catch (err: any) {
+  } catch (err: unknown) {
     const wasAuthError = await handleAuthError(err);
     if (wasAuthError) return;
-    error.value = err.message || "Failed to load purchase order";
+    error.value = getErrorText(err, "Failed to load purchase order");
   } finally {
     loading.value = false;
   }
@@ -83,12 +87,12 @@ const onSaveStatus = async () => {
     const updated = await updatePurchaseOrderStatus(po.value.id, selectedStatus.value);
     po.value = updated;
     toast.add({ title: "Status updated", description: updated.status, color: "success" });
-  } catch (err: any) {
+  } catch (err: unknown) {
     const wasAuthError = await handleAuthError(err);
     if (wasAuthError) return;
     toast.add({
       title: "Update failed",
-      description: err.message || "Failed to update status",
+      description: getErrorText(err, "Failed to update status"),
       color: "error",
     });
   } finally {

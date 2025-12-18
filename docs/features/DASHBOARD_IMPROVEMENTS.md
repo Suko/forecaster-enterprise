@@ -1,6 +1,6 @@
 # Dashboard Improvements - Feature Plan
 
-**Last Updated:** 2025-01-27  
+**Last Updated:** 2025-12-17  
 **Status:** Planning Phase  
 **Scope:** Dashboard UI/UX improvements and enhancements
 
@@ -24,6 +24,7 @@ Users come to the dashboard to:
 - ✅ Basic dashboard page with KPI cards
 - ✅ Chart.js integration (ready for data)
 - ✅ Top products table component
+- ⚠️ Contract note: `stockout_risk` is **0–1** in API responses (multiply by 100 for % display)
 - ❌ Charts not connected to data
 - ❌ No trend/historical data visualization
 - ❌ Limited interactivity
@@ -70,8 +71,8 @@ Users come to the dashboard to:
 - Helps identify products that need marketing attention
 
 **Dead Stock Implementation Status:**
-- ✅ Status: `"dead_stock"` returned by products API
-- ✅ Filter: `GET /api/v1/products?status=dead_stock`
+- ❌ Status: `"dead_stock"` is **not** returned by products API yet (requires last-sale-date logic)
+- ❌ Filter: `GET /api/v1/products?status=dead_stock` is not functional until products status supports dead stock
 - ✅ Settings: `dead_stock_days` (default: 90 days, configurable)
 - ✅ Recommendations: `DEAD_STOCK` recommendation type
 - ❌ Not included in dashboard metrics (needs calculation)
@@ -537,8 +538,8 @@ interface DashboardTrendsResponse {
 
 ## Related Documentation
 
-- [Backend Roadmap](../backend/BACKEND_ROADMAP.md) — Dashboard API
-- [Frontend Roadmap](../frontend/FRONTEND_ROADMAP.md) — Dashboard page (Phase 2)
+- [Backend Roadmap (Archived)](../archive/backend/BACKEND_ROADMAP.md) — Dashboard API (historical snapshot)
+- [Frontend Roadmap (Archived)](../archive/frontend/FRONTEND_ROADMAP.md) — Dashboard page (historical plan)
 - [Inventory Improvements](INVENTORY_IMPROVEMENTS.md) — Related inventory features
 - [Next Steps](../NEXT_STEPS.md) — Current priorities
 
@@ -547,4 +548,3 @@ interface DashboardTrendsResponse {
 **Document Owner:** Development Team  
 **Last Updated:** 2025-01-27  
 **Status:** Planning Phase - Ready for implementation
-

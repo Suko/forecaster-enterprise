@@ -210,10 +210,12 @@
 </template>
 
 <script setup lang="ts">
-import * as z from "zod";
-import type { FormSubmitEvent } from "#ui/types";
+ import * as z from "zod";
+ import type { FormSubmitEvent } from "#ui/types";
+ import { getErrorText } from "~/utils/error";
 
 const { apiCall } = useApi();
+const toast = useToast();
 
 interface User {
   id: string;
@@ -307,7 +309,12 @@ const fetchUsers = async () => {
   loading.value = true;
   try {
     users.value = await apiCall<User[]>("/users");
-  } catch (error: any) {
+  } catch (error: unknown) {
+    toast.add({
+      title: "Error",
+      description: getErrorText(error, "Failed to load users"),
+      color: "error",
+    });
   } finally {
     loading.value = false;
   }
@@ -343,11 +350,11 @@ const submitForm = async () => {
   const syntheticEvent = {
     data: formState,
     preventDefault: () => {},
-  } as FormSubmitEvent<any>;
+  } as FormSubmitEvent<unknown>;
   await handleSubmit(syntheticEvent);
 };
 
-const handleSubmit = async (event: FormSubmitEvent<any>) => {
+const handleSubmit = async (_event: FormSubmitEvent<unknown>) => {
   submitting.value = true;
   try {
     if (editingUser.value) {
@@ -372,7 +379,12 @@ const handleSubmit = async (event: FormSubmitEvent<any>) => {
     }
     await fetchUsers();
     closeModal();
-  } catch (error: any) {
+  } catch (error: unknown) {
+    toast.add({
+      title: "Error",
+      description: getErrorText(error, "Failed to save user"),
+      color: "error",
+    });
   } finally {
     submitting.value = false;
   }
@@ -394,7 +406,12 @@ const handleDelete = async () => {
     await fetchUsers();
     showDeleteModal.value = false;
     userToDelete.value = null;
-  } catch (error: any) {
+  } catch (error: unknown) {
+    toast.add({
+      title: "Error",
+      description: getErrorText(error, "Failed to delete user"),
+      color: "error",
+    });
   } finally {
     deleting.value = false;
   }

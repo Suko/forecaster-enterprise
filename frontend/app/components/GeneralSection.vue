@@ -139,13 +139,6 @@ const languageOptions = [
   { label: "German", value: "de" },
 ];
 
-// Theme options
-const themeOptions = [
-  { label: "Light", value: "light" },
-  { label: "Dark", value: "dark" },
-  { label: "System", value: "system" },
-];
-
 // Theme preference (syncs with colorMode)
 const themePreference = ref(colorMode.preference);
 

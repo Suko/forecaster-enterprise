@@ -69,9 +69,8 @@ async def get_client_id_from_request_or_token(
     Get client_id from multiple sources (unified multi-tenant).
 
     Priority:
-    1. Request body/query parameter (for system calls)
-    2. JWT token (for user calls)
-    3. Service token (for automated calls - requires client_id in request)
+    1. JWT token (user calls; request `client_id` ignored)
+    2. Service API key (system calls; requires request `client_id`)
 
     Args:
         request: FastAPI request
@@ -85,11 +84,7 @@ async def get_client_id_from_request_or_token(
     Raises:
         HTTPException: If client_id cannot be determined
     """
-    # Priority 1: Explicit client_id in request (for system/automated calls)
-    if client_id:
-        return client_id
-
-    # Priority 2: Try JWT token (for user calls)
+    # Priority 1: Try JWT token (for user calls). Ignore request `client_id`.
     authorization = request.headers.get("Authorization")
     if authorization and authorization.startswith("Bearer "):
         token = authorization.split(" ")[1]
@@ -115,17 +110,20 @@ async def get_client_id_from_request_or_token(
             except Exception:
                 pass  # JWT auth failed, continue to service token
 
-    # Priority 3: Service token (requires client_id in request)
+    # Priority 2: Service API key (requires client_id in request)
     if x_api_key:
         is_valid = await verify_service_token(x_api_key)
-        if is_valid:
-            # Service token valid, but still need client_id
-            if not client_id:
-                raise HTTPException(
-                    status_code=status.HTTP_400_BAD_REQUEST,
-                    detail="client_id is required when using service API key"
-                )
-            return client_id
+        if not is_valid:
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="Invalid service API key",
+            )
+        if not client_id:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="client_id is required when using service API key",
+            )
+        return client_id
 
     # No valid authentication found
     raise HTTPException(
@@ -154,4 +152,3 @@ async def get_optional_client_id(
     except HTTPException:
         # No auth provided - that's OK for client-agnostic endpoints
         return None
-

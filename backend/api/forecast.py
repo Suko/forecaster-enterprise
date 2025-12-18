@@ -49,6 +49,7 @@ async def create_forecast(
     client_id = await get_client_id_from_request_or_token(
         request_obj,
         client_id=request.client_id,  # Optional: for system calls
+        x_api_key=request_obj.headers.get("X-API-Key"),
         db=db,
     )
 
@@ -160,6 +161,7 @@ async def calculate_inventory(
     client_id = await get_client_id_from_request_or_token(
         request_obj,
         client_id=request.client_id,
+        x_api_key=request_obj.headers.get("X-API-Key"),
         db=db,
     )
 
@@ -306,6 +308,7 @@ async def backfill_actuals(
     client_id = await get_client_id_from_request_or_token(
         request_obj,
         client_id=None,  # Not in request body for this endpoint
+        x_api_key=request_obj.headers.get("X-API-Key"),
         db=db,
     )
     updated_count = 0
@@ -367,6 +370,7 @@ async def get_quality_metrics(
     client_id = await get_client_id_from_request_or_token(
         request_obj,
         client_id=None,  # Not in query params for this endpoint
+        x_api_key=request_obj.headers.get("X-API-Key"),
         db=db,
     )
 
@@ -427,6 +431,7 @@ async def get_sku_classification(
     client_id = await get_client_id_from_request_or_token(
         request_obj,
         client_id=None,
+        x_api_key=request_obj.headers.get("X-API-Key"),
         db=db,
     )
 
@@ -464,4 +469,3 @@ async def get_sku_classification(
         ),
         warnings=warnings,
     )
-

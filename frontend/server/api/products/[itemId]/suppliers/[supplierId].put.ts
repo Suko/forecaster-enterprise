@@ -1,4 +1,4 @@
-import { authenticatedFetch } from "../../../../utils/api";
+import { authenticatedFetch, getErrorMessage, getErrorStatusCode } from "../../../../utils/api";
 
 /**
  * Update product-supplier conditions (MOQ, lead time, packaging)
@@ -28,21 +28,13 @@ export default defineEventHandler(async (event) => {
         body,
       }
     );
-  } catch (error: any) {
-    if (error.statusCode === 401) {
+  } catch (error: unknown) {
+    if (getErrorStatusCode(error) === 401) {
       throw createError({ statusCode: 401, statusMessage: "Not authenticated" });
     }
-    // Extract error message from FastAPI response
-    const errorMessage =
-      error.data?.detail ||
-      error.data?.statusMessage ||
-      error.data?.message ||
-      error.message ||
-      "Failed to update product-supplier condition";
     throw createError({
-      statusCode: error.statusCode || 500,
-      statusMessage: errorMessage,
-      data: error.data,
+      statusCode: getErrorStatusCode(error) || 500,
+      statusMessage: getErrorMessage(error) || "Failed to update product-supplier condition",
     });
   }
 });

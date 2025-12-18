@@ -109,15 +109,15 @@
                 <div class="text-right">
                   <UBadge
                     :color="
-                      (Number(item.stockout_risk) || 0) > 70
+                      toRiskPercent(item.stockout_risk) > 70
                         ? 'error'
-                        : (Number(item.stockout_risk) || 0) > 40
+                        : toRiskPercent(item.stockout_risk) > 40
                           ? 'warning'
                           : 'info'
                     "
                     variant="soft"
                   >
-                    {{ (Number(item.stockout_risk) || 0).toFixed(1) }}% risk
+                    {{ toRiskPercent(item.stockout_risk).toFixed(1) }}% risk
                   </UBadge>
                   <p class="text-xs text-gray-400 mt-1">
                     {{ (Number(item.dir) || 0).toFixed(1) }} days
@@ -177,13 +177,14 @@
 </template>
 
 <script setup lang="ts">
-import type { DashboardResponse } from "~/types/dashboard";
+ import type { DashboardResponse } from "~/types/dashboard";
+ import { getErrorText } from "~/utils/error";
 
 definePageMeta({
   layout: "dashboard",
 });
 
-const { user, fetch } = useUserSession();
+const { fetch } = useUserSession();
 const dashboardData = ref<DashboardResponse | null>(null);
 const loading = ref(false);
 const error = ref<string | null>(null);
@@ -192,6 +193,12 @@ const formatCurrency = (value: number): string => {
   return Math.round(value).toLocaleString("de-DE", {
     maximumFractionDigits: 0,
   });
+};
+
+const toRiskPercent = (risk: unknown): number => {
+  const value = Number(risk);
+  if (!Number.isFinite(value)) return 0;
+  return value * 100;
 };
 
 const { handleAuthError } = useAuthError();
@@ -203,14 +210,14 @@ const loadDashboard = async () => {
   try {
     const data = await $fetch<DashboardResponse>("/api/dashboard");
     dashboardData.value = data;
-  } catch (err: any) {
+  } catch (err: unknown) {
     // Handle 401 errors - redirect to login
     const wasAuthError = await handleAuthError(err);
     if (wasAuthError) {
       // Redirect is handled, just return
       return;
     }
-    error.value = err.message || "Failed to load dashboard data";
+    error.value = getErrorText(err, "Failed to load dashboard data");
   } finally {
     loading.value = false;
   }

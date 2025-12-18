@@ -1,4 +1,4 @@
-import { authenticatedFetch } from "../../utils/api";
+import { authenticatedFetch, getErrorMessage, getErrorStatusCode } from "../../utils/api";
 
 /**
  * Get purchase order detail
@@ -14,13 +14,13 @@ export default defineEventHandler(async (event) => {
 
   try {
     return await authenticatedFetch(event, `/api/v1/purchase-orders/${encodeURIComponent(id)}`);
-  } catch (error: any) {
-    if (error.statusCode === 401) {
+  } catch (error: unknown) {
+    if (getErrorStatusCode(error) === 401) {
       throw createError({ statusCode: 401, statusMessage: "Not authenticated" });
     }
     throw createError({
-      statusCode: error.statusCode || 500,
-      statusMessage: error.message || "Failed to fetch purchase order",
+      statusCode: getErrorStatusCode(error) || 500,
+      statusMessage: getErrorMessage(error) || "Failed to fetch purchase order",
     });
   }
 });

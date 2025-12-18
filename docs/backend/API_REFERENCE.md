@@ -1,8 +1,10 @@
 # API Reference
 
-**Backend Version:** 1.0.0  
+**Source of Truth:** FastAPI OpenAPI (`/openapi.json`)  
 **Base URL:** `http://localhost:8000`  
-**Last Updated:** 2025-12-10
+**Last Generated:** 2025-12-17
+
+> **Note:** This document should be regenerated from the OpenAPI schema (`/openapi.json`) when API endpoints change. The canonical source of truth is the FastAPI application's OpenAPI schema, accessible at `/docs` (Swagger UI) or `/openapi.json` (JSON schema).
 
 ---
 
@@ -10,611 +12,906 @@
 
 ```typescript
 // 1. Login
-const res = await fetch('/api/v1/auth/login', {
+const form = new URLSearchParams();
+form.append('username', 'user@example.com');
+form.append('password', 'password');
+
+const res = await fetch('http://localhost:8000/api/v1/auth/login', {
   method: 'POST',
-  headers: { 'Content-Type': 'application/json' },
-  body: JSON.stringify({ email: 'user@example.com', password: 'password' })
+  headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+  body: form.toString()
 });
 const { access_token } = await res.json();
 
-// 2. Use token in all requests
+// 2. Use token in requests
 const headers = { 'Authorization': `Bearer ${access_token}` };
 
-// 3. Get dashboard
-const dashboard = await fetch('/api/v1/dashboard', { headers }).then(r => r.json());
+// 3. Example: dashboard
+const dashboard = await fetch('http://localhost:8000/api/v1/dashboard', { headers }).then(r => r.json());
 ```
 
 ---
 
-## Table of Contents
+## Endpoints (Canonical)
 
-1. [Authentication](#authentication)
-2. [Products & Inventory](#products--inventory)
-3. [Dashboard](#dashboard)
-4. [Order Planning](#order-planning)
-5. [Purchase Orders](#purchase-orders)
-6. [Settings](#settings)
+## Etl
 
----
+### `POST /api/v1/etl/sync/locations`
 
-## Authentication
+**Summary:** Sync Locations
 
-### Register User
-```http
-POST /api/v1/auth/register
-Content-Type: application/json
+Sync locations from external source
 
-{
-  "email": "user@example.com",
-  "password": "securepassword",
-  "name": "User Name"
-}
+Requires authentication and client context.
+Preserves app-managed locations (is_synced = false).
 
-Response:
-{
-  "id": "user-uuid",
-  "email": "user@example.com",
-  "name": "User Name",
-  "role": "user",
-  "is_active": true
-}
-```
+**Request Body**
+- `application/json` → `SyncLocationsRequest`
 
-**Notes:**
-- **Role**: Automatically set to `"user"` by default (cannot be set during registration)
-- **Admin users**: Use `create_user.py` script to create admin users directly:
-  ```bash
-  python create_user.py admin@example.com password123 --admin
-  ```
-- **Role changes**: Only admins can change roles via `PATCH /api/v1/auth/users/{user_id}`
-- **Password**: Must be 8-128 characters
+**Responses**
+- `200` `SyncResponse` — Successful Response
+- `422` `HTTPValidationError` — Validation Error
 
-### Login
-```http
-POST /api/v1/auth/login
-Content-Type: application/json
+### `POST /api/v1/etl/sync/products`
 
-{
-  "email": "user@example.com",
-  "password": "password"
-}
+**Summary:** Sync Products
 
-Response:
-{
-  "access_token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
-  "token_type": "bearer"
-}
-```
+Sync products from external source
 
----
+Requires authentication and client context.
 
-## Products & Inventory
+**Request Body**
+- `application/json` → `SyncProductsRequest`
 
-### List Products
-```http
-GET /api/v1/products?page=1&page_size=50&search=keyword&category=Electronics&status=understocked&sort=dir&order=desc
-Authorization: Bearer <token>
-```
+**Responses**
+- `200` `SyncResponse` — Successful Response
+- `422` `HTTPValidationError` — Validation Error
 
-**Query Parameters:**
-- `page` (int, default: 1) - Page number
-- `page_size` (int, default: 50, max: 100) - Items per page
-- `search` (string, optional) - Global search
-- `category` (string, optional) - Filter by category
-- `supplier_id` (UUID, optional) - Filter by supplier
-- `location_id` (string, optional) - Filter by location
-- `status` (string, optional) - "understocked" | "normal" | "overstocked"
-- `min_dir`, `max_dir` (float, optional) - DIR range
-- `min_risk`, `max_risk` (float, optional) - Risk range (0-1)
-- `min_stock`, `max_stock` (int, optional) - Stock range
-- `sort` (string, optional) - Field to sort by
-- `order` (string, default: "asc") - "asc" | "desc"
+### `POST /api/v1/etl/sync/sales-history`
 
-**Response:**
-```json
-{
-  "items": [
-    {
-      "item_id": "SKU001",
-      "product_name": "Product Name",
-      "category": "Electronics",
-      "current_stock": 100,
-      "unit_cost": "10.00",
-      "dir": 30.5,
-      "stockout_risk": 0.15,
-      "status": "normal",
-      "inventory_value": "1000.00"
-    }
-  ],
-  "total": 150,
-  "page": 1,
-  "page_size": 50,
-  "total_pages": 3
-}
-```
+**Summary:** Sync Sales History
 
-### Get Product Details
-```http
-GET /api/v1/products/{item_id}
-Authorization: Bearer <token>
-```
+Sync sales history from external source to ts_demand_daily table
 
-**Response:**
-```json
-{
-  "item_id": "SKU001",
-  "product_name": "Product Name",
-  "category": "Electronics",
-  "description": "Product description",
-  "unit_cost": "10.00",
-  "current_stock": 100,
-  "suppliers": [
-    {
-      "supplier_id": "uuid",
-      "supplier_name": "Supplier Name",
-      "moq": 10,
-      "lead_time_days": 14,
-      "supplier_cost": "9.50"
-    }
-  ]
-}
-```
+Requires authentication and client context.
 
-### Get Product Metrics
-```http
-GET /api/v1/products/{item_id}/metrics
-Authorization: Bearer <token>
-```
+**Request Body**
+- `application/json` → `SyncSalesHistoryRequest`
 
-**Response:**
-```json
-{
-  "item_id": "SKU001",
-  "current_stock": 100,
-  "dir": 30.5,
-  "stockout_risk": 0.15,
-  "status": "normal",
-  "forecasted_demand_30d": "10.00",
-  "inventory_value": "1000.00"
-}
-```
+**Responses**
+- `200` `SyncResponse` — Successful Response
+- `422` `HTTPValidationError` — Validation Error
 
-### Get Product Suppliers
-```http
-GET /api/v1/products/{item_id}/suppliers
-Authorization: Bearer <token>
-```
+### `POST /api/v1/etl/sync/stock-levels`
 
-### Add Supplier to Product
-```http
-POST /api/v1/products/{item_id}/suppliers
-Authorization: Bearer <token>
-Content-Type: application/json
+**Summary:** Sync Stock Levels
 
-{
-  "supplier_id": "uuid",
-  "moq": 10,
-  "lead_time_days": 14,
-  "supplier_cost": "9.50"
-}
-```
+Sync stock levels from external source
 
-### Update Supplier Conditions
-```http
-PUT /api/v1/products/{item_id}/suppliers/{supplier_id}
-Authorization: Bearer <token>
-Content-Type: application/json
+Requires authentication and client context.
 
-{
-  "moq": 20,
-  "lead_time_days": 21,
-  "supplier_cost": "9.00"
-}
-```
+**Request Body**
+- `application/json` → `SyncStockLevelsRequest`
 
-### Remove Supplier from Product
-```http
-DELETE /api/v1/products/{item_id}/suppliers/{supplier_id}
-Authorization: Bearer <token>
-```
+**Responses**
+- `200` `SyncResponse` — Successful Response
+- `422` `HTTPValidationError` — Validation Error
 
----
+### `POST /api/v1/etl/validate`
 
-## Dashboard
+**Summary:** Validate Data
 
-### Get Dashboard
-```http
-GET /api/v1/dashboard
-Authorization: Bearer <token>
-```
+Validate data quality, completeness, and computed metrics
 
-**Response:**
-```json
-{
-  "total_products": 150,
-  "total_value": "150000.00",
-  "understocked_count": 25,
-  "overstocked_count": 10,
-  "high_risk_count": 5,
-  "top_understocked": [
-    {
-      "item_id": "SKU001",
-      "product_name": "Product Name",
-      "dir": 5.2,
-      "stockout_risk": 0.85
-    }
-  ],
-  "top_overstocked": [
-    {
-      "item_id": "SKU002",
-      "product_name": "Product Name 2",
-      "dir": 120.5,
-      "stockout_risk": 0.05
-    }
-  ]
-}
-```
+Requires authentication and client context.
+Returns comprehensive validation report.
 
----
+**Request Body**
+- `application/json` → `ValidationRequest`
 
-## Order Planning
+**Responses**
+- `200` `ValidationReport` — Successful Response
+- `422` `HTTPValidationError` — Validation Error
 
-### Add to Cart
-```http
-POST /api/v1/order-planning/cart/add
-Authorization: Bearer <token>
-X-Session-ID: session-id (optional)
-Content-Type: application/json
+## Auth
 
-{
-  "item_id": "SKU001",
-  "supplier_id": "uuid",
-  "quantity": 20,
-  "notes": "Optional notes"
-}
-```
+### `POST /api/v1/auth/login`
 
-**Response:**
-```json
-{
-  "item_id": "SKU001",
-  "supplier_id": "uuid",
-  "quantity": 20,
-  "unit_cost": "10.00",
-  "total_cost": "200.00",
-  "notes": "Optional notes"
-}
-```
+**Summary:** Login
 
-### Get Cart
-```http
-GET /api/v1/order-planning/cart
-Authorization: Bearer <token>
-X-Session-ID: session-id (optional)
-```
+Login endpoint - returns JWT access token
+Rate limited to prevent brute force attacks
 
-**Response:**
-```json
-{
-  "items": [
-    {
-      "item_id": "SKU001",
-      "product_name": "Product Name",
-      "supplier_name": "Supplier Name",
-      "quantity": 20,
-      "unit_cost": "10.00",
-      "total_cost": "200.00"
-    }
-  ],
-  "total_items": 1,
-  "total_value": "200.00",
-  "grouped_by_supplier": {
-    "supplier-uuid": [...]
-  }
-}
-```
+**Request Body**
+- `application/x-www-form-urlencoded` → `Body_login_api_v1_auth_login_post`
 
-### Update Cart Item
-```http
-PUT /api/v1/order-planning/cart/{item_id}
-Authorization: Bearer <token>
-X-Session-ID: session-id
-Content-Type: application/json
+**Responses**
+- `200` `Token` — Successful Response
+- `422` `HTTPValidationError` — Validation Error
 
-{
-  "quantity": 30
-}
-```
+### `GET /api/v1/auth/me`
 
-### Remove from Cart
-```http
-DELETE /api/v1/order-planning/cart/{item_id}
-Authorization: Bearer <token>
-X-Session-ID: session-id
-```
+**Summary:** Get Current User Info
 
-### Clear Cart
-```http
-POST /api/v1/order-planning/cart/clear
-Authorization: Bearer <token>
-X-Session-ID: session-id
-```
+Get current authenticated user information
 
-### Get Order Suggestions
-```http
-GET /api/v1/order-planning/suggestions?location_id=LOC001&min_risk=0.5
-Authorization: Bearer <token>
-```
+**Responses**
+- `200` `UserResponse` — Successful Response
 
-**Query Parameters:**
-- `location_id` (string, optional)
-- `min_risk` (float, optional)
+### `GET /api/v1/auth/me/preferences`
 
-**Response:**
-```json
-{
-  "suggestions": [
-    {
-      "item_id": "SKU001",
-      "product_name": "Product Name",
-      "current_stock": 10,
-      "suggested_quantity": 50,
-      "reason": "Low stock",
-      "supplier_id": "uuid",
-      "supplier_name": "Supplier Name"
-    }
-  ]
-}
-```
+**Summary:** Get User Preferences
 
-### Get Recommendations
-```http
-GET /api/v1/order-planning/recommendations?recommendation_type=REORDER&role=PROCUREMENT
-Authorization: Bearer <token>
-```
+Get current user's preferences
 
-**Query Parameters:**
-- `recommendation_type` (string, optional) - "REORDER" | "URGENT" | "REDUCE_ORDER" | "DEAD_STOCK" | "PROMOTE"
-- `role` (string, optional) - "CEO" | "PROCUREMENT" | "MARKETING"
+**Responses**
+- `200` `UserPreferencesResponse` — Successful Response
 
-**Response:**
-```json
-[
-  {
-    "type": "REORDER",
-    "priority": "high",
-    "item_id": "SKU001",
-    "product_name": "Product Name",
-    "reason": "DIR below threshold",
-    "suggested_quantity": 50,
-    "supplier_id": "uuid",
-    "supplier_name": "Supplier Name"
-  }
-]
-```
+### `PUT /api/v1/auth/me/preferences`
 
----
+**Summary:** Update User Preferences
 
-## Purchase Orders
+Update current user's preferences
 
-### Create Purchase Order
-```http
-POST /api/v1/purchase-orders
-Authorization: Bearer <token>
-Content-Type: application/json
+**Request Body**
+- `application/json` → `UserPreferencesUpdate`
 
-{
-  "supplier_id": "uuid",
-  "items": [
-    {
-      "item_id": "SKU001",
-      "quantity": 20,
-      "unit_cost": "10.00"
-    }
-  ],
-  "notes": "Optional notes"
-}
-```
+**Responses**
+- `200` `UserPreferencesResponse` — Successful Response
+- `422` `HTTPValidationError` — Validation Error
 
-### Create PO from Cart
-```http
-POST /api/v1/purchase-orders/from-cart
-Authorization: Bearer <token>
-X-Session-ID: session-id
-Content-Type: application/json
+### `POST /api/v1/auth/register`
 
-{
-  "supplier_id": "uuid",
-  "notes": "Optional notes"
-}
-```
+**Summary:** Register
 
-**Response:**
-```json
-{
-  "id": "po-uuid",
-  "po_number": "PO-2025-001",
-  "supplier_id": "uuid",
-  "supplier_name": "Supplier Name",
-  "status": "pending",
-  "total_amount": "200.00",
-  "items": [
-    {
-      "item_id": "SKU001",
-      "product_name": "Product Name",
-      "quantity": 20,
-      "unit_cost": "10.00",
-      "total_cost": "200.00"
-    }
-  ],
-  "created_at": "2025-12-10T10:00:00Z",
-  "created_by": "user@example.com"
-}
-```
+Register a new user
+Rate limited to prevent abuse
+Password validation: 8-128 characters
 
-### List Purchase Orders
-```http
-GET /api/v1/purchase-orders?status=pending&supplier_id=uuid&page=1&page_size=50
-Authorization: Bearer <token>
-```
+**Request Body**
+- `application/json` → `UserCreate`
 
-**Query Parameters:**
-- `status` (string, optional) - "pending" | "confirmed" | "shipped" | "received" | "cancelled"
-- `supplier_id` (UUID, optional)
-- `page` (int, default: 1)
-- `page_size` (int, default: 50)
+**Responses**
+- `201` `UserResponse` — Successful Response
+- `422` `HTTPValidationError` — Validation Error
 
-**Response:**
-```json
-{
-  "items": [...],
-  "total": 10,
-  "page": 1,
-  "page_size": 50,
-  "total_pages": 1
-}
-```
+### `GET /api/v1/auth/users`
 
-### Get Purchase Order Details
-```http
-GET /api/v1/purchase-orders/{po_id}
-Authorization: Bearer <token>
-```
+**Summary:** List Users
 
-### Update PO Status
-```http
-PATCH /api/v1/purchase-orders/{po_id}/status
-Authorization: Bearer <token>
-Content-Type: application/json
+List all users (admin only)
 
-{
-  "status": "confirmed"
-}
-```
+**Responses**
+- `200` `array` — Successful Response
 
----
+### `POST /api/v1/auth/users`
+
+**Summary:** Create User Endpoint
+
+Create a new user (admin only)
+
+**Request Body**
+- `application/json` → `UserCreate`
+
+**Responses**
+- `201` `UserResponse` — Successful Response
+- `422` `HTTPValidationError` — Validation Error
+
+### `PATCH /api/v1/auth/users/{user_id}`
+
+**Summary:** Update User Endpoint
+
+Update user (admin only)
+
+**Request Body**
+- `application/json` → `UserUpdate`
+
+**Responses**
+- `200` `UserResponse` — Successful Response
+- `422` `HTTPValidationError` — Validation Error
+
+### `DELETE /api/v1/auth/users/{user_id}`
+
+**Summary:** Delete User Endpoint
+
+Delete user (admin only)
+
+**Responses**
+- `204` — Successful Response
+- `422` `HTTPValidationError` — Validation Error
+
+## Forecast
+
+### `POST /api/v1/forecast`
+
+**Summary:** Create Forecast
+
+Generate forecast for specified items.
+
+Authentication (choose one):
+- JWT token (user calls): client_id from user's JWT token (request.client_id ignored)
+- Service API key (system calls): X-API-Key header + client_id in request body
+
+Returns predictions from recommended method (primary if successful, baseline if not).
+Both methods are stored in database for future quality analysis.
+
+**Request Body**
+- `application/json` → `ForecastRequest`
+
+**Responses**
+- `201` `ForecastResponse` — Successful Response
+- `422` `HTTPValidationError` — Validation Error
+
+### `POST /api/v1/forecasts/actuals`
+
+**Summary:** Backfill Actuals
+
+Backfill actual values for quality testing.
+
+Authentication (choose one):
+- JWT token (user calls): client_id from user's JWT token
+- Service API key (system calls): X-API-Key header (client_id from JWT/request)
+
+Updates forecast_results.actual_value for specified item and dates.
+Enables calculation of accuracy metrics (MAPE, MAE, RMSE).
+
+**Request Body**
+- `application/json` → `BackfillActualsRequest`
+
+**Responses**
+- `200` `BackfillActualsResponse` — Successful Response
+- `422` `HTTPValidationError` — Validation Error
+
+### `GET /api/v1/forecasts/quality/{item_id}`
+
+**Summary:** Get Quality Metrics
+
+Get quality metrics (MAPE, MAE, RMSE, Bias) for an item.
+
+Authentication (choose one):
+- JWT token (user calls): client_id from user's JWT token
+- Service API key (system calls): X-API-Key header (client_id from JWT/request)
+
+Compares accuracy of different forecasting methods.
+Requires actual values to be backfilled first.
+
+**Responses**
+- `200` `QualityResponse` — Successful Response
+- `422` `HTTPValidationError` — Validation Error
+
+### `POST /api/v1/inventory/calculate`
+
+**Summary:** Calculate Inventory
+
+Calculate inventory metrics from forecasts.
+
+Authentication (choose one):
+- JWT token (user calls): client_id from user's JWT token
+- Service API key (system calls): X-API-Key header + client_id in request body
+
+Generates forecast first, then calculates inventory metrics using industry-standard formulas.
+
+**Request Body**
+- `application/json` → `InventoryCalculationRequest`
+
+**Responses**
+- `201` `InventoryCalculationResponse` — Successful Response
+- `422` `HTTPValidationError` — Validation Error
+
+### `GET /api/v1/skus/{item_id}/classification`
+
+**Summary:** Get Sku Classification
+
+Get SKU classification (ABC-XYZ) for a specific item.
+
+Authentication (choose one):
+- JWT token (user calls): client_id from user's JWT token
+- Service API key (system calls): X-API-Key header
+
+Returns the latest classification for the item.
+
+**Responses**
+- `200` `SKUClassificationInfo` — Successful Response
+- `422` `HTTPValidationError` — Validation Error
+
+## Inventory
+
+### `GET /api/v1/dashboard`
+
+**Summary:** Get Dashboard
+
+Get dashboard data:
+- Overall metrics (total SKUs, inventory value, understocked/overstocked counts)
+- Top understocked products (by risk and value)
+- Top overstocked products (by value)
+
+**Responses**
+- `200` `DashboardResponse` — Successful Response
+
+### `GET /api/v1/products`
+
+**Summary:** Get Products
+
+Get paginated list of products with filtering and sorting.
+
+Supports data table requirements:
+- Filterable columns (text, numeric, categorical)
+- Sortable columns
+- Pagination
+
+**Responses**
+- `200` `ProductListResponse` — Successful Response
+- `422` `HTTPValidationError` — Validation Error
+
+### `GET /api/v1/products/{item_id}`
+
+**Summary:** Get Product
+
+Get product details by item_id.
+
+Includes product information and computed metrics (DIR, risk, etc.).
+
+**Responses**
+- `200` `ProductDetailResponse` — Successful Response
+- `422` `HTTPValidationError` — Validation Error
+
+### `GET /api/v1/products/{item_id}/metrics`
+
+**Summary:** Get Product Metrics
+
+Get product metrics (DIR, stockout risk, forecasted demand, inventory value).
+
+Computed on-the-fly or from inventory_metrics table.
+
+**Responses**
+- `200` `ProductMetrics` — Successful Response
+- `422` `HTTPValidationError` — Validation Error
+
+### `GET /api/v1/products/{item_id}/suppliers`
+
+**Summary:** Get Product Suppliers
+
+Get all suppliers for a product with conditions (MOQ, lead time, etc.).
+
+**Responses**
+- `200` `array` — Successful Response
+- `422` `HTTPValidationError` — Validation Error
+
+### `POST /api/v1/products/{item_id}/suppliers`
+
+**Summary:** Add Product Supplier
+
+Link product to supplier with conditions (MOQ, lead time, packaging).
+
+**Request Body**
+- `application/json` → `ProductSupplierCreate`
+
+**Responses**
+- `200` `ProductSupplierResponse` — Successful Response
+- `422` `HTTPValidationError` — Validation Error
+
+### `PUT /api/v1/products/{item_id}/suppliers/{supplier_id}`
+
+**Summary:** Update Product Supplier
+
+Update product-supplier conditions (MOQ, lead time, packaging).
+
+**Request Body**
+- `application/json` → `ProductSupplierUpdate`
+
+**Responses**
+- `200` `ProductSupplierResponse` — Successful Response
+- `422` `HTTPValidationError` — Validation Error
+
+### `DELETE /api/v1/products/{item_id}/suppliers/{supplier_id}`
+
+**Summary:** Remove Product Supplier
+
+Remove product-supplier link.
+
+**Responses**
+- `200` — Successful Response
+- `422` `HTTPValidationError` — Validation Error
+
+## Locations
+
+### `GET /api/v1/locations`
+
+**Summary:** Get Locations
+
+Get paginated list of locations
+
+**Responses**
+- `200` `LocationListResponse` — Successful Response
+- `422` `HTTPValidationError` — Validation Error
+
+### `POST /api/v1/locations`
+
+**Summary:** Create Location
+
+Create a new location
+
+**Request Body**
+- `application/json` → `LocationCreate`
+
+**Responses**
+- `201` `LocationResponse` — Successful Response
+- `422` `HTTPValidationError` — Validation Error
+
+### `GET /api/v1/locations/{location_id}`
+
+**Summary:** Get Location
+
+Get location detail
+
+**Responses**
+- `200` `LocationResponse` — Successful Response
+- `422` `HTTPValidationError` — Validation Error
+
+### `PUT /api/v1/locations/{location_id}`
+
+**Summary:** Update Location
+
+Update location information
+
+**Request Body**
+- `application/json` → `LocationUpdate`
+
+**Responses**
+- `200` `LocationResponse` — Successful Response
+- `422` `HTTPValidationError` — Validation Error
+
+### `DELETE /api/v1/locations/{location_id}`
+
+**Summary:** Delete Location
+
+Delete a location
+
+**Responses**
+- `204` — Successful Response
+- `422` `HTTPValidationError` — Validation Error
+
+## Monitoring
+
+### `GET /api/v1/health`
+
+**Summary:** Health Check
+
+Health check endpoint (no auth required).
+
+**Responses**
+- `200` `object` — Successful Response
+
+### `GET /api/v1/metrics`
+
+**Summary:** Get Metrics
+
+Get performance metrics summary.
+
+Requires authentication.
+
+**Responses**
+- `200` `object` — Successful Response
+
+### `GET /api/v1/system/status`
+
+**Summary:** Get System Status
+
+Get system initialization status
+
+Returns status of data tables and basic data quality metrics.
+Requires authentication and client context.
+
+**Responses**
+- `200` `SystemStatusResponse` — Successful Response
+
+## Orders
+
+### `GET /api/v1/order-planning/cart`
+
+**Summary:** Get Cart
+
+Get current cart items grouped by supplier
+
+**Responses**
+- `200` `CartResponse` — Successful Response
+- `422` `HTTPValidationError` — Validation Error
+
+### `POST /api/v1/order-planning/cart/add`
+
+**Summary:** Add To Cart
+
+Add item to order planning cart.
+
+Validates:
+- Product exists
+- Supplier exists and is linked to product
+- Quantity >= MOQ
+
+**Request Body**
+- `application/json` → `CartItemCreate`
+
+**Responses**
+- `200` `CartItemResponse` — Successful Response
+- `422` `HTTPValidationError` — Validation Error
+
+### `POST /api/v1/order-planning/cart/clear`
+
+**Summary:** Clear Cart
+
+Clear entire cart
+
+**Responses**
+- `200` — Successful Response
+- `422` `HTTPValidationError` — Validation Error
+
+### `PUT /api/v1/order-planning/cart/{item_id}`
+
+**Summary:** Update Cart Item
+
+Update cart item quantity or notes
+
+**Request Body**
+- `application/json` → `CartItemUpdate`
+
+**Responses**
+- `200` `CartItemResponse` — Successful Response
+- `422` `HTTPValidationError` — Validation Error
+
+### `DELETE /api/v1/order-planning/cart/{item_id}`
+
+**Summary:** Remove From Cart
+
+Remove item from cart
+
+**Responses**
+- `200` — Successful Response
+- `422` `HTTPValidationError` — Validation Error
+
+### `GET /api/v1/order-planning/suggestions`
+
+**Summary:** Get Order Suggestions
+
+Get order suggestions based on forecasted demand, current stock, and lead time.
+
+Suggests products that need reordering based on:
+- Forecasted demand
+- Current stock
+- Lead time + safety buffer
+
+**Responses**
+- `200` `OrderSuggestionsResponse` — Successful Response
+- `422` `HTTPValidationError` — Validation Error
+
+### `GET /api/v1/recommendations`
+
+**Summary:** Get Recommendations
+
+Get AI-powered recommendations.
+
+Types: REORDER, URGENT, REDUCE_ORDER, DEAD_STOCK, PROMOTE
+Role: CEO, PROCUREMENT, MARKETING (filters by role-based rules)
+
+**Responses**
+- `200` — Successful Response
+- `422` `HTTPValidationError` — Validation Error
+
+### `POST /api/v1/recommendations/{recommendation_id}/dismiss`
+
+**Summary:** Dismiss Recommendation
+
+Dismiss a recommendation (don't show again).
+
+Note: This is a placeholder - in production, you'd store dismissed recommendations
+in a database table.
+
+**Responses**
+- `200` — Successful Response
+- `422` `HTTPValidationError` — Validation Error
+
+## Other
+
+### `GET /`
+
+**Summary:** Root
+
+**Responses**
+- `200` — Successful Response
+
+### `GET /health`
+
+**Summary:** Health
+
+**Responses**
+- `200` — Successful Response
+
+## Purchase-Orders
+
+### `GET /api/v1/purchase-orders`
+
+**Summary:** Get Purchase Orders
+
+Get paginated list of purchase orders
+
+**Responses**
+- `200` `object` — Successful Response
+- `422` `HTTPValidationError` — Validation Error
+
+### `POST /api/v1/purchase-orders`
+
+**Summary:** Create Purchase Order
+
+Create a new purchase order.
+
+Can be created from:
+- Direct items (provided in request)
+- Cart items (use create_po_from_cart endpoint)
+
+**Request Body**
+- `application/json` → `PurchaseOrderCreate`
+
+**Responses**
+- `201` `PurchaseOrderResponse` — Successful Response
+- `422` `HTTPValidationError` — Validation Error
+
+### `POST /api/v1/purchase-orders/from-cart`
+
+**Summary:** Create Po From Cart
+
+Create purchase order from cart items for a specific supplier.
+
+Removes items from cart after creating PO.
+
+**Responses**
+- `201` `PurchaseOrderResponse` — Successful Response
+- `422` `HTTPValidationError` — Validation Error
+
+### `GET /api/v1/purchase-orders/{po_id}`
+
+**Summary:** Get Purchase Order
+
+Get purchase order details
+
+**Responses**
+- `200` `PurchaseOrderResponse` — Successful Response
+- `422` `HTTPValidationError` — Validation Error
+
+### `PUT /api/v1/purchase-orders/{po_id}/status`
+
+**Summary:** Update Purchase Order Status
+
+Update purchase order status
+
+**Request Body**
+- `application/json` → `PurchaseOrderStatusUpdate`
+
+**Responses**
+- `200` `PurchaseOrderResponse` — Successful Response
+- `422` `HTTPValidationError` — Validation Error
 
 ## Settings
 
-### Get Settings
-```http
-GET /api/v1/settings
-Authorization: Bearer <token>
-```
+### `GET /api/v1/settings`
 
-**Response:**
-```json
-{
-  "client_id": "uuid",
-  "safety_buffer_days": 7,
-  "understocked_threshold": 14,
-  "overstocked_threshold": 90,
-  "dead_stock_days": 90,
-  "recommendation_rules": {
-    "enabled_types": ["REORDER", "URGENT"],
-    "role_rules": {
-      "PROCUREMENT": ["REORDER", "URGENT"]
-    }
-  }
-}
-```
+**Summary:** Get Settings
 
-### Update Settings
-```http
-PUT /api/v1/settings
-Authorization: Bearer <token>
-Content-Type: application/json
+Get client settings
 
-{
-  "safety_buffer_days": 10,
-  "understocked_threshold": 20,
-  "overstocked_threshold": 100,
-  "dead_stock_days": 120
-}
-```
+**Responses**
+- `200` `ClientSettingsResponse` — Successful Response
 
-### Get Recommendation Rules
-```http
-GET /api/v1/settings/recommendation-rules
-Authorization: Bearer <token>
-```
+### `PUT /api/v1/settings`
 
-### Update Recommendation Rules
-```http
-PUT /api/v1/settings/recommendation-rules
-Authorization: Bearer <token>
-Content-Type: application/json
+**Summary:** Update Settings
 
-{
-  "enabled_types": ["REORDER", "URGENT"],
-  "role_rules": {
-    "PROCUREMENT": ["REORDER", "URGENT"],
-    "CEO": ["URGENT"]
-  },
-  "min_inventory_value": 100,
-  "min_risk_score": 0.5
-}
-```
+Update client settings
 
----
+**Request Body**
+- `application/json` → `ClientSettingsUpdate`
 
-## Error Responses
+**Responses**
+- `200` `ClientSettingsResponse` — Successful Response
+- `422` `HTTPValidationError` — Validation Error
 
-### Standard Error
-```json
-{
-  "detail": "Error message"
-}
-```
+### `GET /api/v1/settings/recommendation-rules`
 
-### Validation Error
-```json
-{
-  "detail": [
-    {
-      "loc": ["body", "quantity"],
-      "msg": "value must be greater than 0",
-      "type": "value_error"
-    }
-  ]
-}
-```
+**Summary:** Get Recommendation Rules
 
-### HTTP Status Codes
-- `200` - Success
-- `201` - Created
-- `400` - Bad Request
-- `401` - Unauthorized
-- `403` - Forbidden
-- `404` - Not Found
-- `422` - Unprocessable Entity
-- `500` - Internal Server Error
+Get recommendation rules
 
----
+**Responses**
+- `200` `object` — Successful Response
 
-## Data Types
+### `PUT /api/v1/settings/recommendation-rules`
 
-### Product Status
-```typescript
-"understocked" | "normal" | "overstocked"
-```
+**Summary:** Update Recommendation Rules
 
-### PO Status
-```typescript
-"pending" | "confirmed" | "shipped" | "received" | "cancelled"
-```
+Update recommendation rules
 
-### Recommendation Type
-```typescript
-"REORDER" | "URGENT" | "REDUCE_ORDER" | "DEAD_STOCK" | "PROMOTE"
-```
+**Request Body**
+- `application/json` → `RecommendationRulesUpdate`
 
-### Role
-```typescript
-"CEO" | "PROCUREMENT" | "MARKETING"
-```
+**Responses**
+- `200` `object` — Successful Response
+- `422` `HTTPValidationError` — Validation Error
+
+## Suppliers
+
+### `GET /api/v1/suppliers`
+
+**Summary:** Get Suppliers
+
+Get paginated list of suppliers
+
+**Responses**
+- `200` `SupplierListResponse` — Successful Response
+- `422` `HTTPValidationError` — Validation Error
+
+### `POST /api/v1/suppliers`
+
+**Summary:** Create Supplier
+
+Create a new supplier
+
+**Request Body**
+- `application/json` → `SupplierCreate`
+
+**Responses**
+- `200` `SupplierResponse` — Successful Response
+- `422` `HTTPValidationError` — Validation Error
+
+### `GET /api/v1/suppliers/{supplier_id}`
+
+**Summary:** Get Supplier
+
+Get supplier detail
+
+**Responses**
+- `200` `SupplierResponse` — Successful Response
+- `422` `HTTPValidationError` — Validation Error
+
+### `PUT /api/v1/suppliers/{supplier_id}`
+
+**Summary:** Update Supplier
+
+Update supplier information.
+
+If apply_to_existing is True:
+- Updates product-supplier conditions where MOQ/lead_time_days match the old supplier defaults
+- Only affects conditions that were using the supplier defaults (not explicit overrides)
+
+**Request Body**
+- `application/json` → `SupplierUpdate`
+
+**Responses**
+- `200` `SupplierResponse` — Successful Response
+- `422` `HTTPValidationError` — Validation Error
 
 ---
 
-**For integration examples, see [FRONTEND_INTEGRATION.md](./FRONTEND_INTEGRATION.md)**
+## Endpoints (Legacy / Deprecated)
 
+## Auth
+
+### `POST /auth/login`
+
+**Deprecated:** yes
+
+**Summary:** Login
+
+Login endpoint - returns JWT access token
+Rate limited to prevent brute force attacks
+
+**Request Body**
+- `application/x-www-form-urlencoded` → `Body_login_auth_login_post`
+
+**Responses**
+- `200` `Token` — Successful Response
+- `422` `HTTPValidationError` — Validation Error
+
+### `GET /auth/me`
+
+**Deprecated:** yes
+
+**Summary:** Get Current User Info
+
+Get current authenticated user information
+
+**Responses**
+- `200` `UserResponse` — Successful Response
+
+### `GET /auth/me/preferences`
+
+**Deprecated:** yes
+
+**Summary:** Get User Preferences
+
+Get current user's preferences
+
+**Responses**
+- `200` `UserPreferencesResponse` — Successful Response
+
+### `PUT /auth/me/preferences`
+
+**Deprecated:** yes
+
+**Summary:** Update User Preferences
+
+Update current user's preferences
+
+**Request Body**
+- `application/json` → `UserPreferencesUpdate`
+
+**Responses**
+- `200` `UserPreferencesResponse` — Successful Response
+- `422` `HTTPValidationError` — Validation Error
+
+### `POST /auth/register`
+
+**Deprecated:** yes
+
+**Summary:** Register
+
+Register a new user
+Rate limited to prevent abuse
+Password validation: 8-128 characters
+
+**Request Body**
+- `application/json` → `UserCreate`
+
+**Responses**
+- `201` `UserResponse` — Successful Response
+- `422` `HTTPValidationError` — Validation Error
+
+### `GET /auth/users`
+
+**Deprecated:** yes
+
+**Summary:** List Users
+
+List all users (admin only)
+
+**Responses**
+- `200` `array` — Successful Response
+
+### `POST /auth/users`
+
+**Deprecated:** yes
+
+**Summary:** Create User Endpoint
+
+Create a new user (admin only)
+
+**Request Body**
+- `application/json` → `UserCreate`
+
+**Responses**
+- `201` `UserResponse` — Successful Response
+- `422` `HTTPValidationError` — Validation Error
+
+### `PATCH /auth/users/{user_id}`
+
+**Deprecated:** yes
+
+**Summary:** Update User Endpoint
+
+Update user (admin only)
+
+**Request Body**
+- `application/json` → `UserUpdate`
+
+**Responses**
+- `200` `UserResponse` — Successful Response
+- `422` `HTTPValidationError` — Validation Error
+
+### `DELETE /auth/users/{user_id}`
+
+**Deprecated:** yes
+
+**Summary:** Delete User Endpoint
+
+Delete user (admin only)
+
+**Responses**
+- `204` — Successful Response
+- `422` `HTTPValidationError` — Validation Error

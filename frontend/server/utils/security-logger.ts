@@ -1,4 +1,5 @@
 import * as Sentry from "@sentry/nuxt";
+import type { H3Event } from "h3";
 import { logger } from "./logger";
 
 /**
@@ -17,7 +18,7 @@ interface SecurityEvent {
   email?: string;
   ip?: string;
   userAgent?: string;
-  details?: Record<string, any>;
+  details?: Record<string, unknown>;
   timestamp: Date;
 }
 
@@ -111,7 +112,7 @@ export function logSecurityEvent(event: Omit<SecurityEvent, "timestamp">): void 
 /**
  * Extract client IP from request
  */
-export function getClientIP(event: any): string {
+export function getClientIP(event: H3Event): string {
   // Check various headers for real client IP (when behind proxy)
   const headers = event.node.req.headers;
   return (
@@ -125,6 +126,6 @@ export function getClientIP(event: any): string {
 /**
  * Extract user agent from request
  */
-export function getUserAgent(event: any): string {
+export function getUserAgent(event: H3Event): string {
   return event.node.req.headers["user-agent"] || "unknown";
 }

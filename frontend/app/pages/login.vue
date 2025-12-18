@@ -25,8 +25,9 @@
 </template>
 
 <script setup lang="ts">
-import * as z from "zod";
-import type { FormSubmitEvent, AuthFormField } from "@nuxt/ui";
+	import * as z from "zod";
+	import type { FormSubmitEvent, AuthFormField } from "@nuxt/ui";
+	import { getErrorText } from "~/utils/error";
 
 definePageMeta({
   layout: false,
@@ -96,18 +97,13 @@ async function handleLogin(payload: FormSubmitEvent<Schema>) {
     // Refresh the session on client-side and redirect to returnTo or dashboard
     await refreshSession();
     await navigateTo(returnTo.value);
-  } catch (err: any) {
-    // Extract error message from various possible error structures
-    const errorMessage =
-      err.data?.detail || // FastAPI error detail
-      err.data?.statusMessage || // Nuxt error statusMessage
-      err.data?.message || // Generic error message
-      err.message || // Error object message
-      "Login failed. Please check your credentials and try again.";
-
-    error.value = errorMessage;
-  } finally {
-    isSubmitting.value = false;
-  }
-}
+	  } catch (err: unknown) {
+	    error.value = getErrorText(
+	      err,
+	      "Login failed. Please check your credentials and try again."
+	    );
+	  } finally {
+	    isSubmitting.value = false;
+	  }
+	}
 </script>

@@ -1,4 +1,4 @@
-import { authenticatedFetch } from "../../../utils/api";
+import { authenticatedFetch, getErrorMessage, getErrorStatusCode } from "../../../utils/api";
 
 /**
  * Remove a cart item
@@ -21,13 +21,13 @@ export default defineEventHandler(async (event) => {
   try {
     const endpoint = `/api/v1/order-planning/cart/${encodeURIComponent(itemId)}?supplier_id=${encodeURIComponent(supplierId)}`;
     return await authenticatedFetch(event, endpoint, { method: "DELETE" });
-  } catch (error: any) {
-    if (error.statusCode === 401) {
+  } catch (error: unknown) {
+    if (getErrorStatusCode(error) === 401) {
       throw createError({ statusCode: 401, statusMessage: "Not authenticated" });
     }
     throw createError({
-      statusCode: error.statusCode || 500,
-      statusMessage: error.message || "Failed to remove cart item",
+      statusCode: getErrorStatusCode(error) || 500,
+      statusMessage: getErrorMessage(error) || "Failed to remove cart item",
     });
   }
 });

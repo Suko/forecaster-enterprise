@@ -8,7 +8,7 @@ import * as Sentry from "@sentry/nuxt";
 export type LogLevel = "debug" | "info" | "warning" | "error";
 
 interface LogContext {
-  [key: string]: any;
+  [key: string]: unknown;
 }
 
 // Machine ID cache - set by license-status endpoint

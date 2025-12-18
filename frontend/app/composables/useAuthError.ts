@@ -6,13 +6,30 @@ export const useAuthError = () => {
   const { clear } = useUserSession();
   const route = useRoute();
 
+  const getStatusCode = (error: unknown): number | undefined => {
+    if (typeof error !== "object" || error === null) return;
+    if ("statusCode" in error && typeof (error as { statusCode?: unknown }).statusCode === "number") {
+      return (error as { statusCode: number }).statusCode;
+    }
+    if ("status" in error && typeof (error as { status?: unknown }).status === "number") {
+      return (error as { status: number }).status;
+    }
+    if ("response" in error) {
+      const response = (error as { response?: unknown }).response;
+      if (typeof response === "object" && response !== null) {
+        const status = (response as { status?: unknown }).status;
+        if (typeof status === "number") return status;
+      }
+    }
+  };
+
   /**
    * Handle API errors and redirect to login if 401
    * @returns true if error was a 401 and was handled, false otherwise
    */
-  const handleAuthError = async (error: any): Promise<boolean> => {
+  const handleAuthError = async (error: unknown): Promise<boolean> => {
     // Check if it's a 401 Unauthorized error
-    if (error?.statusCode === 401 || error?.status === 401 || error?.response?.status === 401) {
+    if (getStatusCode(error) === 401) {
       // Clear session
       await clear();
 

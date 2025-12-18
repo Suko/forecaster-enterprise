@@ -83,7 +83,7 @@ const retry = async () => {
     });
     // If we get here, backend is back up - reload the page
     window.location.reload();
-  } catch (error) {
+  } catch {
     // Still down (expected during outage, debug level)
   } finally {
     checking.value = false;

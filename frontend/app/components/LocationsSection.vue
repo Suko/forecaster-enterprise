@@ -226,10 +226,11 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted } from "vue";
-import { useLocations } from "~/composables/useLocations";
-import { useAuthError } from "~/composables/useAuthError";
-import type { Location, LocationCreate, LocationUpdate } from "~/types/location";
+ import { ref, computed, onMounted } from "vue";
+ import { useLocations } from "~/composables/useLocations";
+ import { useAuthError } from "~/composables/useAuthError";
+ import type { Location, LocationCreate, LocationUpdate } from "~/types/location";
+ import { getErrorText } from "~/utils/error";
 
 const toast = useToast();
 
@@ -241,11 +242,11 @@ const loading = ref(false);
 const saving = ref(false);
 const deleting = ref(false);
 const searchQuery = ref("");
-const showModal = ref(false);
-const showDeleteModal = ref(false);
-const editingLocation = ref<Location | null>(null);
-const locationToDelete = ref<Location | null>(null);
-const formRef = ref<any>(null);
+ const showModal = ref(false);
+ const showDeleteModal = ref(false);
+ const editingLocation = ref<Location | null>(null);
+ const locationToDelete = ref<Location | null>(null);
+ const formRef = ref<unknown>(null);
 
 const formState = ref<LocationCreate>({
   location_id: "",
@@ -295,9 +296,14 @@ const loadLocations = async () => {
   try {
     const result = await fetchLocations({ pageSize: 1000 });
     locations.value = result.items;
-  } catch (err: any) {
+  } catch (err: unknown) {
     const wasAuthError = await handleAuthError(err);
     if (!wasAuthError) {
+      toast.add({
+        title: "Error",
+        description: getErrorText(err, "Failed to load locations"),
+        color: "error",
+      });
     }
   } finally {
     loading.value = false;
@@ -386,12 +392,12 @@ const handleSubmit = async () => {
     }
     await loadLocations();
     cancelEditing();
-  } catch (err: any) {
+  } catch (err: unknown) {
     const wasAuthError = await handleAuthError(err);
     if (!wasAuthError) {
       toast.add({
         title: "Error",
-        description: err.data?.detail || err.message || "Failed to save location",
+        description: getErrorText(err, "Failed to save location"),
         color: "error",
       });
     }
@@ -414,12 +420,12 @@ const confirmDelete = async () => {
     await loadLocations();
     showDeleteModal.value = false;
     locationToDelete.value = null;
-  } catch (err: any) {
+  } catch (err: unknown) {
     const wasAuthError = await handleAuthError(err);
     if (!wasAuthError) {
       toast.add({
         title: "Error",
-        description: err.data?.detail || err.message || "Failed to delete location",
+        description: getErrorText(err, "Failed to delete location"),
         color: "error",
       });
     }

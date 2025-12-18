@@ -107,7 +107,7 @@ class Client(Base):
 
 | Prefix | Module | Purpose |
 |--------|--------|---------|
-| `/api/auth/*` | auth.py | Authentication |
+| `/api/v1/auth/*` | auth.py | Authentication |
 | `/api/v1/forecast/*` | forecast.py | Forecasting operations |
 | `/api/monitoring/*` | monitoring.py | Health checks |
 
@@ -210,5 +210,4 @@ uv run uvicorn main:app --reload --port 8000
 ---
 
 *Backend architecture reference*
-
 

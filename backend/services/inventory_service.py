@@ -20,6 +20,8 @@ from models.supplier import Supplier
 from models.product_supplier import ProductSupplierCondition
 from models.settings import ClientSettings
 from models.forecast import ForecastRun, ForecastResult
+from models.inventory_metrics import InventoryMetric
+from services.inventory_metrics_service import InventoryMetricsService
 from services.metrics_service import MetricsService
 from schemas.inventory import ProductFilters, ProductResponse, ProductDetailResponse, ProductMetrics, SupplierSummary, LocationStockSummary
 
@@ -37,6 +39,7 @@ class InventoryService:
     def __init__(self, db: AsyncSession):
         self.db = db
         self.metrics_service = MetricsService(db)
+        self.inventory_metrics_service = InventoryMetricsService(db)
 
     async def get_primary_supplier_id(
         self,
@@ -351,6 +354,22 @@ class InventoryService:
         # Base query
         query = select(Product).where(Product.client_id == client_id)
 
+        metric_filters_requested = bool(
+            filters
+            and (
+                filters.status
+                or filters.min_dir is not None
+                or filters.max_dir is not None
+                or filters.min_risk is not None
+                or filters.max_risk is not None
+                or filters.min_stock is not None
+                or filters.max_stock is not None
+            )
+        )
+
+        if metric_filters_requested:
+            await self._ensure_inventory_metrics_for_client(client_id)
+
         # Apply filters
         if filters:
             if filters.search:
@@ -376,12 +395,41 @@ class InventoryService:
                     ),
                 ).where(ProductSupplierCondition.supplier_id == filters.supplier_id)
 
-        # Get total count before pagination
-        # Create a subquery for counting
-        count_subquery = query.subquery()
-        count_query = select(func.count()).select_from(count_subquery)
-        total_result = await self.db.execute(count_query)
-        total = total_result.scalar() or 0
+        metrics_latest = None
+        if metric_filters_requested:
+            metrics_ranked = select(
+                InventoryMetric.item_id.label("m_item_id"),
+                InventoryMetric.dir,
+                InventoryMetric.stockout_risk,
+                InventoryMetric.current_stock,
+                InventoryMetric.inventory_value,
+                InventoryMetric.status,
+                InventoryMetric.forecasted_demand_30d,
+                InventoryMetric.computed_at,
+                func.row_number().over(
+                    partition_by=InventoryMetric.item_id,
+                    order_by=InventoryMetric.computed_at.desc()
+                ).label("rn"),
+            ).where(InventoryMetric.client_id == client_id)
+
+            metrics_ranked_subq = metrics_ranked.subquery()
+            metrics_latest = select(metrics_ranked_subq).where(metrics_ranked_subq.c.rn == 1).subquery()
+            query = query.join(metrics_latest, metrics_latest.c.m_item_id == Product.item_id)
+
+            if filters and filters.status:
+                query = query.where(metrics_latest.c.status == filters.status)
+            if filters and filters.min_dir is not None:
+                query = query.where(metrics_latest.c.dir >= filters.min_dir)
+            if filters and filters.max_dir is not None:
+                query = query.where(metrics_latest.c.dir <= filters.max_dir)
+            if filters and filters.min_risk is not None:
+                query = query.where(metrics_latest.c.stockout_risk >= filters.min_risk)
+            if filters and filters.max_risk is not None:
+                query = query.where(metrics_latest.c.stockout_risk <= filters.max_risk)
+            if filters and filters.min_stock is not None:
+                query = query.where(metrics_latest.c.current_stock >= filters.min_stock)
+            if filters and filters.max_stock is not None:
+                query = query.where(metrics_latest.c.current_stock <= filters.max_stock)
 
         # Apply sorting
         if sort:
@@ -395,6 +443,11 @@ class InventoryService:
             # Default sort by item_id
             query = query.order_by(Product.item_id)
 
+        # Count for pagination
+        count_subquery = query.subquery()
+        total_result = await self.db.execute(select(func.count()).select_from(count_subquery))
+        total = total_result.scalar() or 0
+
         # Apply pagination
         offset = (page - 1) * page_size
         query = query.offset(offset).limit(page_size)
@@ -402,9 +455,6 @@ class InventoryService:
         # Execute query
         result = await self.db.execute(query)
         products = result.scalars().all()
-
-        # Calculate total pages
-        total_pages = (total + page_size - 1) // page_size if total > 0 else 0
 
         # Batch check for stale forecasts and trigger refresh if needed
         item_ids_list = [p.item_id for p in products]
@@ -543,8 +593,12 @@ class InventoryService:
             "total": total,
             "page": page,
             "page_size": page_size,
-            "total_pages": total_pages
+            "total_pages": (total + page_size - 1) // page_size if total > 0 else 0
         }
+
+    async def _ensure_inventory_metrics_for_client(self, client_id: UUID) -> None:
+        """Populate missing inventory_metrics rows for a client before filtering."""
+        await self.inventory_metrics_service.ensure_client_metrics(client_id)
 
     async def get_product(self, client_id: UUID, item_id: str) -> Optional[ProductDetailResponse]:
         """Get product details by item_id"""

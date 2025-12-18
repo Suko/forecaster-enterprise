@@ -54,11 +54,11 @@ This security audit report documents the security posture of the Forecaster Ente
 
 1. USER LOGIN REQUEST
    ┌─────────────┐
-   │   Browser   │ POST /api/auth/login {email, password}
+   │   Browser   │ POST /api/login {email, password}
    └──────┬──────┘
           │
           ▼
-2. NUXT SERVER ROUTE (server/api/auth/login.post.ts)
+2. NUXT SERVER ROUTE (server/api/login.post.ts)
    ┌─────────────────────────────────────────────┐
    │ • Receives credentials from browser         │
    │ • Validates input                          │
@@ -67,7 +67,7 @@ This security audit report documents the security posture of the Forecaster Ente
    └──────┬──────────────────────────────────────┘
           │
           ▼
-3. FASTAPI BACKEND (/auth/login)
+3. FASTAPI BACKEND (/api/v1/auth/login)
    ┌─────────────────────────────────────────────┐
    │ • Rate limiting check (5/min, 20/hour)     │
    │ • Password verification (bcrypt)          │
@@ -82,7 +82,7 @@ This security audit report documents the security posture of the Forecaster Ente
 4. TOKEN RETURN (Nuxt Server)
    ┌─────────────────────────────────────────────┐
    │ • Receives JWT from FastAPI                │
-   │ • Calls /auth/me with token                │
+   │ • Calls /api/v1/auth/me with token         │
    │ • Stores session server-side               │
    │ • Returns success to browser               │
    │ • Token NEVER sent to browser              │
@@ -173,7 +173,7 @@ This security audit report documents the security posture of the Forecaster Ente
 
 #### Rate Limiting
 - ✅ **Implementation**: In-memory rate limiting
-- ✅ **Endpoints Protected**: `/auth/login`, `/auth/register`
+- ✅ **Endpoints Protected**: `/api/v1/auth/login`, `/api/v1/auth/register`
 - ✅ **Limits**:
   - 5 requests per minute per IP
   - 20 requests per hour per IP
@@ -561,4 +561,3 @@ The application is ready for production deployment with proper environment confi
 - **Version**: 1.0
 - **Last Updated**: December 2025
 - **Next Review**: Quarterly
-

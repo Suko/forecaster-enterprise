@@ -1,7 +1,8 @@
 <script setup lang="ts">
-import type { Supplier } from "~/types/supplier";
-import type { Product, ProductListResponse } from "~/types/product";
-import type { ProductSupplierCondition } from "~/types/inventory";
+ import type { Supplier } from "~/types/supplier";
+ import type { Product, ProductListResponse } from "~/types/product";
+ import type { ProductSupplierCondition } from "~/types/inventory";
+ import { getErrorText } from "~/utils/error";
 
 definePageMeta({
   layout: "dashboard",
@@ -57,10 +58,10 @@ const loadSupplier = async () => {
   error.value = null;
   try {
     supplier.value = await fetchSupplier(supplierId.value);
-  } catch (err: any) {
+  } catch (err: unknown) {
     const wasAuthError = await handleAuthError(err);
     if (wasAuthError) return;
-    error.value = err.message || "Failed to load supplier";
+    error.value = getErrorText(err, "Failed to load supplier");
   } finally {
     loading.value = false;
   }
@@ -86,10 +87,10 @@ const loadProducts = async (page: number = productsPage.value) => {
 
     // Load product-supplier conditions for each product
     await loadProductConditions();
-  } catch (err: any) {
+  } catch (err: unknown) {
     const wasAuthError = await handleAuthError(err);
     if (wasAuthError) return;
-    productsError.value = err.message || "Failed to load products";
+    productsError.value = getErrorText(err, "Failed to load products");
   } finally {
     productsLoading.value = false;
   }
@@ -227,20 +228,13 @@ const saveProductCondition = async (product: Product) => {
 
     editingProductId.value = null;
     editingProductForm.value = null;
-  } catch (err: any) {
+  } catch (err: unknown) {
     const wasAuthError = await handleAuthError(err);
     if (wasAuthError) return;
 
-    const errorMessage =
-      err.data?.detail ||
-      err.data?.statusMessage ||
-      err.data?.message ||
-      err.message ||
-      "Failed to save product condition";
-
     toast.add({
       title: "Save failed",
-      description: errorMessage,
+      description: getErrorText(err, "Failed to save product condition"),
       color: "error",
     });
   } finally {
@@ -280,20 +274,13 @@ const resetToDefault = async (product: Product) => {
       description: `${product.product_name} now uses supplier defaults`,
       color: "success",
     });
-  } catch (err: any) {
+  } catch (err: unknown) {
     const wasAuthError = await handleAuthError(err);
     if (wasAuthError) return;
 
-    const errorMessage =
-      err.data?.detail ||
-      err.data?.statusMessage ||
-      err.data?.message ||
-      err.message ||
-      "Failed to reset to default";
-
     toast.add({
       title: "Reset failed",
-      description: errorMessage,
+      description: getErrorText(err, "Failed to reset to default"),
       color: "error",
     });
   } finally {
@@ -396,10 +383,10 @@ const performSave = async (applyToExistingProducts: boolean) => {
 
     // Reload product conditions in case they were affected
     await loadProductConditions();
-  } catch (err: any) {
+  } catch (err: unknown) {
     const wasAuthError = await handleAuthError(err);
     if (wasAuthError) return;
-    error.value = err.message || "Failed to update supplier";
+    error.value = getErrorText(err, "Failed to update supplier");
   } finally {
     saving.value = false;
   }

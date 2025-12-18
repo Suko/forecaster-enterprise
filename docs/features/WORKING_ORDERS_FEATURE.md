@@ -1,6 +1,6 @@
 # Working Orders Feature - Complete Plan
 
-**Last Updated:** 2025-01-27  
+**Last Updated:** 2025-12-17  
 **Status:** Planning Phase  
 **Scope:** Manufacturing/Production Order Management System
 
@@ -631,13 +631,12 @@ CREATE TABLE raw_materials (
 
 ## Related Documentation
 
-- [Data Model](DATA_MODEL.md) - Overall database schema
-- [Next Steps](NEXT_STEPS.md) - Development priorities
-- [Backend Roadmap](backend/BACKEND_ROADMAP.md) - Backend implementation plan
+- [Data Model](../DATA_MODEL.md) - Overall database schema
+- [Next Steps](../NEXT_STEPS.md) - Development priorities
+- [Backend Roadmap (Archived)](../archive/backend/BACKEND_ROADMAP.md) - Historical implementation snapshot
 
 ---
 
 **Document Owner:** Development Team  
-**Last Updated:** 2025-01-27  
+**Last Updated:** 2025-12-17  
 **Status:** Planning Phase - Ready for implementation
-

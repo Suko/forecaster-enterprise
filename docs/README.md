@@ -129,9 +129,9 @@
 | View | Key Documents |
 |------|---------------|
 | **👨‍💻 Developer** | [Quick Start](setup/QUICK_START.md) → [Next Steps](NEXT_STEPS.md) → [API Reference](backend/API_REFERENCE.md) → [Architecture](backend/ARCHITECTURE.md) |
-| **📊 Product Manager** | [Next Steps](NEXT_STEPS.md) → [User Stories](USER_STORIES.md) → [Workflows](WORKFLOWS.md) → [Roadmaps](backend/BACKEND_ROADMAP.md) |
+| **📊 Product Manager** | [Next Steps](NEXT_STEPS.md) → [User Stories](USER_STORIES.md) → [Workflows](WORKFLOWS.md) → [Roadmaps (Archive)](archive/backend/BACKEND_ROADMAP.md) |
 | **🔧 DevOps** | [Quick Start](setup/QUICK_START.md) → [Development Setup](setup/DEVELOPMENT_SETUP.md) → [ENV Management](setup/ENV_MANAGEMENT.md) → [Security Audit](reference/SECURITY_AUDIT_REPORT.md) |
-| **📚 Reference** | [API Reference](backend/API_REFERENCE.md) → [Data Model](DATA_MODEL.md) → [System Contracts](system/CONTRACTS.md) → [Standards](standards/STANDARDS.md) |
+| **📚 Reference** | [API Reference](backend/API_REFERENCE.md) → [Data Model](DATA_MODEL.md) → [System Contracts](system/CONTRACTS.md) → [Compatibility Audit](system/BACKEND_FRONTEND_COMPATIBILITY.md) → [Standards](standards/STANDARDS.md) |
 | **🎯 Current Work** | [Next Steps](NEXT_STEPS.md) - 4-week development plan |
 
 **Detailed View (Expandable Sections):**
@@ -145,13 +145,14 @@
 - [Next Steps](NEXT_STEPS.md) - Current development priorities
 
 **Backend:**
-- [Backend Roadmap](backend/BACKEND_ROADMAP.md) - Implementation status
+- [Backend Roadmap (Archive)](archive/backend/BACKEND_ROADMAP.md) - Historical implementation snapshot
 - [API Reference](backend/API_REFERENCE.md) - All endpoints
 - [Architecture](backend/ARCHITECTURE.md) - System design
 - [System Contracts](system/CONTRACTS.md) - Naming conventions, patterns
+- [Compatibility Audit](system/BACKEND_FRONTEND_COMPATIBILITY.md) - Current mismatches + decisions
 
 **Frontend:**
-- [Frontend Roadmap](frontend/FRONTEND_ROADMAP.md) - UI development status
+- [Frontend Roadmap (Archive)](archive/frontend/FRONTEND_ROADMAP.md) - Historical MVP plan snapshot
 - [Auth Best Practices](frontend/AUTH_BEST_PRACTICES.md) - Authentication patterns
 
 **Data & Models:**
@@ -165,8 +166,8 @@
 
 **Planning & Status:**
 - [Next Steps](NEXT_STEPS.md) - Current development priorities (4-week plan)
-- [Backend Roadmap](backend/BACKEND_ROADMAP.md) - Backend implementation status
-- [Frontend Roadmap](frontend/FRONTEND_ROADMAP.md) - Frontend development status
+- [Backend Roadmap (Archive)](archive/backend/BACKEND_ROADMAP.md) - Historical implementation snapshot
+- [Frontend Roadmap (Archive)](archive/frontend/FRONTEND_ROADMAP.md) - Historical MVP plan snapshot
 
 **Requirements:**
 - [User Stories](USER_STORIES.md) - Feature requirements by stakeholder
@@ -222,15 +223,15 @@
 
 **Active Priorities:**
 - [Next Steps](NEXT_STEPS.md) - **Current 4-week development plan**
-  - Week 1: Empty State Handling
-  - Week 2: Frontend Polish
-  - Week 3: Data Validation
+  - Week 1: Forecasting Hardening + Contract Alignment
+  - Week 2: Empty State Handling
+  - Week 3: Frontend Polish (optional)
   - Week 4: ETL Scheduling
 
 **Status:**
 - Backend MVP: ✅ Complete (Phases 1-4)
 - Frontend MVP: ✅ ~87% Complete
-- Next: Empty State Handling + Frontend Polish
+- Next: Forecasting hardening + contract alignment
 
 </details>
 
@@ -256,7 +257,9 @@ docs/
 ├── README.md                     # This file
 ├── NEXT_STEPS.md                 # Current development priorities
 ├── DATA_MODEL.md                 # Database schema
+├── STOCK_AGGREGATION.md          # How stock is aggregated
 ├── DATA_REQUIREMENTS.md          # User-facing data requirements
+├── DEMO_WOW_FEATURES.md          # High-impact demo features
 ├── USER_STORIES.md               # Feature requirements
 ├── WORKFLOWS.md                  # System workflows
 │
@@ -276,30 +279,33 @@ docs/
 ├── reference/                    # Reference docs
 │   ├── M5_DATA_MAPPING.md        # M5 dataset mapping
 │   └── SECURITY_AUDIT_REPORT.md  # Security audit findings
-├── USER_STORIES.md               # Feature requirements
-├── WORKFLOWS.md                  # System workflows
 │
 ├── backend/
 │   ├── README.md                 # Backend quick reference
 │   ├── ARCHITECTURE.md           # Backend architecture
+│   ├── STRUCTURE_ANALYSIS.md     # Codebase map
 │   ├── API_REFERENCE.md          # API endpoints
-│   ├── BACKEND_ROADMAP.md        # Backend development roadmap
+│   ├── BACKEND_ROADMAP.md        # (stub) archived snapshot
 │   ├── FORECASTING_ROADMAP.md    # Forecasting module roadmap
 │   ├── SUPPLIER_MANAGEMENT_GUIDE.md  # Supplier & MOQ management
-│   ├── TEST_PLAN.md              # Testing strategy
+│   ├── TEST_PLAN.md              # (stub) archived checklist
 │   └── forecasting/
 │       ├── README.md             # Forecasting module status
 │       └── METHODS.md            # Method implementations
 │
 ├── frontend/
 │   ├── AUTH_BEST_PRACTICES.md    # Auth implementation guide
-│   └── FRONTEND_ROADMAP.md       # Frontend development roadmap
+│   └── FRONTEND_ROADMAP.md       # (stub) archived snapshot
 │
 ├── standards/
 │   └── STANDARDS.md              # Project standards
 │
-└── system/
-    └── CONTRACTS.md              # System contracts
+├── system/
+│   ├── BACKEND_FRONTEND_COMPATIBILITY.md # Compatibility audit
+│   └── CONTRACTS.md              # System contracts
+│
+└── archive/
+    └── README.md                 # Archive policy + index
 ```
 
 ---
@@ -338,7 +344,7 @@ See [DEVELOPMENT_SETUP.md](setup/DEVELOPMENT_SETUP.md) for:
 ### Backend
 - [Architecture](backend/ARCHITECTURE.md) - System design
 - [API Reference](backend/API_REFERENCE.md) - Endpoints
-- [Backend Roadmap](backend/BACKEND_ROADMAP.md) - Implementation status
+- [Backend Roadmap (Archive)](archive/backend/BACKEND_ROADMAP.md) - Historical implementation snapshot
 
 ### Forecasting
 - [Module README](backend/forecasting/README.md) - Status and progress
@@ -354,7 +360,7 @@ See [DEVELOPMENT_SETUP.md](setup/DEVELOPMENT_SETUP.md) for:
 - [System Contracts](system/CONTRACTS.md) - Naming conventions (`item_id`, not `sku`)
 
 ### Frontend
-- [Frontend Roadmap](frontend/FRONTEND_ROADMAP.md) - UI development status
+- [Frontend Roadmap (Archive)](archive/frontend/FRONTEND_ROADMAP.md) - Historical MVP plan snapshot
 - [Auth Best Practices](frontend/AUTH_BEST_PRACTICES.md) - Authentication patterns
 
 ---
@@ -372,7 +378,7 @@ uv run uvicorn main:app --reload --port 8000
 
 ```bash
 cd frontend
-npm run dev
+bun run dev
 ```
 
 ### Running Tests
@@ -380,8 +386,15 @@ npm run dev
 ```bash
 cd backend
 uv run pytest tests/ -v
+uv run ruff check .
+```
+
+```bash
+cd frontend
+bun run lint
+bun run format:check
 ```
 
 ---
 
-*Last updated: 2025-01-27*
+*Last updated: 2025-12-17*

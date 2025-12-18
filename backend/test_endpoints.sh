@@ -29,8 +29,8 @@ fi
 echo ""
 
 # Test 3: Register user
-echo "3️⃣  Testing /auth/register endpoint..."
-REGISTER_RESPONSE=$(curl -s -X POST "$BASE_URL/auth/register" \
+echo "3️⃣  Testing /api/v1/auth/register endpoint..."
+REGISTER_RESPONSE=$(curl -s -X POST "$BASE_URL/api/v1/auth/register" \
   -H "Content-Type: application/json" \
   -d '{
     "email": "test@example.com",
@@ -46,8 +46,8 @@ fi
 echo ""
 
 # Test 4: Login
-echo "4️⃣  Testing /auth/login endpoint..."
-LOGIN_RESPONSE=$(curl -s -X POST "$BASE_URL/auth/login" \
+echo "4️⃣  Testing /api/v1/auth/login endpoint..."
+LOGIN_RESPONSE=$(curl -s -X POST "$BASE_URL/api/v1/auth/login" \
   -H "Content-Type: application/x-www-form-urlencoded" \
   -d "username=test@example.com&password=testpassword123")
 
@@ -58,8 +58,8 @@ if [[ $LOGIN_RESPONSE == *"access_token"* ]]; then
     echo ""
     
     # Test 5: Protected endpoint
-    echo "5️⃣  Testing /auth/me (protected endpoint)..."
-    ME_RESPONSE=$(curl -s "$BASE_URL/auth/me" \
+    echo "5️⃣  Testing /api/v1/auth/me (protected endpoint)..."
+    ME_RESPONSE=$(curl -s "$BASE_URL/api/v1/auth/me" \
       -H "Authorization: Bearer $TOKEN")
     
     if [[ $ME_RESPONSE == *"email"* ]]; then
@@ -81,4 +81,3 @@ echo "1. Create database: createdb forecaster_enterprise"
 echo "2. Run migrations: alembic upgrade head"
 echo "3. Start server: uvicorn main:app --reload"
 echo "4. Run this test script again"
-

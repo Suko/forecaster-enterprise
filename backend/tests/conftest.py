@@ -81,6 +81,32 @@ async def db_session():
 
 
 @pytest.fixture
+async def test_session(db_session):
+    """Alias for db_session to satisfy legacy fixtures."""
+    yield db_session
+
+@pytest.fixture
+async def db(db_session):
+    """Alias for db_session when tests expect `db`."""
+    yield db_session
+
+@pytest.fixture
+def mock_request():
+    """Factory for a minimal FastAPI Request-like object."""
+    from fastapi import Request
+    from unittest.mock import Mock
+
+    request = Mock(spec=Request)
+    request.headers = {}
+    client = Mock()
+    client.host = "127.0.0.1"
+    request.client = client
+    request.url = Mock()
+    request.url.path = "/test"
+    return request
+
+
+@pytest.fixture
 def test_data_loader():
     """Load test data from CSV"""
     return TestDataLoader()
@@ -160,6 +186,26 @@ async def test_user(db_session, test_client_obj):
     await db_session.commit()
     await db_session.refresh(user)
     return user
+
+@pytest.fixture
+async def test_admin_user(db_session, test_client_obj):
+    """Create an admin user fixture for admin-only endpoints"""
+    from models.user import User
+    import uuid
+
+    admin_user = User(
+        id=str(uuid.uuid4()),
+        email="admin@example.com",
+        name="Admin User",
+        hashed_password="admin_password_hash",
+        client_id=test_client_obj.client_id,
+        is_active=True,
+        role="admin",
+    )
+    db_session.add(admin_user)
+    await db_session.commit()
+    await db_session.refresh(admin_user)
+    return admin_user
 
 
 @pytest.fixture

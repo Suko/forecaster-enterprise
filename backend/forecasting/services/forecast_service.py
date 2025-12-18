@@ -86,267 +86,296 @@ class ForecastService:
         with track_forecast_generation(
             method=primary_model,
             item_count=len(item_ids),
-            client_id=client_id
+            client_id=client_id,
         ):
             # Create forecast run record
             forecast_run = ForecastRun(
-            client_id=client_id,
-            user_id=user_id,
-            primary_model=primary_model,
-            prediction_length=prediction_length,
-            item_ids=item_ids,
-            status=ForecastStatus.PENDING.value,
-        )
-        self.db.add(forecast_run)
-        await self.db.flush()  # Get forecast_run_id
-
-        results_by_method: Dict[str, Dict[str, pd.DataFrame]] = {}
-
-        # Classify SKUs FIRST (ABC-XYZ analysis) - needed for method routing
-        sku_classifications: Dict[str, SKUClassification] = {}
-        try:
-            # Fetch historical data for classification (get revenue data)
-            context_df_for_classification = await self.data_access.fetch_historical_data(
                 client_id=client_id,
+                user_id=user_id,
+                primary_model=primary_model,
+                prediction_length=prediction_length,
                 item_ids=item_ids,
-                end_date=None,  # Use all available data for classification
+                status=ForecastStatus.PENDING.value,
             )
+            self.db.add(forecast_run)
+            await self.db.flush()  # Get forecast_run_id
 
-            if not context_df_for_classification.empty:
-                # Calculate revenue for each SKU (using units_sold as proxy)
-                revenue_dict = {}
-                for item_id in item_ids:
-                    item_data = context_df_for_classification[context_df_for_classification["id"] == item_id]
-                    if not item_data.empty:
-                        # Get target column
-                        target_col = None
-                        for col in ["units_sold", "target", "sales_qty"]:
-                            if col in item_data.columns:
-                                target_col = col
-                                break
-                        if target_col:
-                            revenue_dict[item_id] = float(item_data[target_col].sum())
+            results_by_method: Dict[str, Dict[str, pd.DataFrame]] = {}
 
-                total_revenue = sum(revenue_dict.values()) if revenue_dict else 0
-
-                # Classify each SKU
-                for item_id in item_ids:
-                    item_data = context_df_for_classification[context_df_for_classification["id"] == item_id]
-                    if not item_data.empty and item_id in revenue_dict:
-                        try:
-                            classification = self.sku_classifier.classify_sku(
-                                item_id=item_id,
-                                history_df=item_data,
-                                revenue=revenue_dict[item_id],
-                                total_revenue=total_revenue,
-                            )
-                            sku_classifications[item_id] = classification
-
-                            # Store classification in database
-                            await self._store_classification(client_id, classification)
-
-                            # Optionally use recommended method from classification
-                            # (For now, we still use primary_model, but log the recommendation)
-                            if classification.recommended_method != primary_model:
-                                logger.info(
-                                    f"SKU {item_id} ({classification.abc_class}-{classification.xyz_class}) "
-                                    f"recommends {classification.recommended_method}, "
-                                    f"but using {primary_model} as specified"
-                                )
-                        except Exception as e:
-                            logger.warning(f"Failed to classify SKU {item_id}: {e}")
-
-        except Exception as e:
-            logger.warning(f"SKU classification failed (continuing with forecast): {e}")
-
-        # Determine which methods to run based on classifications
-        # Map classification recommendations to actual implemented methods
-        method_mapping = {
-            "chronos2": "chronos-2",
-            "chronos-2": "chronos-2",
-            "ma7": "statistical_ma7",
-            "statistical_ma7": "statistical_ma7",
-            "sba": "sba",  # ✅ SBA implemented
-            "croston": "croston",  # ✅ Croston implemented
-            "min_max": "min_max",  # ✅ Min/Max implemented
-        }
-
-        # Collect recommended methods from classifications
-        recommended_methods = []
-        for item_id in item_ids:
-            if item_id in sku_classifications:
-                classification = sku_classifications[item_id]
-                rec_method = classification.recommended_method
-                # Map to actual implemented method
-                actual_method = method_mapping.get(rec_method, primary_model)
-                recommended_methods.append(actual_method)
-                logger.info(
-                    f"SKU {item_id} ({classification.abc_class}-{classification.xyz_class}) "
-                    f"recommends {rec_method} → using {actual_method}"
+            # Classify SKUs FIRST (ABC-XYZ analysis) - needed for method routing
+            sku_classifications: Dict[str, SKUClassification] = {}
+            try:
+                # Fetch historical data for classification (get revenue data)
+                context_df_for_classification = await self.data_access.fetch_historical_data(
+                    client_id=client_id,
+                    item_ids=item_ids,
+                    end_date=None,  # Use all available data for classification
                 )
 
-        # Determine methods to run
-        if recommended_methods:
-            # Use the most common recommended method, or primary_model if no consensus
-            from collections import Counter
-            method_counts = Counter(recommended_methods)
-            recommended_method = method_counts.most_common(1)[0][0]
-            methods_to_run = [recommended_method]
+                if not context_df_for_classification.empty:
+                    # Calculate revenue for each SKU (using units_sold as proxy)
+                    revenue_dict = {}
+                    for item_id in item_ids:
+                        item_data = context_df_for_classification[context_df_for_classification["id"] == item_id]
+                        if not item_data.empty:
+                            # Get target column
+                            target_col = None
+                            for col in ["units_sold", "target", "sales_qty"]:
+                                if col in item_data.columns:
+                                    target_col = col
+                                    break
+                            if target_col:
+                                revenue_dict[item_id] = float(item_data[target_col].sum())
 
-            # Always include baseline for comparison
-            if include_baseline and "statistical_ma7" not in methods_to_run:
-                methods_to_run.append("statistical_ma7")
+                    total_revenue = sum(revenue_dict.values()) if revenue_dict else 0
 
-            logger.info(f"Using recommended method routing: {methods_to_run} (from classifications)")
-        else:
-            # No classifications available, use primary_model
-            recommended_method = primary_model
-            methods_to_run = [primary_model]
-            if include_baseline:
-                methods_to_run.append("statistical_ma7")
-            logger.info(f"No classifications available, using primary_model: {primary_model}")
+                    # Classify each SKU
+                    for item_id in item_ids:
+                        item_data = context_df_for_classification[context_df_for_classification["id"] == item_id]
+                        if not item_data.empty and item_id in revenue_dict:
+                            try:
+                                classification = self.sku_classifier.classify_sku(
+                                    item_id=item_id,
+                                    history_df=item_data,
+                                    revenue=revenue_dict[item_id],
+                                    total_revenue=total_revenue,
+                                )
+                                sku_classifications[item_id] = classification
 
-        try:
-            # Run each method
-            for method_id in methods_to_run:
-                try:
-                    model = await self._get_model(method_id)
+                                # Store classification in database
+                                await self._store_classification(client_id, classification)
 
-                    # Fetch historical data (limit to training_end_date if provided)
-                    context_df = await self.data_access.fetch_historical_data(
-                        client_id=client_id,
-                        item_ids=item_ids,
-                        end_date=training_end_date,
+                                # Optionally use recommended method from classification
+                                # (For now, we still use primary_model, but log the recommendation)
+                                if classification.recommended_method != primary_model:
+                                    logger.info(
+                                        f"SKU {item_id} ({classification.abc_class}-{classification.xyz_class}) "
+                                        f"recommends {classification.recommended_method}, "
+                                        f"but using {primary_model} as specified"
+                                    )
+                            except Exception as e:
+                                logger.warning(f"Failed to classify SKU {item_id}: {e}")
+
+            except Exception as e:
+                logger.warning(f"SKU classification failed (continuing with forecast): {e}")
+
+            # Determine which methods to run based on classifications
+            # Map classification recommendations to actual implemented methods
+            method_mapping = {
+                "chronos2": "chronos-2",
+                "chronos-2": "chronos-2",
+                "ma7": "statistical_ma7",
+                "statistical_ma7": "statistical_ma7",
+                "sba": "sba",  # ✅ SBA implemented
+                "croston": "croston",  # ✅ Croston implemented
+                "min_max": "min_max",  # ✅ Min/Max implemented
+            }
+
+            # Collect recommended methods from classifications
+            recommended_methods = []
+            for item_id in item_ids:
+                if item_id in sku_classifications:
+                    classification = sku_classifications[item_id]
+                    rec_method = classification.recommended_method
+                    # Map to actual implemented method
+                    actual_method = method_mapping.get(rec_method, primary_model)
+                    recommended_methods.append(actual_method)
+                    logger.info(
+                        f"SKU {item_id} ({classification.abc_class}-{classification.xyz_class}) "
+                        f"recommends {rec_method} → using {actual_method}"
                     )
 
-                    if context_df.empty:
-                        raise ValueError(f"No historical data found for items: {item_ids}")
+            # Determine methods to run
+            if recommended_methods:
+                # Use the most common recommended method, or primary_model if no consensus
+                from collections import Counter
+                method_counts = Counter(recommended_methods)
+                recommended_method = method_counts.most_common(1)[0][0]
+                methods_to_run = [recommended_method]
 
-                    # Generate forecast for each item separately
-                    # (Models may return single-item results)
-                    item_results = {}
+                # Always include baseline for comparison
+                if include_baseline and "statistical_ma7" not in methods_to_run:
+                    methods_to_run.append("statistical_ma7")
 
-                    # Initialize audit logger only if audit logging is enabled
-                    audit_logger = None
-                    if settings.enable_audit_logging:
-                        audit_logger = DataAuditLogger(self.db, str(forecast_run.forecast_run_id))
+                logger.info(f"Using recommended method routing: {methods_to_run} (from classifications)")
+            else:
+                # No classifications available, use primary_model
+                recommended_method = primary_model
+                methods_to_run = [primary_model]
+                if include_baseline:
+                    methods_to_run.append("statistical_ma7")
+                logger.info(f"No classifications available, using primary_model: {primary_model}")
 
-                    for item_id in item_ids:
-                        # Filter context for this item
-                        item_context = context_df[context_df["id"] == item_id].copy()
+            try:
+                # Run each method
+                for method_id in methods_to_run:
+                    try:
+                        model = await self._get_model(method_id)
 
-                        if item_context.empty:
-                            logger.warning(f"No data found for item {item_id}")
-                            continue
-
-                        # VALIDATE INPUT DATA (IN) - Always validate, even if audit logging is off
-                        # Enhanced validator: fills missing dates and NaN values (like Darts)
-                        result = self.validator.validate_context_data(
-                            item_context, item_id, min_history_days=7,
-                            fill_missing_dates=True,  # Fill gaps (like Darts' fill_missing_dates=True)
-                            fillna_strategy="zero",   # Fill NaN with 0 (like Darts' fillna_value=0)
+                        # Fetch historical data (limit to training_end_date if provided)
+                        context_df = await self.data_access.fetch_historical_data(
+                            client_id=client_id,
+                            item_ids=item_ids,
+                            end_date=training_end_date,
                         )
 
-                        # Handle both old and new return signatures
-                        if len(result) == 4:
-                            is_valid, validation_report, error_msg, cleaned_df = result
-                        else:
-                            is_valid, validation_report, error_msg = result
-                            cleaned_df = item_context  # Fallback to original
+                        if context_df.empty:
+                            raise ValueError(f"No historical data found for items: {item_ids}")
 
-                        if not is_valid:
-                            logger.error(f"Data validation failed for {item_id}: {error_msg}")
+                        # Generate forecast for each item separately
+                        # (Models may return single-item results)
+                        item_results = {}
+
+                        # Initialize audit logger only if audit logging is enabled
+                        audit_logger = None
+                        if settings.enable_audit_logging:
+                            audit_logger = DataAuditLogger(self.db, str(forecast_run.forecast_run_id))
+
+                        for item_id in item_ids:
+                            # Filter context for this item
+                            item_context = context_df[context_df["id"] == item_id].copy()
+
+                            if item_context.empty:
+                                logger.warning(f"No data found for item {item_id}")
+                                continue
+
+                            # VALIDATE INPUT DATA (IN) - Always validate, even if audit logging is off
+                            # Enhanced validator: fills missing dates and NaN values (like Darts)
+                            result = self.validator.validate_context_data(
+                                item_context,
+                                item_id,
+                                min_history_days=7,
+                                fill_missing_dates=True,  # Fill gaps (like Darts' fill_missing_dates=True)
+                                fillna_strategy="zero",  # Fill NaN with 0 (like Darts' fillna_value=0)
+                            )
+
+                            # Handle both old and new return signatures
+                            if len(result) == 4:
+                                is_valid, validation_report, error_msg, cleaned_df = result
+                            else:
+                                is_valid, validation_report, error_msg = result
+                                cleaned_df = item_context  # Fallback to original
+
+                            if not is_valid:
+                                logger.error(f"Data validation failed for {item_id}: {error_msg}")
+                                if audit_logger:
+                                    audit_logger.log_data_input(item_id, item_context, method_id, validation_report)
+                                continue
+
+                            # Use cleaned data (with missing dates filled, NaN handled)
+                            # This ensures models receive clean, complete time series (like Darts)
+                            item_context = cleaned_df if cleaned_df is not None else item_context
+
+                            # Log validated input data (if audit logging enabled)
                             if audit_logger:
                                 audit_logger.log_data_input(item_id, item_context, method_id, validation_report)
-                            continue
 
-                        # Use cleaned data (with missing dates filled, NaN handled)
-                        # This ensures models receive clean, complete time series (like Darts)
-                        item_context = cleaned_df if cleaned_df is not None else item_context
+                            # Generate forecast for this item
+                            try:
+                                predictions_df = await model.predict(
+                                    context_df=item_context,
+                                    prediction_length=prediction_length,
+                                    quantile_levels=quantile_levels,
+                                )
+                            except Exception as e:
+                                logger.error(
+                                    f"Model prediction failed for {item_id} ({method_id}): {e}",
+                                    exc_info=True,
+                                )
+                                continue
 
-                        # Log validated input data (if audit logging enabled)
-                        if audit_logger:
-                            audit_logger.log_data_input(item_id, item_context, method_id, validation_report)
+                            # Check if predictions_df is empty
+                            if predictions_df.empty:
+                                logger.warning(f"Empty predictions DataFrame for {item_id} ({method_id})")
+                                continue
 
-                        # Generate forecast for this item
-                        try:
-                            predictions_df = await model.predict(
-                                context_df=item_context,
-                                prediction_length=prediction_length,
-                                quantile_levels=quantile_levels,
+                            # VALIDATE OUTPUT DATA (OUT) - Always validate
+                            is_valid_out, validation_report_out, error_msg_out = self.validator.validate_predictions(
+                                predictions_df, item_id, prediction_length
                             )
-                        except Exception as e:
-                            logger.error(f"Model prediction failed for {item_id} ({method_id}): {e}", exc_info=True)
-                            continue
 
-                        # Check if predictions_df is empty
-                        if predictions_df.empty:
-                            logger.warning(f"Empty predictions DataFrame for {item_id} ({method_id})")
-                            continue
+                            if not is_valid_out:
+                                logger.error(f"Prediction validation failed for {item_id}: {error_msg_out}")
+                                # Continue anyway - store invalid predictions for debugging
 
-                        # VALIDATE OUTPUT DATA (OUT) - Always validate
-                        is_valid_out, validation_report_out, error_msg_out = self.validator.validate_predictions(
-                            predictions_df, item_id, prediction_length
-                        )
+                            # Log model output (if audit logging enabled)
+                            if audit_logger:
+                                audit_logger.log_model_output(
+                                    item_id, predictions_df, method_id, validation_report_out
+                                )
 
-                        if not is_valid_out:
-                            logger.error(f"Prediction validation failed for {item_id}: {error_msg_out}")
-                            # Continue anyway - store invalid predictions for debugging
+                            # Ensure id column is set
+                            if "id" not in predictions_df.columns:
+                                predictions_df["id"] = item_id
 
-                        # Log model output (if audit logging enabled)
-                        if audit_logger:
-                            audit_logger.log_model_output(item_id, predictions_df, method_id, validation_report_out)
+                            item_results[item_id] = predictions_df
 
-                        # Ensure id column is set
-                        if "id" not in predictions_df.columns:
-                            predictions_df["id"] = item_id
+                        # Only add to results_by_method if we have non-empty results
+                        if item_results and any(not df.empty for df in item_results.values()):
+                            results_by_method[method_id] = item_results
 
-                        item_results[item_id] = predictions_df
+                            # Store audit trail in forecast_run (if audit logging enabled)
+                            if audit_logger and audit_logger.audit_trail:
+                                if forecast_run.audit_metadata is None:
+                                    forecast_run.audit_metadata = {}
+                                forecast_run.audit_metadata[method_id] = audit_logger.get_audit_trail()
+                        else:
+                            logger.warning(f"No results generated for method {method_id}")
 
-                    # Only add to results_by_method if we have non-empty results
-                    if item_results and any(not df.empty for df in item_results.values()):
-                        results_by_method[method_id] = item_results
+                    except Exception as e:
+                        # Log error but continue with other methods
+                        logger.error(f"Method {method_id} failed: {e}", exc_info=True)
+                        if method_id == primary_model:
+                            # If primary fails, use baseline
+                            recommended_method = "statistical_ma7"
+                        # Store error in forecast_run
+                        forecast_run.error_message = f"{method_id} failed: {str(e)}"
 
-                        # Store audit trail in forecast_run (if audit logging enabled)
-                        if audit_logger and audit_logger.audit_trail:
-                            if forecast_run.audit_metadata is None:
-                                forecast_run.audit_metadata = {}
-                            forecast_run.audit_metadata[method_id] = audit_logger.get_audit_trail()
-                    else:
-                        logger.warning(f"No results generated for method {method_id}")
+                # Store results in database (only if we have results)
+                if results_by_method:
+                    await self._store_results(
+                        forecast_run, results_by_method, item_ids, prediction_length
+                    )
+                    # Flush to ensure results are in the session before commit
+                    await self.db.flush()
 
-                except Exception as e:
-                    # Log error but continue with other methods
-                    logger.error(f"Method {method_id} failed: {e}", exc_info=True)
-                    if method_id == primary_model:
-                        # If primary fails, use baseline
-                        recommended_method = "statistical_ma7"
-                    # Store error in forecast_run
-                    forecast_run.error_message = f"{method_id} failed: {str(e)}"
+                    # Update forecast run - only set to completed if we have results
+                    forecast_run.recommended_method = recommended_method
+                    forecast_run.status = ForecastStatus.COMPLETED.value
+                    forecast_run.error_message = None
+                else:
+                    # No results generated - mark as failed
+                    forecast_run.status = ForecastStatus.FAILED.value
+                    forecast_run.error_message = "No forecast results generated for any method"
+                    forecast_run.recommended_method = None
 
-            # Store results in database (only if we have results)
-            if results_by_method:
-                await self._store_results(
-                    forecast_run, results_by_method, item_ids, prediction_length
-                )
-                # Flush to ensure results are in the session before commit
-                await self.db.flush()
+                await self.db.commit()
 
-                # Update forecast run - only set to completed if we have results
-                forecast_run.recommended_method = recommended_method
-                forecast_run.status = ForecastStatus.COMPLETED.value
-            else:
-                # No results generated - mark as failed
+            except Exception as e:
                 forecast_run.status = ForecastStatus.FAILED.value
-                forecast_run.error_message = "No forecast results generated for any method"
-                forecast_run.recommended_method = None
+                forecast_run.error_message = str(e)
+                try:
+                    await self.db.commit()
+                except Exception:
+                    await self.db.rollback()
+                raise
 
-        except Exception as e:
-            forecast_run.status = ForecastStatus.FAILED.value
-            forecast_run.error_message = str(e)
-            raise
-
-            await self.db.commit()
+            # Post-forecast hook: Refresh inventory metrics for forecasted items
+            # This ensures inventory_metrics table stays fresh for filtering
+            if forecast_run.status == ForecastStatus.COMPLETED.value:
+                try:
+                    from services.inventory_metrics_service import InventoryMetricsService
+                    from uuid import UUID
+                    metrics_service = InventoryMetricsService(self.db)
+                    # Refresh metrics for all items that were forecasted
+                    await metrics_service.refresh_client_metrics(
+                        client_id=UUID(client_id),
+                        location_id="UNSPECIFIED"
+                    )
+                    logger.info(f"Refreshed inventory metrics after forecast for client {client_id}")
+                except Exception as e:
+                    # Don't fail forecast if metrics refresh fails
+                    logger.warning(f"Failed to refresh inventory metrics after forecast: {e}")
 
             # Attach classifications to forecast_run for API response
             forecast_run._sku_classifications = sku_classifications  # type: ignore
@@ -547,4 +576,3 @@ class ForecastService:
             results_by_item[item_id].append(prediction)
 
         return results_by_item
-

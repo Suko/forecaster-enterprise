@@ -38,7 +38,7 @@ async function ensureMachineIdLoaded(): Promise<void> {
   await inFlightLoad;
 }
 
-export default defineEventHandler(async (event) => {
+export default defineEventHandler(async (_event) => {
   await ensureMachineIdLoaded();
   const machineId = getMachineId();
   if (machineId) {

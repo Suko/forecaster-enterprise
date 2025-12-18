@@ -1,7 +1,7 @@
 # Project Standards
 
 **Version:** 1.0  
-**Last Updated:** 2025-12-09
+**Last Updated:** 2025-12-17
 
 ---
 
@@ -91,7 +91,37 @@ cd backend && uv run python scripts/validate_method_routing.py
 
 ---
 
-## 4. Documentation Standards
+## 4. Contract Consistency (Backend ↔ Frontend)
+
+### Source of Truth
+- Backend **schemas + OpenAPI** (`/docs`) define the contract.
+- Frontend server routes (`frontend/server/api/*`) and TS types (`frontend/app/types/*`) must match the backend contract.
+
+### Required Checks Before Merge
+
+```bash
+# Backend
+cd backend
+uv run pytest tests/ -v
+uv run ruff check .
+
+# Frontend
+cd frontend
+bun run lint
+bun run format:check
+```
+
+### Definition of Done (Contract-Sensitive Changes)
+When you change an endpoint/response shape:
+1. Update backend router + schema
+2. Update `docs/backend/API_REFERENCE.md`
+3. Update frontend proxy route(s) + TS types
+4. Add/adjust tests that protect the contract
+5. Update `docs/system/BACKEND_FRONTEND_COMPATIBILITY.md` if it changes any cross-system assumption
+
+---
+
+## 5. Documentation Standards
 
 ### File Structure
 
@@ -118,7 +148,7 @@ docs/
 
 ---
 
-## 5. Versioning Policy
+## 6. Versioning Policy
 
 ### Semantic Versioning
 
@@ -143,7 +173,7 @@ MAJOR.MINOR.PATCH
 
 ---
 
-## 6. Client Delivery Standards
+## 7. Client Delivery Standards
 
 ### API Response Format
 
@@ -188,5 +218,3 @@ All implementations must:
 ---
 
 *This document consolidates all project standards.*
-
-

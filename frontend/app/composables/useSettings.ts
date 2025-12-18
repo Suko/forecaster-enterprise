@@ -4,7 +4,7 @@ export interface ClientSettings {
   understocked_threshold: number;
   overstocked_threshold: number;
   dead_stock_days: number;
-  recommendation_rules?: Record<string, any>;
+  recommendation_rules?: Record<string, unknown>;
 }
 
 export interface ClientSettingsUpdate {
@@ -31,4 +31,3 @@ export const useSettings = () => {
     updateSettings,
   };
 };
-

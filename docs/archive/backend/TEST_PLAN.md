@@ -229,7 +229,6 @@ tests/
 
 ## Related Documents
 
-- [TESTING_CHECKLIST.md](./TESTING_CHECKLIST.md) - Manual testing checklist
+- [Backend/Frontend Compatibility & Blockers](../../system/BACKEND_FRONTEND_COMPATIBILITY.md) - Current smoke testing commands
 - [BACKEND_ROADMAP.md](./BACKEND_ROADMAP.md) - Implementation roadmap
-- [ARCHITECTURE.md](./ARCHITECTURE.md) - System architecture
-
+- [ARCHITECTURE.md](../../backend/ARCHITECTURE.md) - System architecture

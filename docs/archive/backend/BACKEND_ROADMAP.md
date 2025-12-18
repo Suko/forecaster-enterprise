@@ -20,7 +20,7 @@ This roadmap covers the **complete backend implementation** for the inventory fo
 
 **MVP Status:** ✅ **COMPLETE** - All APIs implemented, tested, and ready for frontend integration
 
-> **🎯 Next Step:** Frontend Integration - See [FRONTEND_INTEGRATION.md](./FRONTEND_INTEGRATION.md)
+> **🎯 Next Step:** Frontend Integration - See [Backend/Frontend Compatibility & Blockers](../../system/BACKEND_FRONTEND_COMPATIBILITY.md)
 
 > **Note:** The forecasting engine itself is already implemented. This roadmap focuses on the **inventory management and ordering system** that uses the forecasts.
 
@@ -1171,7 +1171,6 @@ class Product(Base):
 - [DATA_MODEL.md](../../DATA_MODEL.md) - Complete data model
 - [WORKFLOWS.md](../../WORKFLOWS.md) - System workflows
 - [USER_STORIES.md](../../USER_STORIES.md) - User requirements
-- [ARCHITECTURE.md](./ARCHITECTURE.md) - System architecture
-- [forecasting/README.md](./forecasting/README.md) - Forecasting module
-- [FORECASTING_ROADMAP.md](./FORECASTING_ROADMAP.md) - Forecasting engine roadmap (separate)
-
+- [ARCHITECTURE.md](../../backend/ARCHITECTURE.md) - System architecture
+- [forecasting/README.md](../../backend/forecasting/README.md) - Forecasting module
+- [FORECASTING_ROADMAP.md](../../backend/FORECASTING_ROADMAP.md) - Forecasting engine roadmap (separate)

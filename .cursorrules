@@ -154,7 +154,46 @@ async def endpoint(
 - Avoid N+1 queries (use joins or eager loading)
 - Cache expensive computations
 
+## UI Components & Design System
+
+### Nuxt UI Components
+- **CRITICAL**: All UI components MUST use Nuxt UI components
+- **Exception**: Charts and tables use different libraries (not Nuxt UI)
+- Do not create custom components when Nuxt UI provides equivalent functionality
+- Use MCP (Model Context Protocol) to access Nuxt UI component documentation and metadata
+- Available MCP tools: `mcp_nuxt-ui_get-component`, `mcp_nuxt-ui_get-component-metadata`, `mcp_nuxt-ui_list-components`
+
+### Design System Compliance
+- **MUST follow Nuxt UI's design system** for all UI implementations (except charts and tables)
+- Before creating new UI components, check Nuxt UI component library via MCP
+- Use Nuxt UI's props, slots, and events as documented
+- Maintain consistency with Nuxt UI's styling and behavior patterns
+- When in doubt, query MCP for component details rather than guessing implementation
+
+### MCP Usage Pattern
+1. Query available components: `mcp_nuxt-ui_list-components` or `mcp_nuxt-ui_search-components-by-category`
+2. Get component details: `mcp_nuxt-ui_get-component` for documentation
+3. Get component metadata: `mcp_nuxt-ui_get-component-metadata` for props, slots, events
+4. Follow the documented API and design patterns exactly
+
 ---
+
+## Preventing Future Drift (Process)
+
+### Source of Truth
+- **Backend:** Pydantic schemas + OpenAPI (`/docs`) are the contract.
+- **Frontend:** `frontend/app/types/*` and `frontend/server/api/*` must match backend schema shapes and paths.
+- **Docs:** any doc that describes an endpoint must be updated together with the code change.
+
+### Definition of Done (Contract-Sensitive Changes)
+When changing an endpoint/response:
+1. Update backend schema + router
+2. Update/regen `docs/backend/API_REFERENCE.md`
+3. Update frontend server proxy route + TS types
+4. Add/adjust backend tests for the contract change
+5. Run: backend tests + ruff, frontend lint + format check
+
+
 
 **Reference**: See `docs/system/CONTRACTS.md` for complete system contracts.
 

@@ -1,4 +1,4 @@
-import { authenticatedFetch } from "../utils/api";
+import { authenticatedFetch, getErrorMessage, getErrorStatusCode } from "../utils/api";
 import type { SupplierListResponse } from "~/types/supplier";
 
 /**
@@ -20,13 +20,13 @@ export default defineEventHandler(async (event) => {
       event,
       `/api/v1/suppliers${queryString ? `?${queryString}` : ""}`
     );
-  } catch (error: any) {
-    if (error.statusCode === 401) {
+  } catch (error: unknown) {
+    if (getErrorStatusCode(error) === 401) {
       throw createError({ statusCode: 401, statusMessage: "Not authenticated" });
     }
     throw createError({
-      statusCode: error.statusCode || 500,
-      statusMessage: error.message || "Failed to fetch suppliers",
+      statusCode: getErrorStatusCode(error) || 500,
+      statusMessage: getErrorMessage(error) || "Failed to fetch suppliers",
     });
   }
 });

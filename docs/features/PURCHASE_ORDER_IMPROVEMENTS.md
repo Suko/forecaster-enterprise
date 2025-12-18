@@ -1,6 +1,6 @@
 # Purchase Order Improvements - Feature Plan
 
-**Last Updated:** 2025-01-27  
+**Last Updated:** 2025-12-17  
 **Status:** Planning Phase  
 **Scope:** Purchase Order UI/UX improvements and enhancements
 
@@ -8,7 +8,7 @@
 
 ## Executive Summary
 
-This document outlines improvements for the Purchase Order system, focusing on UI/UX enhancements, expected delivery date calculations, cart improvements, and order management features. The backend APIs are already implemented (see [Backend Roadmap](backend/BACKEND_ROADMAP.md)), so this focuses on frontend improvements.
+This document outlines improvements for the Purchase Order system, focusing on UI/UX enhancements, expected delivery date calculations, cart improvements, and order management features. The backend APIs are already implemented (see [API Reference](../backend/API_REFERENCE.md)), so this focuses on frontend improvements.
 
 **Current State:**
 - ✅ Backend APIs complete (Order Planning, Cart, Purchase Orders)
@@ -19,8 +19,8 @@ This document outlines improvements for the Purchase Order system, focusing on U
 - ✅ Full PO detail with all items
 - ✅ Order suggestions API with `lead_time_days`, `suggested_quantity`, `priority`
 - ⚠️ **Recommendations page deprecated** → Functionality moves here (Order Suggestions in Cart)
-- ❌ No frontend PO list page
-- ❌ No cart page/UI
+- ✅ Frontend PO list page exists (`/purchase-orders`)
+- ✅ Cart/Draft UI exists (`/purchase-orders/draft`) and `/order-planning/cart` redirects there
 - ❌ No expected delivery date display (backend has field, but not auto-calculated)
 - ❌ Cart response missing `lead_time_days` (needed for delivery date calculation)
 
@@ -29,13 +29,13 @@ This document outlines improvements for the Purchase Order system, focusing on U
 ## Existing Documentation
 
 ### Backend (Complete):
-- [Backend Roadmap](backend/BACKEND_ROADMAP.md) - Order Planning & Purchase Orders API (Section 3.1-3.2)
-- [API Reference](backend/API_REFERENCE.md) - Complete API endpoint documentation
-- [User Stories](USER_STORIES.md) - US-PROC-005, US-PROC-006 (Purchase Order requirements)
-- [Workflows](WORKFLOWS.md) - Order planning and PO creation workflows
+- [Backend Roadmap (Archived)](../archive/backend/BACKEND_ROADMAP.md) - Historical implementation snapshot
+- [API Reference](../backend/API_REFERENCE.md) - Complete API endpoint documentation
+- [User Stories](../USER_STORIES.md) - US-PROC-005, US-PROC-006 (Purchase Order requirements)
+- [Workflows](../WORKFLOWS.md) - Order planning and PO creation workflows
 
 ### Frontend (Needs Work):
-- [Frontend Roadmap](frontend/FRONTEND_ROADMAP.md) - Mentions "Order Planning Cart page" and "Purchase Orders list" as Post-MVP (Future Enhancements)
+- [Frontend Roadmap (Archived)](../archive/frontend/FRONTEND_ROADMAP.md) - Historical MVP plan snapshot
 
 **Gap:** No detailed frontend UI/UX plan for Purchase Orders
 
@@ -617,15 +617,14 @@ interface PurchaseOrderResponse {
 
 ## Related Documentation
 
-- [Backend Roadmap](backend/BACKEND_ROADMAP.md) - Order Planning & Purchase Orders API (Section 3.1-3.2)
-- [API Reference](backend/API_REFERENCE.md) - Purchase Order endpoints
-- [User Stories](USER_STORIES.md) - US-PROC-005, US-PROC-006
-- [Workflows](WORKFLOWS.md) - Order planning workflows
+- [Backend Roadmap (Archived)](../archive/backend/BACKEND_ROADMAP.md) - Historical implementation snapshot
+- [API Reference](../backend/API_REFERENCE.md) - Purchase Order endpoints
+- [User Stories](../USER_STORIES.md) - US-PROC-005, US-PROC-006
+- [Workflows](../WORKFLOWS.md) - Order planning workflows
 - [Inventory Improvements](INVENTORY_IMPROVEMENTS.md) - Related inventory features
 
 ---
 
 **Document Owner:** Development Team  
-**Last Updated:** 2025-01-27  
+**Last Updated:** 2025-12-17  
 **Status:** Planning Phase - Ready for implementation
-

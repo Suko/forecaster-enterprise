@@ -1,5 +1,6 @@
 <script setup lang="ts">
-import type { Supplier } from "~/types/supplier";
+ import type { Supplier } from "~/types/supplier";
+ import { getErrorText } from "~/utils/error";
 
 definePageMeta({
   layout: "dashboard",
@@ -44,10 +45,10 @@ const loadSuppliers = async (targetPage: number = page.value) => {
     total.value = res.total;
     totalPages.value = res.total_pages;
     page.value = res.page || targetPage;
-  } catch (err: any) {
+  } catch (err: unknown) {
     const wasAuthError = await handleAuthError(err);
     if (wasAuthError) return;
-    error.value = err.message || "Failed to load suppliers";
+    error.value = getErrorText(err, "Failed to load suppliers");
   } finally {
     loading.value = false;
   }

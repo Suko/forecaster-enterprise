@@ -1,5 +1,6 @@
 <script setup lang="ts">
-import type { CartItem } from "~/types/order";
+ import type { CartItem } from "~/types/order";
+ import { getErrorText } from "~/utils/error";
 
 definePageMeta({
   layout: "dashboard",
@@ -89,10 +90,10 @@ const loadCart = async () => {
     draftQuantities.value = nextDrafts;
     poDrafts.value = nextPoDrafts;
     persistDraftsToStorage();
-  } catch (err: any) {
+  } catch (err: unknown) {
     const wasAuthError = await handleAuthError(err);
     if (wasAuthError) return;
-    error.value = err.message || "Failed to load cart";
+    error.value = getErrorText(err, "Failed to load cart");
   } finally {
     loading.value = false;
   }
@@ -120,19 +121,12 @@ const onUpdateQuantity = async (item: CartItem) => {
       color: "success",
     });
     await loadCart();
-  } catch (err: any) {
+  } catch (err: unknown) {
     const wasAuthError = await handleAuthError(err);
     if (wasAuthError) return;
-    // Extract error message from FastAPI error response (detail field) or other sources
-    const errorMessage =
-      err.data?.detail || // FastAPI error detail
-      err.data?.statusMessage || // Nuxt error statusMessage
-      err.data?.message || // Generic error message
-      err.message || // Error object message
-      "Failed to update item";
     toast.add({
       title: "Update failed",
-      description: errorMessage,
+      description: getErrorText(err, "Failed to update item"),
       color: "error",
     });
   }
@@ -147,18 +141,12 @@ const onRemoveItem = async (item: CartItem) => {
       color: "success",
     });
     await loadCart();
-  } catch (err: any) {
+  } catch (err: unknown) {
     const wasAuthError = await handleAuthError(err);
     if (wasAuthError) return;
-    const errorMessage =
-      err.data?.detail ||
-      err.data?.statusMessage ||
-      err.data?.message ||
-      err.message ||
-      "Failed to remove item";
     toast.add({
       title: "Remove failed",
-      description: errorMessage,
+      description: getErrorText(err, "Failed to remove item"),
       color: "error",
     });
   }
@@ -169,12 +157,12 @@ const onClearCart = async () => {
     await clearCart();
     toast.add({ title: "Cleared", description: "Cart cleared", color: "success" });
     await loadCart();
-  } catch (err: any) {
+  } catch (err: unknown) {
     const wasAuthError = await handleAuthError(err);
     if (wasAuthError) return;
     toast.add({
       title: "Clear failed",
-      description: err.message || "Failed to clear cart",
+      description: getErrorText(err, "Failed to clear cart"),
       color: "error",
     });
   }
@@ -198,18 +186,12 @@ const onCreatePoForSupplier = async (supplierId: string) => {
     toast.add({ title: "Purchase order created", description: po.po_number, color: "success" });
     await loadCart();
     await navigateTo(`/purchase-orders/${po.id}`);
-  } catch (err: any) {
+  } catch (err: unknown) {
     const wasAuthError = await handleAuthError(err);
     if (wasAuthError) return;
-    const errorMessage =
-      err.data?.detail ||
-      err.data?.statusMessage ||
-      err.data?.message ||
-      err.message ||
-      "Failed to create PO";
     toast.add({
       title: "Create PO failed",
-      description: errorMessage,
+      description: getErrorText(err, "Failed to create PO"),
       color: "error",
     });
   } finally {
@@ -273,7 +255,7 @@ onMounted(async () => {
 
     <UCard v-else-if="items.length === 0">
       <div class="p-6 text-center text-muted">
-        Your cart is empty. Add items from Recommendations to start an order.
+        Your cart is empty. Add items from Inventory to start an order.
       </div>
     </UCard>
 

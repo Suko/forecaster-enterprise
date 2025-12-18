@@ -530,6 +530,8 @@ These tables are populated by the forecasting system, not synced or manually ent
 | `forecast_results` | System | Weekly | Forecast Engine | Read-only |
 | `inventory_metrics` | System | Daily | Compute Job | Read-only |
 
+> **Ops:** Keep `inventory_metrics` seeded by running `backend/scripts/refresh_inventory_metrics.py --client-id <uuid>` (or `--all`) after onboarding a client or when sales/stock data changes.
+
 **Note on Product-Supplier:**
 - **Link** (which SKUs belong to which supplier): Synced from external if available, otherwise app-managed
 - **Conditions** (MOQ, lead time, packaging, price): **Always app-managed**

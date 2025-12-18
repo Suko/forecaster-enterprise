@@ -1,7 +1,7 @@
 # System Contracts
 
 **Version:** 1.0  
-**Last Updated:** 2025-12-09
+**Last Updated:** 2025-12-17
 
 ---
 
@@ -17,11 +17,18 @@
 ### JWT Flow
 - `client_id` extracted from token
 - User ID from authenticated user
+- **Contract rule:** for JWT-authenticated requests, `client_id` must come from JWT/user context (request-body `client_id` must not override tenant context).
 
 ### Service API Key Flow
 - `client_id` **must** be in request body
 - User ID set to "system"
 - Key stored in `SERVICE_API_KEY` env var
+- **Contract rule:** request-body `client_id` is accepted **only** when a valid `X-API-Key` is present.
+
+### API Base Paths (current)
+- Auth endpoints (canonical): `/api/v1/auth/*`
+- Auth endpoints (legacy): `/auth/*` (deprecated)
+- Versioned business APIs: `/api/v1/*`
 
 ### Example (Service API Key)
 
@@ -232,5 +239,3 @@ All systems must:
 ---
 
 *This document consolidates all system contracts.*
-
-

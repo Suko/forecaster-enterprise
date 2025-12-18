@@ -58,7 +58,7 @@ async def create_test_user(client_id: UUID) -> Optional[str]:
         async with httpx.AsyncClient() as client:
             # Try registration first (in case user doesn't exist)
             register_response = await client.post(
-                f"{BASE_URL}/auth/register",
+                f"{BASE_URL}/api/v1/auth/register",
                 json={
                     "email": TEST_EMAIL,
                     "password": TEST_PASSWORD,
@@ -72,7 +72,7 @@ async def create_test_user(client_id: UUID) -> Optional[str]:
 
             # Login using form data (OAuth2PasswordRequestForm)
             login_response = await client.post(
-                f"{BASE_URL}/auth/login",
+                f"{BASE_URL}/api/v1/auth/login",
                 data={
                     "username": TEST_EMAIL,  # OAuth2 uses 'username' for email
                     "password": TEST_PASSWORD
@@ -445,4 +445,3 @@ async def main():
 
 if __name__ == "__main__":
     asyncio.run(main())
-

@@ -7,11 +7,13 @@ import pytest
 from httpx import AsyncClient
 from sqlalchemy.ext.asyncio import AsyncSession
 from decimal import Decimal
+from datetime import date, timedelta
 
 from models.product import Product
 from models.stock import StockLevel
 from models.supplier import Supplier
 from models.product_supplier import ProductSupplierCondition
+from models.inventory_metrics import InventoryMetric
 from tests.fixtures.test_inventory_data import (
     create_test_product,
     create_test_supplier,
@@ -87,6 +89,128 @@ async def test_get_products_with_filters(
     assert response.status_code == 200
     data = response.json()
     assert all(item["category"] == "Electronics" for item in data["items"])
+
+
+@pytest.mark.asyncio
+async def test_get_products_metric_filters(
+    test_client: AsyncClient,
+    db_session: AsyncSession,
+    test_client_obj,
+    test_jwt_token: str,
+    populate_test_data
+):
+    """Metric filters: min_stock, min_dir, status."""
+    # Create products
+    under_item = create_test_product(
+        client_id=test_client_obj.client_id,
+        item_id="FILTER-UNDER",
+        product_name="Understocked"
+    )
+    over_item = create_test_product(
+        client_id=test_client_obj.client_id,
+        item_id="FILTER-OVER",
+        product_name="Overstocked"
+    )
+    db_session.add_all([under_item, over_item])
+
+    # Stock levels
+    db_session.add_all([
+        create_test_stock_level(client_id=test_client_obj.client_id, item_id=under_item.item_id, current_stock=5),
+        create_test_stock_level(client_id=test_client_obj.client_id, item_id=over_item.item_id, current_stock=1000),
+    ])
+
+    # Minimal sales history to compute DIR / status
+    from sqlalchemy import text
+    today = date.today()
+    for i in range(10):
+        day = today - timedelta(days=i)
+        await db_session.execute(
+            text("""
+                INSERT INTO ts_demand_daily
+                (client_id, item_id, location_id, date_local, units_sold, promotion_flag, holiday_flag, is_weekend, marketing_spend)
+                VALUES (:client_id, :item_id, 'UNSPECIFIED', :date_local, :units_sold, false, false, false, 0)
+                ON CONFLICT (client_id, item_id, location_id, date_local) DO NOTHING
+            """),
+            {
+                "client_id": str(test_client_obj.client_id),
+                "item_id": under_item.item_id,
+                "date_local": day,
+                "units_sold": 10,  # High demand → low DIR given low stock
+            }
+        )
+        await db_session.execute(
+            text("""
+                INSERT INTO ts_demand_daily
+                (client_id, item_id, location_id, date_local, units_sold, promotion_flag, holiday_flag, is_weekend, marketing_spend)
+                VALUES (:client_id, :item_id, 'UNSPECIFIED', :date_local, :units_sold, false, false, false, 0)
+                ON CONFLICT (client_id, item_id, location_id, date_local) DO NOTHING
+            """),
+            {
+                "client_id": str(test_client_obj.client_id),
+                "item_id": over_item.item_id,
+                "date_local": day,
+                "units_sold": 5,  # Lower demand → high DIR given high stock
+            }
+        )
+    await db_session.commit()
+
+    # Precomputed metrics used by API-side filtering (latest per item_id)
+    metric_under = InventoryMetric(
+        client_id=test_client_obj.client_id,
+        item_id=under_item.item_id,
+        location_id="UNSPECIFIED",
+        date=today,
+        current_stock=5,
+        dir=Decimal("2.0"),
+        stockout_risk=Decimal("0.90"),
+        forecasted_demand_30d=Decimal("200"),
+        inventory_value=Decimal("50"),
+        status="understocked",
+    )
+    metric_over = InventoryMetric(
+        client_id=test_client_obj.client_id,
+        item_id=over_item.item_id,
+        location_id="UNSPECIFIED",
+        date=today,
+        current_stock=1000,
+        dir=Decimal("200"),
+        stockout_risk=Decimal("0.10"),
+        forecasted_demand_30d=Decimal("50"),
+        inventory_value=Decimal("2000"),
+        status="overstocked",
+    )
+    db_session.add_all([metric_under, metric_over])
+    await db_session.commit()
+
+    # min_stock should only return the high-stock item
+    resp_stock = await test_client.get(
+        "/api/v1/products?min_stock=100",
+        headers={"Authorization": f"Bearer {test_jwt_token}"}
+    )
+    assert resp_stock.status_code == 200
+    items_stock = {p["item_id"] for p in resp_stock.json()["items"]}
+    assert "FILTER-OVER" in items_stock
+    assert "FILTER-UNDER" not in items_stock
+
+    # min_dir should return the high-DIR item (overstocked)
+    resp_dir = await test_client.get(
+        "/api/v1/products?min_dir=50",
+        headers={"Authorization": f"Bearer {test_jwt_token}"}
+    )
+    assert resp_dir.status_code == 200
+    items_dir = {p["item_id"] for p in resp_dir.json()["items"]}
+    assert "FILTER-OVER" in items_dir
+    assert "FILTER-UNDER" not in items_dir
+
+    # status=understocked should only return the low-stock/high-demand item
+    resp_status = await test_client.get(
+        "/api/v1/products?status=understocked",
+        headers={"Authorization": f"Bearer {test_jwt_token}"}
+    )
+    assert resp_status.status_code == 200
+    items_status = {p["item_id"] for p in resp_status.json()["items"]}
+    assert "FILTER-UNDER" in items_status
+    assert "FILTER-OVER" not in items_status
 
 
 @pytest.mark.asyncio
@@ -299,4 +423,3 @@ async def test_get_products_wrong_client(
     data = response.json()
     # Should not see other client's products
     assert not any(item["item_id"] == "OTHER-001" for item in data["items"])
-

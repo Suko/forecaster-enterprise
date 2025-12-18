@@ -91,8 +91,11 @@
 </template>
 
 <script setup lang="ts">
+import { getErrorText } from "~/utils/error";
+
 const { fetchSettings, updateSettings } = useSettings();
 const { handleAuthError } = useAuthError();
+const toast = useToast();
 
 const formState = reactive({
   safety_buffer_days: 7,
@@ -112,9 +115,14 @@ const loadSettings = async () => {
     formState.understocked_threshold = settings.understocked_threshold;
     formState.overstocked_threshold = settings.overstocked_threshold;
     formState.dead_stock_days = settings.dead_stock_days;
-  } catch (err: any) {
+  } catch (err: unknown) {
     const wasAuthError = await handleAuthError(err);
     if (!wasAuthError) {
+      toast.add({
+        title: "Error",
+        description: getErrorText(err, "Failed to load settings"),
+        color: "error",
+      });
     }
   } finally {
     loading.value = false;
@@ -137,12 +145,12 @@ const saveSettings = async () => {
       title: "Settings saved",
       description: "Inventory settings have been updated successfully.",
     });
-  } catch (err: any) {
+  } catch (err: unknown) {
     const wasAuthError = await handleAuthError(err);
     if (!wasAuthError) {
       toast.add({
         title: "Error",
-        description: err.message || "Failed to save settings",
+        description: getErrorText(err, "Failed to save settings"),
         color: "error",
       });
     }

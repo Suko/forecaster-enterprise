@@ -136,7 +136,15 @@ import { AgGridVue } from "ag-grid-vue3";
 import { ModuleRegistry, AllCommunityModule } from "ag-grid-community";
 import "ag-grid-community/styles/ag-grid.css";
 import "ag-grid-community/styles/ag-theme-alpine.css";
-import type { ColDef, GridReadyEvent } from "ag-grid-community";
+import type {
+  CellClickedEvent,
+  ColDef,
+  GridApi,
+  GridReadyEvent,
+  ICellRendererParams,
+  RowHeightParams,
+  ValueGetterParams,
+} from "ag-grid-community";
 import type { Product } from "~/types/product";
 
 // Register AG Grid modules
@@ -164,12 +172,26 @@ const rowData = ref<Product[]>([]);
 const loading = ref(false);
 const error = ref<string | null>(null);
 const searchQuery = ref("");
-const gridApi = ref<any>(null);
+const gridApi = ref<GridApi<Product> | null>(null);
 const gridInitialized = ref(false);
 const defaultBufferDays = ref<number>(7); // Default fallback
 const showColumnSelector = ref(false);
 const columnVisibility = ref<{ [field: string]: boolean }>({});
 const expandedRows = ref<Set<string>>(new Set()); // Track expanded rows by item_id
+
+const getErrorText = (err: unknown, fallback: string): string => {
+  if (err instanceof Error) return err.message;
+  if (typeof err === "object" && err !== null) {
+    const data = (err as { data?: unknown }).data;
+    if (typeof data === "object" && data !== null) {
+      const detail = (data as { detail?: unknown }).detail;
+      if (typeof detail === "string" && detail.length > 0) return detail;
+    }
+    const message = (err as { message?: unknown }).message;
+    if (typeof message === "string" && message.length > 0) return message;
+  }
+  return fallback;
+};
 
 // Base column definitions (all possible columns)
 const baseColumnDefs: ColDef[] = [
@@ -181,7 +203,7 @@ const baseColumnDefs: ColDef[] = [
     resizable: true,
     flex: 1,
     minWidth: 200,
-    cellRenderer: (params: any) => {
+    cellRenderer: (params: ICellRendererParams<Product, unknown>) => {
       const itemId = params.value || "";
       const productName = params.data?.product_name || "";
       return `
@@ -191,7 +213,7 @@ const baseColumnDefs: ColDef[] = [
         </div>
       `;
     },
-    valueGetter: (params: any) => {
+    valueGetter: (params: ValueGetterParams<Product>) => {
       // For filtering and sorting, use both item_id and product_name
       const itemId = params.data?.item_id || "";
       const productName = params.data?.product_name || "";
@@ -216,7 +238,7 @@ const baseColumnDefs: ColDef[] = [
     minWidth: 200,
     maxWidth: 400,
     hide: false,
-    cellRenderer: (params: any) => {
+    cellRenderer: (params: ICellRendererParams<Product, unknown>) => {
       const locations = params.value as
         | Array<{ location_id: string; location_name: string; current_stock: number }>
         | null
@@ -291,7 +313,7 @@ const baseColumnDefs: ColDef[] = [
     minWidth: 200,
     maxWidth: 400,
     hide: false,
-    cellRenderer: (params: any) => {
+    cellRenderer: (params: ICellRendererParams<Product, unknown>) => {
       const suppliers = params.value as
         | Array<{ supplier_name: string; moq: number; lead_time_days: number; is_primary: boolean }>
         | null
@@ -446,7 +468,7 @@ const baseColumnDefs: ColDef[] = [
     sortable: true,
     resizable: true,
     width: 150,
-    cellRenderer: (params: any) => {
+    cellRenderer: (params: ICellRendererParams<Product, unknown>) => {
       const status = params.value || "normal";
       const colors: Record<string, string> = {
         understocked: "red",
@@ -494,11 +516,12 @@ const toggleSupplierRow = (itemId: string, type: string = "suppliers") => {
 
 // Expose toggle function to window for cell renderer
 if (typeof window !== "undefined") {
-  (window as any).toggleSupplierRow = toggleSupplierRow;
+  (window as Window & { toggleSupplierRow?: typeof toggleSupplierRow }).toggleSupplierRow =
+    toggleSupplierRow;
 }
 
 // Calculate row height based on expansion state and number of suppliers/locations
-const getRowHeight = (params: any) => {
+const getRowHeight = (params: RowHeightParams<Product>) => {
   const suppliers = params.data?.suppliers;
   const locations = params.data?.locations;
   const itemId = params.data?.item_id;
@@ -566,14 +589,14 @@ const loadProducts = async () => {
       gridApi.value.paginationGoToPage(0);
       gridApi.value.resetRowHeights();
     }
-  } catch (err: any) {
+  } catch (err: unknown) {
     // Handle 401 errors - redirect to login
     const wasAuthError = await handleAuthError(err);
     if (wasAuthError) {
       // Redirect is handled, just return
       return;
     }
-    error.value = err.message || "Failed to load products";
+    error.value = getErrorText(err, "Failed to load products");
   } finally {
     loading.value = false;
   }
@@ -584,7 +607,7 @@ const onPaginationChanged = () => {
 };
 
 // Handle cell clicks for expand/collapse buttons
-const onCellClicked = (params: any) => {
+const onCellClicked = (params: CellClickedEvent<Product>) => {
   const expandBtn = params.event?.target?.closest(".supplier-expand-btn, .location-expand-btn");
   if (expandBtn) {
     const itemId = expandBtn.getAttribute("data-item-id");
@@ -599,7 +622,7 @@ const loadSettings = async () => {
   try {
     const settings = await fetchSettings();
     defaultBufferDays.value = settings.safety_buffer_days;
-  } catch (err: any) {
+  } catch (err: unknown) {
     const wasAuthError = await handleAuthError(err);
     if (!wasAuthError) {
       // Error is already logged on server side
@@ -621,7 +644,7 @@ const loadColumnPreferences = async () => {
         savedVisibility[field] !== undefined ? savedVisibility[field] : col.hide !== true; // Default to visible unless explicitly hidden
     });
     columnVisibility.value = visibility;
-  } catch (err: any) {
+  } catch (err: unknown) {
     const wasAuthError = await handleAuthError(err);
     if (!wasAuthError) {
       // Set defaults if loading fails
@@ -676,7 +699,7 @@ onUnmounted(() => {
   if (gridApi.value) {
     try {
       gridApi.value.destroy();
-    } catch (e) {
+    } catch {
       // Grid may already be destroyed
     }
     gridApi.value = null;

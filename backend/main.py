@@ -43,7 +43,13 @@ app.add_middleware(
 )
 
 # Include routers
-app.include_router(auth.router)
+#
+# Auth endpoints:
+# - Canonical (versioned): `/api/v1/auth/*`
+# - Legacy (deprecated): `/auth/*`
+#
+app.include_router(auth.router, prefix="/api/v1")
+app.include_router(auth.router, deprecated=True)
 app.include_router(forecast.router)
 app.include_router(monitoring.router)
 app.include_router(inventory.router)

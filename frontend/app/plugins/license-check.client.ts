@@ -50,7 +50,7 @@ export default defineNuxtPlugin((nuxtApp) => {
       if (!response.ok) return null;
 
       return (await response.json()) as LicenseStatus;
-    } catch (error) {
+    } catch {
       return null;
     }
   };

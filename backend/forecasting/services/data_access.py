@@ -8,7 +8,7 @@ import pandas as pd
 from typing import List, Optional
 from datetime import date, datetime
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select, and_, text
+from sqlalchemy import select, and_, text, bindparam
 
 
 class DataAccess:
@@ -71,57 +71,42 @@ class DataAccess:
         Returns empty DataFrame if table doesn't exist or no data found.
         """
         try:
-            # Check if table exists
-            check_query = text("""
-                SELECT EXISTS (
-                    SELECT FROM information_schema.tables
-                    WHERE table_schema = 'public'
-                    AND table_name = 'ts_demand_daily'
-                );
-            """)
-            result = await self.db.execute(check_query)
-            table_exists = result.scalar()
-
-            if not table_exists:
-                # Table doesn't exist yet - return empty DataFrame
-                # In production, this would be populated by ETL
+            if not item_ids:
                 return pd.DataFrame()
 
-            # Build query
-            query = text("""
+            params = {"client_id": client_id, "item_ids": item_ids}
+            filters = []
+            if start_date:
+                filters.append("date_local >= :start_date")
+                params["start_date"] = start_date
+            if end_date:
+                filters.append("date_local <= :end_date")
+                params["end_date"] = end_date
+            if location_id:
+                filters.append("location_id = :location_id")
+                params["location_id"] = location_id
+
+            filters_sql = ""
+            if filters:
+                filters_sql = " AND " + " AND ".join(filters)
+
+            query = text(f"""
                 SELECT
-                    item_id::text as id,
+                    item_id as id,
                     date_local as timestamp,
                     units_sold as target,
-                    COALESCE(promotion_flag, false)::int as promo_flag,
-                    COALESCE(holiday_flag, false)::int as holiday_flag,
-                    COALESCE(is_weekend, false)::int as is_weekend,
+                    COALESCE(promotion_flag, false) as promo_flag,
+                    COALESCE(holiday_flag, false) as holiday_flag,
+                    COALESCE(is_weekend, false) as is_weekend,
                     COALESCE(marketing_spend, 0) as marketing_spend
                 FROM ts_demand_daily
                 WHERE client_id = :client_id
-                  AND item_id::text = ANY(:item_ids)
-            """)
+                  AND item_id IN :item_ids
+                  {filters_sql}
+                ORDER BY item_id, date_local
+            """).bindparams(bindparam("item_ids", expanding=True))
 
-            params = {
-                "client_id": client_id,
-                "item_ids": item_ids,
-            }
-
-            if start_date:
-                query = text(str(query) + " AND date_local >= :start_date")
-                params["start_date"] = start_date
-
-            if end_date:
-                query = text(str(query) + " AND date_local <= :end_date")
-                params["end_date"] = end_date
-
-            if location_id:
-                query = text(str(query) + " AND location_id = :location_id")
-                params["location_id"] = location_id
-
-            query = text(str(query) + " ORDER BY item_id, date_local")
-
-            # Execute query
+            # Execute query (dialect-agnostic: works in both SQLite + Postgres)
             result = await self.db.execute(query, params)
             rows = result.fetchall()
 
@@ -135,6 +120,11 @@ class DataAccess:
             if "timestamp" in df.columns:
                 df["timestamp"] = pd.to_datetime(df["timestamp"])
 
+            # Ensure boolean flags are numeric (0/1) for model inputs
+            for col in ["promo_flag", "holiday_flag", "is_weekend"]:
+                if col in df.columns:
+                    df[col] = df[col].astype(int)
+
             return df
 
         except Exception as e:
@@ -142,4 +132,3 @@ class DataAccess:
             # In production, log this error
             print(f"Error fetching from database: {e}")
             return pd.DataFrame()
-

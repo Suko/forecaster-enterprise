@@ -77,7 +77,7 @@ export default defineEventHandler(async (): Promise<LicenseStatus> => {
     }
 
     return status;
-  } catch (error) {
+  } catch {
     return {
       valid: false,
       reason: "license_check_error",

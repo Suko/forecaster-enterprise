@@ -71,7 +71,7 @@ const { user } = await requireUserSession(event)
 
 // Optionally validate token with backend
 try {
-  await authenticatedFetch(event, '/auth/me')
+  await authenticatedFetch(event, '/api/v1/auth/me')
 } catch (error) {
   // Token invalid, clear session
   await clearUserSession(event)
@@ -151,4 +151,3 @@ export default defineNuxtPlugin(() => {
 - Preserve returnTo in middleware
 - Consider session validation
 - Optional: Auto-refresh sessions
-

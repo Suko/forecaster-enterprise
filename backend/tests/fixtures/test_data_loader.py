@@ -22,7 +22,7 @@ class TestDataLoader:  # noqa: PytestCollectionWarning
         if csv_path is None:
             # Default path relative to backend directory
             base_path = Path(__file__).parent.parent.parent
-            csv_path = base_path.parent / "data" / "sintetic_data" / "synthetic_ecom_chronos2_demo.csv"
+            csv_path = base_path.parent / "data" / "synthetic_data" / "synthetic_ecom_chronos2_demo.csv"
 
         self.csv_path = Path(csv_path)
         self._df: Optional[pd.DataFrame] = None
@@ -142,4 +142,3 @@ class TestDataLoader:  # noqa: PytestCollectionWarning
             "min_sales": float(df['target'].min()),
             "max_sales": float(df['target'].max()),
         }
-

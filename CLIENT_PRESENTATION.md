@@ -572,13 +572,94 @@ Your Historical Data
 
 ---
 
-## Next Steps
+## API Example
 
-1. **Discovery Call** — Share your forecasting challenges
-2. **Data Assessment** — We evaluate your historical data quality
-3. **Pilot** — Run forecasts on a subset of items
-4. **Validation** — Measure accuracy against actuals
-5. **Deployment** — Full production rollout
+### Generate Forecast
+
+**Endpoint:** `POST /api/v1/forecast`
+
+**Request:**
+```json
+{
+  "item_ids": ["SKU001", "SKU002", "SKU003"],
+  "prediction_length": 30,
+  "model": "chronos-2",
+  "include_baseline": true
+}
+```
+
+**Response:**
+```json
+{
+  "forecast_id": "550e8400-e29b-41d4-a716-446655440000",
+  "primary_model": "chronos-2",
+  "forecasts": [
+    {
+      "item_id": "SKU001",
+      "method_used": "chronos-2",
+      "classification": {
+        "abc_class": "A",
+        "xyz_class": "X",
+        "demand_pattern": "regular",
+        "forecastability_score": 0.95,
+        "recommended_method": "chronos2",
+        "expected_mape_range": [10.0, 25.0],
+        "warnings": []
+      },
+      "predictions": [
+        {
+          "date": "2025-01-01",
+          "point_forecast": 45.2,
+          "quantiles": {
+            "p10": 38.5,
+            "p50": 45.2,
+            "p90": 52.1
+          }
+        },
+        {
+          "date": "2025-01-02",
+          "point_forecast": 47.8,
+          "quantiles": {
+            "p10": 40.2,
+            "p50": 47.8,
+            "p90": 55.4
+          }
+        }
+        // ... 28 more days
+      ]
+    },
+    {
+      "item_id": "SKU002",
+      "method_used": "sba",
+      "classification": {
+        "abc_class": "B",
+        "xyz_class": "Z",
+        "demand_pattern": "lumpy",
+        "forecastability_score": 0.4,
+        "recommended_method": "sba",
+        "expected_mape_range": [40.0, 70.0],
+        "warnings": [
+          "High variability (CV=1.2) - forecasts may be less accurate",
+          "Intermittent demand (ADI=2.1) - consider specialized methods"
+        ]
+      },
+      "predictions": [
+        {
+          "date": "2025-01-01",
+          "point_forecast": 12.5,
+          "quantiles": null
+        }
+        // ... 29 more days
+      ]
+    }
+    // ... SKU003
+  ]
+}
+```
+
+**Authentication:**
+- **User calls:** Include `Authorization: Bearer <JWT_TOKEN>` header
+- **Service calls:** Include `X-API-Key: <API_KEY>` header + `client_id` in request body
 
 ---
 

@@ -114,204 +114,60 @@ forecaster-enterprise-frontend/
 
 ---
 
-## Option 2: Implement tRPC (TypeScript Backend Required)
+## API Contract Management (REST + OpenAPI)
 
-### ⚠️ Important: tRPC Requires TypeScript Backend
+Since we're keeping the Python FastAPI backend, we'll use **OpenAPI schema** for type safety:
 
-**Current Situation:**
-- Backend is **Python FastAPI** (not TypeScript)
-- tRPC is **TypeScript-only** (no Python support)
+### Approach: OpenAPI → TypeScript Types
 
-### Options for tRPC Implementation
+**Backend:** FastAPI automatically generates OpenAPI schema at `/docs` or `/openapi.json`
 
-#### Option 2A: Keep Python Backend + TypeScript Proxy
+**Frontend:** Generate TypeScript types from OpenAPI schema
 
-**Architecture:**
-```
-Python FastAPI Backend (REST) 
-    ↓
-TypeScript tRPC Server (Proxy/Adapter)
-    ↓
-Nuxt 3 Frontend (tRPC Client)
-```
+**Tools:**
+- `openapi-typescript` - Generate TypeScript types from OpenAPI
+- `swagger-codegen` - Alternative code generator
+- `openapi-generator` - Full-featured generator
 
-**Pros:**
-- Keep existing Python backend
-- Get tRPC type safety on frontend
-- Gradual migration path
+### Implementation Steps
 
-**Cons:**
-- Extra layer (proxy server)
-- Not true end-to-end typesafety
-- More complexity
+1. **Backend:** Ensure OpenAPI schema is accessible
+   ```python
+   # FastAPI automatically generates this
+   # Access at: http://localhost:8000/openapi.json
+   # Or: http://localhost:8000/docs (Swagger UI)
+   ```
 
-**Implementation:**
-1. Create TypeScript tRPC server that proxies to Python API
-2. Define tRPC routers matching Python endpoints
-3. Use tRPC client in Nuxt frontend
-4. Types are shared between tRPC server and client
+2. **Frontend:** Generate types from schema
+   ```bash
+   npm install -D openapi-typescript
+   npx openapi-typescript http://localhost:8000/openapi.json -o app/types/api.ts
+   ```
 
-#### Option 2B: Migrate Backend to TypeScript
+3. **Frontend:** Use generated types
+   ```typescript
+   import type { paths } from '~/types/api';
+   
+   type ForecastRequest = paths['/api/v1/forecast']['post']['requestBody']['content']['application/json'];
+   type ForecastResponse = paths['/api/v1/forecast']['post']['responses']['201']['content']['application/json'];
+   ```
 
-**Architecture:**
-```
-TypeScript Backend (tRPC)
-    ↓
-Nuxt 3 Frontend (tRPC Client)
-```
+4. **Automation:** Add to package.json
+   ```json
+   {
+     "scripts": {
+       "generate:types": "openapi-typescript http://localhost:8000/openapi.json -o app/types/api.ts"
+     }
+   }
+   ```
 
-**Pros:**
-- True end-to-end typesafety
-- No code generation needed
-- Shared types between client/server
-- Better DX (autocomplete, type checking)
+### Benefits
 
-**Cons:**
-- **Major migration** (rewrite Python → TypeScript)
-- Need to port all Python code
-- Forecasting models might need rewriting
-- Significant time investment
-
-**Migration Path:**
-1. Set up TypeScript backend (Node.js/Deno/Bun)
-2. Port FastAPI routes to tRPC routers
-3. Port Python services to TypeScript
-4. Port forecasting models (or use Python subprocess)
-5. Migrate database models (Prisma/TypeORM)
-6. Test thoroughly
-7. Deploy new backend
-8. Update frontend to use tRPC client
-
-#### Option 2C: Hybrid Approach (Recommended if Using tRPC)
-
-**Architecture:**
-```
-Python FastAPI (Forecasting Core)
-    ↓
-TypeScript tRPC Server (API Layer)
-    ↓
-Nuxt 3 Frontend (tRPC Client)
-```
-
-**Implementation:**
-1. Keep Python for forecasting models (complex ML logic)
-2. Create TypeScript tRPC server for API layer
-3. TypeScript server calls Python services via subprocess/HTTP
-4. Frontend uses tRPC client
-5. Types defined in TypeScript, Python validates via Pydantic
-
-**Example:**
-```typescript
-// tRPC router
-export const forecastRouter = router({
-  generate: publicProcedure
-    .input(z.object({ itemIds: z.array(z.string()) }))
-    .mutation(async ({ input }) => {
-      // Call Python service
-      const result = await callPythonForecastService(input);
-      return result;
-    }),
-});
-```
-
----
-
-## Recommendation Matrix
-
-| Scenario | Recommended Approach |
-|----------|---------------------|
-| **Keep Python backend** | Option 1: Separate repos + REST API |
-| **Want typesafety now** | Option 1: Separate repos + OpenAPI types |
-| **Willing to migrate backend** | Option 2B: Full tRPC migration |
-| **Want gradual migration** | Option 2C: Hybrid (tRPC proxy) |
-| **Team is TypeScript-focused** | Option 2B: Migrate to TypeScript + tRPC |
-
----
-
-## Implementation Guide: tRPC with Nuxt 3
-
-### If You Choose tRPC (TypeScript Backend)
-
-#### 1. Install Dependencies
-
-```bash
-# Backend (TypeScript)
-npm install @trpc/server @trpc/client @trpc/react-query
-
-# Frontend (Nuxt 3)
-npm install @trpc/client @trpc/nuxt @tanstack/vue-query
-```
-
-#### 2. Backend Setup (TypeScript)
-
-```typescript
-// backend/src/trpc/router.ts
-import { router, publicProcedure } from './trpc';
-import { z } from 'zod';
-
-export const appRouter = router({
-  forecast: {
-    generate: publicProcedure
-      .input(z.object({
-        itemIds: z.array(z.string()),
-        predictionLength: z.number(),
-        model: z.string().optional(),
-      }))
-      .mutation(async ({ input }) => {
-        // Your forecast logic
-        return { forecastId: '...', forecasts: [...] };
-      }),
-    
-    getResults: publicProcedure
-      .input(z.object({ forecastId: z.string() }))
-      .query(async ({ input }) => {
-        // Fetch results
-        return { results: [...] };
-      }),
-  },
-});
-
-export type AppRouter = typeof appRouter;
-```
-
-#### 3. Frontend Setup (Nuxt 3)
-
-```typescript
-// frontend/plugins/trpc.client.ts
-import { createTRPCNuxtClient, httpBatchLink } from 'trpc-nuxt/client';
-import type { AppRouter } from '~/server/trpc/router';
-
-export default defineNuxtPlugin(() => {
-  const trpc = createTRPCNuxtClient<AppRouter>({
-    links: [
-      httpBatchLink({
-        url: '/api/trpc',
-      }),
-    ],
-  });
-
-  return {
-    provide: {
-      trpc,
-    },
-  });
-});
-```
-
-#### 4. Usage in Components
-
-```vue
-<script setup lang="ts">
-const { $trpc } = useNuxtApp();
-
-// Fully typed!
-const { data, isLoading } = await $trpc.forecast.generate.useMutation({
-  itemIds: ['item-1'],
-  predictionLength: 30,
-  model: 'chronos-2',
-});
-</script>
-```
+- ✅ Type safety without code generation overhead
+- ✅ Types stay in sync with backend API
+- ✅ No need to maintain separate type definitions
+- ✅ Works with existing Python FastAPI backend
+- ✅ Industry standard approach
 
 ---
 

@@ -172,6 +172,23 @@ class SimulationService:
                                     cached_forecast = (cached_date, cached_value)
                         forecast_demand = cached_forecast[1] if cached_forecast else 0.0
                     
+                    # DEBUG: Log forecast and stock status
+                    if days_since_start % 30 == 0:  # Log every 30 days
+                        logger.info(f"Day {days_since_start} - {item_id}: stock={simulated_stock[item_id]:.1f}, forecast={forecast_demand:.2f}, sales={actual_sales:.1f}")
+                    
+                    # If forecast is 0, use historical average as fallback
+                    if forecast_demand <= 0:
+                        # Get average daily sales from last 30 days
+                        historical_avg = await self._get_historical_average_demand(
+                            request.client_id,
+                            item_id,
+                            current_date,
+                            days=30
+                        )
+                        if historical_avg > 0:
+                            forecast_demand = historical_avg * 30  # 30-day forecast
+                            logger.debug(f"Using historical average for {item_id}: {historical_avg:.2f}/day = {forecast_demand:.2f} for 30 days")
+                    
                     if forecast_demand > 0:
                         # Calculate inventory recommendations
                         avg_daily_demand = forecast_demand / 30.0
@@ -198,6 +215,9 @@ class SimulationService:
                         )
                         
                         # Check if we should place an order
+                        # DEBUG: Log reorder point calculation
+                        if days_since_start % 30 == 0:  # Log every 30 days
+                            logger.info(f"Day {days_since_start} - {item_id}: stock={simulated_stock[item_id]:.1f}, reorder_point={reorder_point:.1f}, avg_daily={avg_daily_demand:.2f}, safety_stock={safety_stock:.1f}")
                         
                         if config.auto_place_orders and simulated_stock[item_id] <= reorder_point:
                             # Calculate recommended order quantity
@@ -401,6 +421,39 @@ class SimulationService:
         
         # Default lead time
         return 7
+    
+    async def _get_historical_average_demand(
+        self,
+        client_id: UUID,
+        item_id: str,
+        end_date: date,
+        days: int = 30
+    ) -> float:
+        """Get average daily demand from historical data"""
+        from datetime import timedelta
+        start_date = end_date - timedelta(days=days)
+        
+        query = text("""
+            SELECT AVG(daily_total) as avg_demand
+            FROM (
+                SELECT date_local, SUM(units_sold) as daily_total
+                FROM ts_demand_daily
+                WHERE client_id = :client_id
+                  AND item_id = :item_id
+                  AND date_local >= :start_date
+                  AND date_local < :end_date
+                GROUP BY date_local
+            ) daily_totals
+        """)
+        
+        result = await self.db.execute(query, {
+            "client_id": str(client_id),
+            "item_id": item_id,
+            "start_date": start_date,
+            "end_date": end_date
+        })
+        row = result.one()
+        return float(row.avg_demand) if row.avg_demand else 0.0
     
     def _calculate_results(self) -> SimulationMetrics:
         """Calculate overall simulation metrics"""

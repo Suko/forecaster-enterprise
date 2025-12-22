@@ -1,0 +1,473 @@
+"""
+Simulation Service
+
+Orchestrates day-by-day simulation of the system using historical data.
+Validates system effectiveness by comparing simulated vs real outcomes.
+"""
+from typing import Dict, List, Optional, Tuple
+from uuid import UUID
+from datetime import date, timedelta
+from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy import select, text
+from decimal import Decimal
+import logging
+
+from models.product import Product
+from models.stock import StockLevel
+from models.product_supplier import ProductSupplierCondition
+from models.settings import ClientSettings
+from forecasting.services.forecast_service import ForecastService
+from forecasting.applications.inventory.calculator import InventoryCalculator
+from services.simulation.order_simulator import OrderSimulator, SimulatedOrder
+from services.simulation.comparison_engine import ComparisonEngine
+from schemas.simulation import (
+    SimulationRequest, SimulationResponse, SimulationMetrics,
+    SimulationImprovements, DailyComparison, ItemLevelResult
+)
+
+logger = logging.getLogger(__name__)
+
+
+class SimulationService:
+    """Service for running historical simulations"""
+    
+    def __init__(self, db: AsyncSession):
+        """
+        Initialize simulation service.
+        
+        Args:
+            db: Database session
+        """
+        self.db = db
+        self.forecast_service = ForecastService(db)
+        self.inventory_calc = InventoryCalculator()
+        self.order_simulator = OrderSimulator()
+        self.comparison_engine = ComparisonEngine()
+    
+    async def run_simulation(
+        self,
+        request: SimulationRequest
+    ) -> SimulationResponse:
+        """
+        Run simulation over historical period.
+        
+        Args:
+            request: Simulation request with dates, items, config
+        
+        Returns:
+            SimulationResponse with results
+        """
+        import uuid as uuid_module
+        simulation_id = uuid_module.uuid4()
+        
+        try:
+            # Reset state
+            self.order_simulator.reset()
+            self.comparison_engine.reset()
+            
+            # Get configuration (use defaults if not provided)
+            from schemas.simulation import SimulationConfig
+            config = request.simulation_config or SimulationConfig()
+            
+            # Get initial stock levels at start_date
+            initial_stock = await self._get_stock_snapshot(
+                request.client_id,
+                request.start_date,
+                request.item_ids
+            )
+            
+            # Get all items to simulate
+            item_ids = request.item_ids or await self._get_all_item_ids(request.client_id)
+            
+            # Get product data (lead times, costs, etc.)
+            products = await self._get_products(request.client_id, item_ids)
+            
+            # Initialize simulated stock levels
+            simulated_stock: Dict[str, float] = {
+                item_id: initial_stock.get(item_id, 0.0)
+                for item_id in item_ids
+            }
+            
+            # Get real stock levels for comparison (we'll track these day by day)
+            real_stock: Dict[str, float] = {
+                item_id: initial_stock.get(item_id, 0.0)
+                for item_id in item_ids
+            }
+            
+            # Day-by-day simulation loop
+            current_date = request.start_date
+            total_days = (request.end_date - request.start_date).days + 1
+            
+            logger.info(f"Starting simulation: {request.start_date} to {request.end_date} ({total_days} days)")
+            
+            day_count = 0
+            while current_date <= request.end_date:
+                day_count += 1
+                if day_count % 30 == 0:
+                    logger.info(f"Simulation progress: {day_count}/{total_days} days ({day_count*100//total_days}%)")
+                
+                # Process order arrivals (orders placed earlier that arrive today)
+                arriving_orders = self.order_simulator.get_orders_arriving(current_date)
+                for order in arriving_orders:
+                    simulated_stock[order.item_id] += order.quantity
+                    self.order_simulator.mark_order_received(order)
+                
+                # For each item, simulate the day
+                for item_id in item_ids:
+                    product = products.get(item_id)
+                    if not product:
+                        continue
+                    
+                    # Get actual sales for this day (from historical data)
+                    actual_sales = await self._get_actual_sales(
+                        request.client_id,
+                        item_id,
+                        current_date
+                    )
+                    
+                    # Update stock levels (subtract sales)
+                    simulated_stock[item_id] = max(0.0, simulated_stock[item_id] - actual_sales)
+                    real_stock[item_id] = max(0.0, real_stock[item_id] - actual_sales)
+                    
+                    # Generate forecast (using data up to current_date)
+                    forecast_demand = await self._get_forecasted_demand(
+                        request.client_id,
+                        item_id,
+                        current_date,
+                        prediction_length=30
+                    )
+                    
+                    if forecast_demand > 0:
+                        # Calculate inventory recommendations
+                        avg_daily_demand = forecast_demand / 30.0
+                        
+                        # Get lead time and safety stock days
+                        lead_time_days = await self._get_lead_time(
+                            request.client_id,
+                            item_id
+                        )
+                        safety_stock_days = product.safety_buffer_days or 7
+                        
+                        # Calculate safety stock and reorder point
+                        safety_stock = self.inventory_calc.calculate_safety_stock(
+                            avg_daily_demand,
+                            lead_time_days,
+                            safety_stock_days,
+                            config.service_level
+                        )
+                        
+                        reorder_point = self.inventory_calc.calculate_reorder_point(
+                            avg_daily_demand,
+                            lead_time_days,
+                            safety_stock
+                        )
+                        
+                        # Check if we should place an order
+                        order_placed = False
+                        order_quantity = None
+                        
+                        if config.auto_place_orders and simulated_stock[item_id] <= reorder_point:
+                            # Calculate recommended order quantity
+                            recommended_qty = self.inventory_calc.calculate_recommended_order_quantity(
+                                forecast_demand,
+                                safety_stock,
+                                simulated_stock[item_id],
+                                moq=None  # TODO: Get MOQ from product-supplier
+                            )
+                            
+                            # Place order
+                            order = self.order_simulator.place_order(
+                                item_id=item_id,
+                                quantity=recommended_qty,
+                                order_date=current_date,
+                                lead_time_days=lead_time_days + config.lead_time_buffer_days,
+                                min_order_quantity=config.min_order_quantity
+                            )
+                            
+                            if order:
+                                order_placed = True
+                                order_quantity = order.quantity
+                    
+                    # Record daily comparison
+                    unit_cost = Decimal(str(product.unit_cost)) if product.unit_cost else Decimal("0")
+                    self.comparison_engine.record_daily_comparison(
+                        current_date=current_date,
+                        item_id=item_id,
+                        simulated_stock=simulated_stock[item_id],
+                        real_stock=real_stock[item_id],
+                        unit_cost=unit_cost,
+                        order_placed=order_placed if order_placed else None,
+                        order_quantity=order_quantity
+                    )
+                
+                # Move to next day
+                current_date += timedelta(days=1)
+            
+            # Calculate final metrics
+            results = self._calculate_results()
+            improvements = self._calculate_improvements(results)
+            
+            # Build response
+            return SimulationResponse(
+                simulation_id=simulation_id,
+                status="completed",
+                start_date=request.start_date,
+                end_date=request.end_date,
+                total_days=total_days,
+                results=results,
+                improvements=improvements,
+                daily_comparison=self._format_daily_comparisons(),
+                item_level_results=self._format_item_level_results(item_ids)
+            )
+        
+        except Exception as e:
+            logger.error(f"Simulation failed: {e}", exc_info=True)
+            return SimulationResponse(
+                simulation_id=simulation_id,
+                status="failed",
+                start_date=request.start_date,
+                end_date=request.end_date,
+                total_days=(request.end_date - request.start_date).days + 1,
+                error_message=str(e)
+            )
+    
+    async def _get_stock_snapshot(
+        self,
+        client_id: UUID,
+        snapshot_date: date,
+        item_ids: Optional[List[str]]
+    ) -> Dict[str, float]:
+        """
+        Get stock levels at a specific date.
+        
+        For now, we'll use current stock levels as starting point.
+        TODO: Implement historical stock tracking or reconstruction.
+        """
+        query = select(StockLevel).where(
+            StockLevel.client_id == client_id
+        )
+        
+        if item_ids:
+            query = query.where(StockLevel.item_id.in_(item_ids))
+        
+        result = await self.db.execute(query)
+        stock_levels = result.scalars().all()
+        
+        # Aggregate by item_id (sum across locations)
+        stock_dict: Dict[str, float] = {}
+        for stock in stock_levels:
+            if stock.item_id not in stock_dict:
+                stock_dict[stock.item_id] = 0.0
+            stock_dict[stock.item_id] += float(stock.current_stock)
+        
+        return stock_dict
+    
+    async def _get_all_item_ids(self, client_id: UUID) -> List[str]:
+        """Get all item IDs for a client"""
+        query = select(Product.item_id).where(Product.client_id == client_id)
+        result = await self.db.execute(query)
+        return [row[0] for row in result.all()]
+    
+    async def _get_products(
+        self,
+        client_id: UUID,
+        item_ids: List[str]
+    ) -> Dict[str, Product]:
+        """Get product data for items"""
+        query = select(Product).where(
+            Product.client_id == client_id,
+            Product.item_id.in_(item_ids)
+        )
+        result = await self.db.execute(query)
+        products = result.scalars().all()
+        return {p.item_id: p for p in products}
+    
+    async def _get_actual_sales(
+        self,
+        client_id: UUID,
+        item_id: str,
+        sale_date: date
+    ) -> float:
+        """Get actual sales for a specific item and date"""
+        query = text("""
+            SELECT COALESCE(SUM(units_sold), 0) as total_sales
+            FROM ts_demand_daily
+            WHERE client_id = :client_id
+              AND item_id = :item_id
+              AND date_local = :sale_date
+        """)
+        
+        result = await self.db.execute(query, {
+            "client_id": str(client_id),
+            "item_id": item_id,
+            "sale_date": sale_date
+        })
+        row = result.one()
+        return float(row.total_sales) if row.total_sales else 0.0
+    
+    async def _get_forecasted_demand(
+        self,
+        client_id: UUID,
+        item_id: str,
+        training_end_date: date,
+        prediction_length: int = 30
+    ) -> float:
+        """
+        Get forecasted demand for next 30 days.
+        
+        Uses existing ForecastService with training_end_date parameter.
+        """
+        try:
+            forecast_run = await self.forecast_service.generate_forecast(
+                client_id=str(client_id),
+                user_id=None,
+                item_ids=[item_id],
+                prediction_length=prediction_length,
+                primary_model="chronos-2",
+                include_baseline=False,
+                training_end_date=training_end_date,
+                skip_persistence=True  # Don't save to DB during simulation
+            )
+            
+            # Get forecast results
+            results = await self.forecast_service.get_forecast_results(
+                forecast_run_id=forecast_run.forecast_run_id
+            )
+            
+            if item_id in results and results[item_id]:
+                # Sum all forecasted values
+                total_forecast = sum(
+                    p.get("point_forecast", 0.0) for p in results[item_id]
+                )
+                return float(total_forecast)
+            
+            return 0.0
+        
+        except Exception as e:
+            logger.warning(f"Forecast generation failed for {item_id} on {training_end_date}: {e}")
+            return 0.0
+    
+    async def _get_lead_time(
+        self,
+        client_id: UUID,
+        item_id: str
+    ) -> int:
+        """Get lead time for an item (from product-supplier or default)"""
+        # Try to get from product-supplier conditions
+        query = select(ProductSupplierCondition).where(
+            ProductSupplierCondition.client_id == client_id,
+            ProductSupplierCondition.item_id == item_id,
+            ProductSupplierCondition.is_primary == True
+        ).limit(1)
+        
+        result = await self.db.execute(query)
+        condition = result.scalar_one_or_none()
+        
+        if condition and condition.lead_time_days:
+            return condition.lead_time_days
+        
+        # Default lead time
+        return 7
+    
+    def _calculate_results(self) -> SimulationMetrics:
+        """Calculate overall simulation metrics"""
+        stockout_rate = self.comparison_engine.calculate_stockout_rate()
+        inventory_value = self.comparison_engine.calculate_inventory_value()
+        service_level = self.comparison_engine.calculate_service_level()
+        
+        # Total cost (simplified: inventory carrying cost)
+        # TODO: Add stockout cost and ordering cost
+        total_cost_sim = inventory_value["simulated"]
+        total_cost_real = inventory_value["real"]
+        
+        return SimulationMetrics(
+            stockout_rate=stockout_rate,
+            inventory_value=inventory_value,
+            service_level=service_level,
+            total_cost={
+                "simulated": total_cost_sim,
+                "real": total_cost_real
+            }
+        )
+    
+    def _calculate_improvements(self, results: SimulationMetrics) -> SimulationImprovements:
+        """Calculate improvement metrics vs baseline"""
+        real_stockout_rate = results.stockout_rate["real"]
+        sim_stockout_rate = results.stockout_rate["simulated"]
+        
+        stockout_reduction = 0.0
+        if real_stockout_rate > 0:
+            stockout_reduction = (real_stockout_rate - sim_stockout_rate) / real_stockout_rate
+        
+        real_inv_value = results.inventory_value["real"]
+        sim_inv_value = results.inventory_value["simulated"]
+        
+        inventory_reduction = 0.0
+        if real_inv_value > 0:
+            inventory_reduction = (real_inv_value - sim_inv_value) / real_inv_value
+        
+        cost_savings = results.total_cost["real"] - results.total_cost["simulated"]
+        
+        service_level_improvement = results.service_level["simulated"] - results.service_level["real"]
+        
+        return SimulationImprovements(
+            stockout_reduction=stockout_reduction,
+            inventory_reduction=inventory_reduction,
+            cost_savings=cost_savings,
+            service_level_improvement=service_level_improvement
+        )
+    
+    def _format_daily_comparisons(self) -> List[DailyComparison]:
+        """Format daily comparisons for response"""
+        comparisons = self.comparison_engine.get_daily_comparisons()
+        return [
+            DailyComparison(
+                date=c["date"],
+                item_id=c["item_id"],
+                simulated_stock=c["simulated_stock"],
+                real_stock=c["real_stock"],
+                simulated_stockout=c["simulated_stockout"],
+                real_stockout=c["real_stockout"],
+                order_placed=c.get("order_placed"),
+                order_quantity=c.get("order_quantity")
+            )
+            for c in comparisons
+        ]
+    
+    def _format_item_level_results(self, item_ids: List[str]) -> List[ItemLevelResult]:
+        """Format item-level results for response"""
+        results = []
+        
+        for item_id in item_ids:
+            stockout_rate = self.comparison_engine.calculate_stockout_rate(item_id)
+            inventory_value = self.comparison_engine.calculate_inventory_value(item_id)
+            service_level = self.comparison_engine.calculate_service_level(item_id)
+            total_orders = self.order_simulator.get_total_orders_placed(item_id)
+            
+            # Calculate improvements
+            real_stockout = stockout_rate["real"]
+            sim_stockout = stockout_rate["simulated"]
+            stockout_reduction = 0.0
+            if real_stockout > 0:
+                stockout_reduction = (real_stockout - sim_stockout) / real_stockout
+            
+            real_inv = inventory_value["real"]
+            sim_inv = inventory_value["simulated"]
+            inventory_reduction = 0.0
+            if real_inv > 0:
+                inventory_reduction = (real_inv - sim_inv) / real_inv
+            
+            results.append(ItemLevelResult(
+                item_id=item_id,
+                stockout_rate=stockout_rate,
+                inventory_value=inventory_value,
+                service_level=service_level,
+                total_orders_placed=total_orders,
+                improvement={
+                    "stockout_reduction": stockout_reduction,
+                    "inventory_reduction": inventory_reduction
+                }
+            ))
+        
+        return results
+

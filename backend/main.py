@@ -6,7 +6,7 @@ from config import settings
 
 from models import init_db
 from api import auth, forecast, monitoring, inventory, orders, purchase_orders, etl, suppliers, locations
-from api import settings as settings_api
+from api import settings as settings_api, simulation
 
 # Database will be initialized via Alembic migrations
 # Run: alembic upgrade head
@@ -59,6 +59,7 @@ app.include_router(suppliers.router)
 app.include_router(locations.router)
 app.include_router(settings_api.router)
 app.include_router(etl.router)
+app.include_router(simulation.router)
 
 
 @app.get("/")

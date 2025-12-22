@@ -1,14 +1,14 @@
 # Next Steps - Development Priorities
 
-**Last Updated:** 2025-12-17  
-**Status:** Active Development Plan  
-**Scope:** Post-MVP completion priorities
+**Last Updated:** 2025-12-22  
+**Status:** Roadmap (vNext)  
+**Scope:** Post-v1 improvements (not a v1 contract)
 
 ---
 
 ## Executive Summary
 
-Backend MVP (Phases 1-4) is **complete** ✅, and frontend MVP is **~87% complete** ✅. This document outlines the prioritized next steps to complete the MVP and prepare for production.
+v1 is considered complete. This document captures **future improvements** and follow-up work. Anything here may evolve as implementation changes.
 
 **Recently Completed:**
 - ✅ **Test Bed Feature** - Complete Experiments page with Test Bed & ROI Calculator (2025-12-22)
@@ -16,7 +16,7 @@ Backend MVP (Phases 1-4) is **complete** ✅, and frontend MVP is **~87% complet
   - SKU classification and system recommendations
   - Backtesting with actual data validation
   - All tests passing, data accuracy verified
-  - See: `docs/CHANGELOG_TEST_BED.md` for details
+  - See: `../archive/releases/v1.0.0/CHANGELOG_TEST_BED.md` for details
 - ✅ Data Validation - Complete validation service with quality checks
 - ✅ Forecasting Integration - Forecasts now used in dashboard, products, and recommendations
 - ✅ ETL Bug Fix - Fixed `location_id` missing in sales history sync
@@ -30,12 +30,13 @@ Backend MVP (Phases 1-4) is **complete** ✅, and frontend MVP is **~87% complet
 
 - [x] Fix `ForecastService.generate_forecast()` success path (commit/return) so `forecast_runs`/`forecast_results` persist reliably
 - [x] Harden forecast endpoint auth/tenant isolation: only accept request-body `client_id` when a valid service key is present; otherwise require JWT-derived `client_id`
-- Reference flow + details: `docs/backend/forecasting/README.md`
+- Reference flow + details: `../backend/forecasting/README.md`
 
 ### 0.1 Backend/Frontend Contract Alignment (Blockers)
 **Goal:** Make backend, frontend, and docs agree before adding more UI features.
 
-**Compatibility Audit:** [Backend/Frontend Compatibility & Blockers](system/BACKEND_FRONTEND_COMPATIBILITY.md)
+**Integration rules (v1):** [Integration](../system/INTEGRATION.md)  
+**Audit snapshot (v1):** `../archive/releases/v1.0.0/BACKEND_FRONTEND_COMPATIBILITY.md`
 
 - [x] Migrate auth base path to `/api/v1/auth/*` (keep `/auth/*` as deprecated alias during transition)
 - [x] Normalize `stockout_risk` scale across API + UI (recommend: **0–1 in API**, % only in UI)
@@ -111,6 +112,44 @@ Backend MVP (Phases 1-4) is **complete** ✅, and frontend MVP is **~87% complet
 - [ ] ETL status dashboard (if needed)
 
 **Estimated Time:** 1 week
+
+---
+
+### 4. Simulation System - **WEEK 5**
+**Goal:** Validate system effectiveness by simulating real-world operation over 12-month historical period
+
+**Purpose:** Answer the question: *"If we had run this system 12 months ago, would it have minimized stockouts and reduced inventory value?"*
+
+**Backend Tasks:**
+- [ ] Create `SimulationService` - Main orchestrator for day-by-day simulation
+- [ ] Build date filtering wrapper - Filter `ts_demand_daily` by simulation date
+- [ ] Implement order simulator - Track orders, lead times, arrivals
+- [ ] Build comparison engine - Compare simulated vs real outcomes
+- [ ] Create simulation API endpoint: `POST /api/v1/simulation/run`
+- [ ] Generate comprehensive results report (stockout rate, inventory value, service level, cost savings)
+
+**Key Features:**
+- Day-by-day simulation from start_date to end_date
+- Automatic order placement when reorder point triggered
+- Track simulated stock: `stock = stock - sales + order_arrivals`
+- Compare simulated outcomes vs real historical outcomes
+- Calculate metrics: stockout rate, inventory value, service level, cost savings
+
+**Metrics to Track:**
+- Stockout rate (target: < 2%, 50%+ reduction vs real)
+- Inventory value (target: 15-30% reduction)
+- Service level (target: > 98%)
+- Total cost savings
+- Item-level performance analysis
+
+**Implementation Notes:**
+- Use existing services only (no external dependencies)
+- Build in feature branch: `feature/simulation-system`
+- Darts library integration deferred to future enhancement
+
+**See Full Documentation:** [Simulation System](../system/SIMULATION_SYSTEM.md)
+
+**Estimated Time:** 2 weeks
 
 ---
 
@@ -270,17 +309,17 @@ CREATE TABLE product_exclusions (
 
 ## Related Documentation
 
-- [Backend Roadmap (Archive)](archive/backend/BACKEND_ROADMAP.md) - Historical implementation snapshot
-- [Frontend Roadmap (Archive)](archive/frontend/FRONTEND_ROADMAP.md) - Historical MVP plan snapshot
-- [User Stories](USER_STORIES.md) - Feature requirements
-- [Workflows](WORKFLOWS.md) - System workflows and decision loops
-- [Quick Start](setup/QUICK_START.md) - Setup instructions
-- [Data Requirements](DATA_REQUIREMENTS.md) - User-facing guide on what data is required vs. app-managed
+- [Backend Roadmap (Archive)](../archive/backend/BACKEND_ROADMAP.md) - Historical implementation snapshot
+- [Frontend Roadmap (Archive)](../archive/frontend/FRONTEND_ROADMAP.md) - Historical MVP plan snapshot
+- [User Stories](product/USER_STORIES.md) - Feature requirements
+- [Workflows](product/WORKFLOWS.md) - System workflows and decision loops
+- [Quick Start](../setup/QUICK_START.md) - Setup instructions
+- [Data Requirements](../DATA_REQUIREMENTS.md) - User-facing guide on what data is required vs. app-managed
 
 ---
 
 **Document Owner:** Development Team  
-**Last Updated:** 2025-12-17  
+**Last Updated:** 2025-12-22  
 **Next Review:** After Forecasting Hardening + Contract Alignment
 
 ---
@@ -291,7 +330,7 @@ CREATE TABLE product_exclusions (
 - [Inventory Improvements](features/INVENTORY_IMPROVEMENTS.md) - Comprehensive inventory page enhancements
 - [Purchase Order Improvements](features/PURCHASE_ORDER_IMPROVEMENTS.md) - PO UI/UX improvements, expected delivery dates, cart enhancements
 - [Dashboard Improvements](features/DASHBOARD_IMPROVEMENTS.md) - Dashboard enhancements, trend charts, interactive KPIs
-- [Backend/Frontend Compatibility & Blockers](system/BACKEND_FRONTEND_COMPATIBILITY.md) - Current mismatches + decisions
+- [Integration (v1)](../system/INTEGRATION.md) - Stable contract rules and validation commands
 
 **Note:** Recommendations page is deprecated. Its functionality is merged into:
 - **Inventory** → "Needs Action" tab (status-based filtering)

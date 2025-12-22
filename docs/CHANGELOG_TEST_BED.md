@@ -104,7 +104,7 @@ Successfully migrated and implemented the Test Bed feature from the old ecommerc
 - **Added:** `/models.get.ts` - Available models
 - **Added:** `/date-range.get.ts` - Historical data range
 - **Added:** `/historical.get.ts` - Historical sales data
-- **Added:** `/quality/[itemId].get.ts` - Quality metrics
+- **Added:** `/quality/[item_id].get.ts` - Quality metrics
 - **Added:** `/categories.get.ts` - Product categories
 - **Added:** `/actuals.post.ts` - Backfill actuals
 

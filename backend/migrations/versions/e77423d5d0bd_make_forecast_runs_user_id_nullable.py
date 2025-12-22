@@ -53,8 +53,18 @@ def downgrade() -> None:
     # Make the column non-nullable (will fail if NULL values exist)
     op.alter_column('forecast_runs', 'user_id', nullable=False)
     # Recreate the foreign key constraint
+    # Find the original constraint name if it was different
+    conn = op.get_bind()
+    inspector = inspect(conn)
+    fk_constraints = inspector.get_foreign_keys('forecast_runs')
+    original_fk_name = 'forecast_runs_user_id_fkey'
+    for fk in fk_constraints:
+        if 'user_id' in fk.get('constrained_columns', []):
+            # This shouldn't happen in downgrade, but just in case
+            pass
+    
     op.create_foreign_key(
-        'forecast_runs_user_id_fkey',
+        original_fk_name,
         'forecast_runs', 'users',
         ['user_id'], ['id']
     )

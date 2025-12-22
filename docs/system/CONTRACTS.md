@@ -192,6 +192,7 @@ await $fetch("/api/order-planning/cart/add", {
 // frontend/server/api/products/[itemId]/history.get.ts
 const itemId = event.context.params?.itemId; // ❌ Won't match backend path
 ```
+> **Note:** This issue has been fixed in the codebase. All route folders now use `[item_id]`.
 
 **❌ Wrong: Type Definition Mismatch**
 ```typescript
@@ -199,6 +200,7 @@ interface Product {
   itemId: string; // ❌ Backend returns item_id, not itemId
 }
 ```
+> **Note:** Type definitions correctly use `item_id` in the codebase.
 
 ---
 

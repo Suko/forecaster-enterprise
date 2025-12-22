@@ -8,7 +8,100 @@
 
 **Decision:** We will keep REST API with OpenAPI schema (no tRPC implementation)
 
-## Option 1: Separate Repositories (Recommended for Production)
+---
+
+## Repository Structure Options
+
+### Option A: Monorepo (Current - All Together) ✅ **Recommended for Now**
+
+**Structure:**
+```
+forecaster-enterprise/          # Single repository
+├── backend/                    # Python FastAPI
+├── frontend/                   # Nuxt 3
+├── docs/                       # Shared documentation
+└── docker-compose.yml          # Local development
+```
+
+**Pros:**
+- ✅ Easy to coordinate changes
+- ✅ Single git history
+- ✅ Shared documentation
+- ✅ Simple local development
+- ✅ No API contract management needed
+
+**Cons:**
+- ❌ Coupled deployment
+- ❌ Can't deploy independently
+- ❌ Teams can't work completely independently
+
+**When to use:** Current development phase, small team, rapid iteration
+
+---
+
+### Option B: Separate Repositories (2 Repos)
+
+**Structure:**
+```
+forecaster-enterprise-backend/  # Backend only
+├── api/
+├── forecasting/
+├── models/
+└── main.py
+
+forecaster-enterprise-frontend/ # Frontend only
+├── app/
+├── server/
+└── nuxt.config.ts
+```
+
+**Pros:**
+- ✅ Independent deployment
+- ✅ Team autonomy
+- ✅ Technology flexibility
+- ✅ Separate CI/CD pipelines
+
+**Cons:**
+- ❌ Need API contract management
+- ❌ More complex coordination
+- ❌ Separate git histories
+
+**When to use:** Larger team, independent deployment needs, stable API
+
+---
+
+### Option C: Hybrid (3 Repos) - **NOT Recommended**
+
+**Structure:**
+```
+forecaster-enterprise/          # Monorepo (development)
+forecaster-enterprise-backend/  # Backend (deployment)
+forecaster-enterprise-frontend/ # Frontend (deployment)
+```
+
+**Why NOT recommended:**
+- ❌ Too complex
+- ❌ Sync overhead between repos
+- ❌ Confusion about source of truth
+- ❌ Maintenance burden
+
+**Only use if:** You have very specific deployment requirements that require this complexity
+
+---
+
+## Recommendation
+
+**Current Phase: Keep Monorepo (Option A)**
+
+**Future (if needed): Separate to 2 Repos (Option B)**
+
+You do **NOT** need 3 repos. Choose:
+- **Monorepo** (all together) - Current approach ✅
+- **2 separate repos** (FE + BE) - When you need independent deployment
+
+---
+
+## Option 1: Separate Repositories (2 Repos - When Ready)
 
 ### Step-by-Step Separation
 

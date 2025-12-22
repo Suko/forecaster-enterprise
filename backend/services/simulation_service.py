@@ -11,6 +11,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, text
 from decimal import Decimal
 import logging
+from collections import defaultdict
 
 from models.product import Product
 from models.stock import StockLevel
@@ -129,13 +130,41 @@ class SimulationService:
                     simulated_stock[item_id] = max(0.0, simulated_stock[item_id] - actual_sales)
                     real_stock[item_id] = max(0.0, real_stock[item_id] - actual_sales)
                     
+                    # Initialize order tracking variables
+                    order_placed = False
+                    order_quantity: Optional[float] = None
+                    
                     # Generate forecast (using data up to current_date)
-                    forecast_demand = await self._get_forecasted_demand(
-                        request.client_id,
-                        item_id,
-                        current_date,
-                        prediction_length=30
+                    # OPTIMIZATION: Only generate forecast weekly (every 7 days) to reduce computation time
+                    # For simulation, we can use cached forecast for a few days
+                    days_since_start = (current_date - request.start_date).days
+                    should_regenerate_forecast = (
+                        days_since_start == 0 or  # First day
+                        days_since_start % 7 == 0  # Weekly refresh
                     )
+                    
+                    if should_regenerate_forecast:
+                        forecast_demand = await self._get_forecasted_demand(
+                            request.client_id,
+                            item_id,
+                            current_date,
+                            prediction_length=30
+                        )
+                        # Cache forecast for next 7 days
+                        if not hasattr(self, '_forecast_cache'):
+                            self._forecast_cache: Dict[Tuple[str, date], float] = {}
+                        self._forecast_cache[(item_id, current_date)] = forecast_demand
+                    else:
+                        # Use cached forecast (from most recent generation)
+                        if not hasattr(self, '_forecast_cache'):
+                            self._forecast_cache: Dict[Tuple[str, date], float] = {}
+                        # Find most recent cached forecast for this item
+                        cached_forecast = None
+                        for (cached_item, cached_date), cached_value in self._forecast_cache.items():
+                            if cached_item == item_id and cached_date <= current_date:
+                                if cached_forecast is None or cached_date > cached_forecast[0]:
+                                    cached_forecast = (cached_date, cached_value)
+                        forecast_demand = cached_forecast[1] if cached_forecast else 0.0
                     
                     if forecast_demand > 0:
                         # Calculate inventory recommendations
@@ -163,8 +192,6 @@ class SimulationService:
                         )
                         
                         # Check if we should place an order
-                        order_placed = False
-                        order_quantity: Optional[float] = None
                         
                         if config.auto_place_orders and simulated_stock[item_id] <= reorder_point:
                             # Calculate recommended order quantity

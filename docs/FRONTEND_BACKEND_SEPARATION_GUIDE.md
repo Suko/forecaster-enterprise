@@ -70,22 +70,74 @@ forecaster-enterprise-frontend/ # Frontend only
 
 ---
 
-### Option C: Hybrid (3 Repos) - **NOT Recommended**
+### Option C: Nested Git Repo (Backend Main + Frontend Sub-repo)
 
 **Structure:**
 ```
-forecaster-enterprise/          # Monorepo (development)
-forecaster-enterprise-backend/  # Backend (deployment)
-forecaster-enterprise-frontend/ # Frontend (deployment)
+forecaster-enterprise/          # Main repo (backend)
+├── backend/                    # Tracked by main repo
+├── frontend/                   # Separate git repo (nested)
+│   ├── .git/                  # Frontend's own git
+│   ├── app/
+│   └── package.json
+├── .gitignore                 # Ignores frontend/
+└── docs/                      # Shared docs
 ```
 
-**Why NOT recommended:**
-- ❌ Too complex
-- ❌ Sync overhead between repos
-- ❌ Confusion about source of truth
-- ❌ Maintenance burden
+**How it works:**
+- Main repo tracks `backend/`, `docs/`, root files
+- `frontend/` folder has its own `.git/` repository
+- Main repo's `.gitignore` excludes `frontend/`
+- Each repo has independent history and deployment
 
-**Only use if:** You have very specific deployment requirements that require this complexity
+**Pros:**
+- ✅ Backend and frontend are separate repos
+- ✅ Independent versioning and deployment
+- ✅ Can work on both in same workspace
+- ✅ Simple setup (no submodules complexity)
+- ✅ Frontend team can clone just frontend folder
+
+**Cons:**
+- ❌ Frontend folder not tracked in main repo
+- ❌ Need to remember to work in nested repo
+- ❌ Shared docs need to be synced manually
+- ❌ Can be confusing (two `.git` folders)
+
+**Implementation Steps:**
+
+1. **Create frontend as separate repo:**
+   ```bash
+   cd frontend
+   git init
+   git add .
+   git commit -m "Initial frontend commit"
+   git remote add origin <frontend-repo-url>
+   git push -u origin main
+   ```
+
+2. **Update main repo's .gitignore:**
+   ```bash
+   # Add to root .gitignore
+   echo "frontend/" >> .gitignore
+   git add .gitignore
+   git commit -m "Ignore frontend folder (separate repo)"
+   ```
+
+3. **Workflow:**
+   ```bash
+   # Backend changes
+   cd /path/to/forecaster-enterprise
+   git add backend/
+   git commit -m "Backend changes"
+   
+   # Frontend changes
+   cd /path/to/forecaster-enterprise/frontend
+   git add .
+   git commit -m "Frontend changes"
+   git push
+   ```
+
+**When to use:** When you want separation but keep them in same workspace
 
 ---
 

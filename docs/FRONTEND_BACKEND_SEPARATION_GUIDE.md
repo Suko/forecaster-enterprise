@@ -86,7 +86,7 @@ forecaster-enterprise-frontend/
 - Backend validates against types (using Pydantic)
 - Frontend imports types directly
 
-**Option C: tRPC (See Option 2 below)**
+**Option C: OpenAPI Type Generation (Recommended)**
 
 ### 5. Deployment Strategy
 

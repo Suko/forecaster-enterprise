@@ -19,12 +19,12 @@ class SimulatedOrder:
     quantity: float
     order_date: date
     lead_time_days: int
-    arrival_date: date
+    arrival_date: Optional[date] = None
     received: bool = False
     
     def __post_init__(self):
         """Calculate arrival date from order date and lead time"""
-        if not hasattr(self, 'arrival_date') or self.arrival_date is None:
+        if self.arrival_date is None:
             self.arrival_date = self.order_date + timedelta(days=self.lead_time_days)
 
 

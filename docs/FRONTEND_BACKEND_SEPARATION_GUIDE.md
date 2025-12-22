@@ -1,0 +1,472 @@
+# Frontend/Backend Separation Guide
+
+## Current Architecture
+
+**Backend:** Python FastAPI  
+**Frontend:** Nuxt 3 (TypeScript)  
+**Communication:** REST API with server proxy routes
+
+**Decision:** We will keep REST API with OpenAPI schema (no tRPC implementation)
+
+## Option 1: Separate Repositories (Recommended for Production)
+
+### Step-by-Step Separation
+
+#### 1. Create Separate Repositories
+
+```bash
+# Create backend repository
+git clone <current-repo> forecaster-enterprise-backend
+cd forecaster-enterprise-backend
+git filter-branch --subdirectory-filter backend -- --all
+# Or use git subtree:
+git subtree push --prefix=backend origin backend-main
+
+# Create frontend repository  
+git clone <current-repo> forecaster-enterprise-frontend
+cd forecaster-enterprise-frontend
+git filter-branch --subdirectory-filter frontend -- --all
+# Or use git subtree:
+git subtree push --prefix=frontend origin frontend-main
+```
+
+#### 2. Update Backend Repository
+
+**Structure:**
+```
+forecaster-enterprise-backend/
+├── api/
+├── forecasting/
+├── models/
+├── services/
+├── main.py
+├── Dockerfile
+├── requirements.txt (or pyproject.toml)
+└── README.md
+```
+
+**Changes needed:**
+- Update import paths (remove `backend/` prefix)
+- Update Dockerfile paths
+- Add `.env.example` for environment variables
+- Update CI/CD pipelines
+- Add API documentation endpoint
+
+#### 3. Update Frontend Repository
+
+**Structure:**
+```
+forecaster-enterprise-frontend/
+├── app/
+├── server/
+├── public/
+├── nuxt.config.ts
+├── package.json
+├── Dockerfile
+└── README.md
+```
+
+**Changes needed:**
+- Update API base URL to point to backend service
+- Update environment variables
+- Remove backend dependencies
+- Update CI/CD pipelines
+- Add API client configuration
+
+#### 4. API Contract Management
+
+**Option A: OpenAPI/Swagger (Current)**
+- Backend generates OpenAPI schema
+- Frontend can generate TypeScript types from schema
+- Tools: `openapi-typescript`, `swagger-codegen`
+
+**Option B: Shared Type Definitions**
+- Create separate `api-contracts` package/repo
+- Define types in TypeScript
+- Backend validates against types (using Pydantic)
+- Frontend imports types directly
+
+**Option C: tRPC (See Option 2 below)**
+
+### 5. Deployment Strategy
+
+**Backend:**
+- Deploy as separate service (e.g., `api.forecaster.com`)
+- CORS configuration for frontend domain
+- API authentication via JWT tokens
+
+**Frontend:**
+- Deploy as static site or SSR (e.g., `app.forecaster.com`)
+- Configure API endpoint in environment variables
+- Handle authentication token storage
+
+### 6. Development Workflow
+
+**Monorepo Tools (Alternative):**
+- Use `pnpm workspaces` or `npm workspaces`
+- Keep repos separate but linked
+- Shared types package
+
+**Independent Development:**
+- Backend team works on API contracts
+- Frontend team works on UI
+- Coordinate via API versioning
+
+---
+
+## Option 2: Implement tRPC (TypeScript Backend Required)
+
+### ⚠️ Important: tRPC Requires TypeScript Backend
+
+**Current Situation:**
+- Backend is **Python FastAPI** (not TypeScript)
+- tRPC is **TypeScript-only** (no Python support)
+
+### Options for tRPC Implementation
+
+#### Option 2A: Keep Python Backend + TypeScript Proxy
+
+**Architecture:**
+```
+Python FastAPI Backend (REST) 
+    ↓
+TypeScript tRPC Server (Proxy/Adapter)
+    ↓
+Nuxt 3 Frontend (tRPC Client)
+```
+
+**Pros:**
+- Keep existing Python backend
+- Get tRPC type safety on frontend
+- Gradual migration path
+
+**Cons:**
+- Extra layer (proxy server)
+- Not true end-to-end typesafety
+- More complexity
+
+**Implementation:**
+1. Create TypeScript tRPC server that proxies to Python API
+2. Define tRPC routers matching Python endpoints
+3. Use tRPC client in Nuxt frontend
+4. Types are shared between tRPC server and client
+
+#### Option 2B: Migrate Backend to TypeScript
+
+**Architecture:**
+```
+TypeScript Backend (tRPC)
+    ↓
+Nuxt 3 Frontend (tRPC Client)
+```
+
+**Pros:**
+- True end-to-end typesafety
+- No code generation needed
+- Shared types between client/server
+- Better DX (autocomplete, type checking)
+
+**Cons:**
+- **Major migration** (rewrite Python → TypeScript)
+- Need to port all Python code
+- Forecasting models might need rewriting
+- Significant time investment
+
+**Migration Path:**
+1. Set up TypeScript backend (Node.js/Deno/Bun)
+2. Port FastAPI routes to tRPC routers
+3. Port Python services to TypeScript
+4. Port forecasting models (or use Python subprocess)
+5. Migrate database models (Prisma/TypeORM)
+6. Test thoroughly
+7. Deploy new backend
+8. Update frontend to use tRPC client
+
+#### Option 2C: Hybrid Approach (Recommended if Using tRPC)
+
+**Architecture:**
+```
+Python FastAPI (Forecasting Core)
+    ↓
+TypeScript tRPC Server (API Layer)
+    ↓
+Nuxt 3 Frontend (tRPC Client)
+```
+
+**Implementation:**
+1. Keep Python for forecasting models (complex ML logic)
+2. Create TypeScript tRPC server for API layer
+3. TypeScript server calls Python services via subprocess/HTTP
+4. Frontend uses tRPC client
+5. Types defined in TypeScript, Python validates via Pydantic
+
+**Example:**
+```typescript
+// tRPC router
+export const forecastRouter = router({
+  generate: publicProcedure
+    .input(z.object({ itemIds: z.array(z.string()) }))
+    .mutation(async ({ input }) => {
+      // Call Python service
+      const result = await callPythonForecastService(input);
+      return result;
+    }),
+});
+```
+
+---
+
+## Recommendation Matrix
+
+| Scenario | Recommended Approach |
+|----------|---------------------|
+| **Keep Python backend** | Option 1: Separate repos + REST API |
+| **Want typesafety now** | Option 1: Separate repos + OpenAPI types |
+| **Willing to migrate backend** | Option 2B: Full tRPC migration |
+| **Want gradual migration** | Option 2C: Hybrid (tRPC proxy) |
+| **Team is TypeScript-focused** | Option 2B: Migrate to TypeScript + tRPC |
+
+---
+
+## Implementation Guide: tRPC with Nuxt 3
+
+### If You Choose tRPC (TypeScript Backend)
+
+#### 1. Install Dependencies
+
+```bash
+# Backend (TypeScript)
+npm install @trpc/server @trpc/client @trpc/react-query
+
+# Frontend (Nuxt 3)
+npm install @trpc/client @trpc/nuxt @tanstack/vue-query
+```
+
+#### 2. Backend Setup (TypeScript)
+
+```typescript
+// backend/src/trpc/router.ts
+import { router, publicProcedure } from './trpc';
+import { z } from 'zod';
+
+export const appRouter = router({
+  forecast: {
+    generate: publicProcedure
+      .input(z.object({
+        itemIds: z.array(z.string()),
+        predictionLength: z.number(),
+        model: z.string().optional(),
+      }))
+      .mutation(async ({ input }) => {
+        // Your forecast logic
+        return { forecastId: '...', forecasts: [...] };
+      }),
+    
+    getResults: publicProcedure
+      .input(z.object({ forecastId: z.string() }))
+      .query(async ({ input }) => {
+        // Fetch results
+        return { results: [...] };
+      }),
+  },
+});
+
+export type AppRouter = typeof appRouter;
+```
+
+#### 3. Frontend Setup (Nuxt 3)
+
+```typescript
+// frontend/plugins/trpc.client.ts
+import { createTRPCNuxtClient, httpBatchLink } from 'trpc-nuxt/client';
+import type { AppRouter } from '~/server/trpc/router';
+
+export default defineNuxtPlugin(() => {
+  const trpc = createTRPCNuxtClient<AppRouter>({
+    links: [
+      httpBatchLink({
+        url: '/api/trpc',
+      }),
+    ],
+  });
+
+  return {
+    provide: {
+      trpc,
+    },
+  });
+});
+```
+
+#### 4. Usage in Components
+
+```vue
+<script setup lang="ts">
+const { $trpc } = useNuxtApp();
+
+// Fully typed!
+const { data, isLoading } = await $trpc.forecast.generate.useMutation({
+  itemIds: ['item-1'],
+  predictionLength: 30,
+  model: 'chronos-2',
+});
+</script>
+```
+
+---
+
+## Implementation Guide: Separate Repositories
+
+### Step 1: Extract Backend
+
+```bash
+# Create new backend repo
+mkdir forecaster-enterprise-backend
+cd forecaster-enterprise-backend
+git init
+
+# Copy backend files
+cp -r ../forecaster_enterprise/backend/* .
+
+# Update imports (remove backend/ prefix)
+find . -name "*.py" -exec sed -i '' 's/from backend\./from /g' {} \;
+```
+
+### Step 2: Extract Frontend
+
+```bash
+# Create new frontend repo
+mkdir forecaster-enterprise-frontend
+cd forecaster-enterprise-frontend
+git init
+
+# Copy frontend files
+cp -r ../forecaster_enterprise/frontend/* .
+
+# Update API base URL
+# In nuxt.config.ts or .env
+API_BASE_URL=https://api.forecaster.com
+```
+
+### Step 3: API Contract
+
+**Create shared types package:**
+
+```typescript
+// packages/api-contracts/src/forecast.ts
+export interface ForecastRequest {
+  itemIds: string[];
+  predictionLength: number;
+  model?: string;
+}
+
+export interface ForecastResponse {
+  forecastId: string;
+  forecasts: ItemForecast[];
+}
+```
+
+**Backend validates with Pydantic:**
+```python
+# backend/schemas/forecast.py
+from pydantic import BaseModel
+
+class ForecastRequest(BaseModel):
+    item_ids: List[str]
+    prediction_length: int
+    model: Optional[str] = None
+```
+
+**Frontend uses TypeScript types:**
+```typescript
+// frontend/app/types/forecast.ts
+import type { ForecastRequest, ForecastResponse } from '@forecaster/api-contracts';
+```
+
+---
+
+## Migration Checklist
+
+### For Repository Separation
+
+- [ ] Create backend repository
+- [ ] Create frontend repository
+- [ ] Extract and update backend code
+- [ ] Extract and update frontend code
+- [ ] Set up API contract management
+- [ ] Update CI/CD pipelines
+- [ ] Configure CORS on backend
+- [ ] Update environment variables
+- [ ] Test deployment
+- [ ] Update documentation
+
+### For OpenAPI Type Generation
+
+- [ ] Verify OpenAPI schema is accessible (`/openapi.json`)
+- [ ] Install `openapi-typescript` in frontend
+- [ ] Set up type generation script
+- [ ] Generate types from backend schema
+- [ ] Update frontend to use generated types
+- [ ] Set up CI/CD to regenerate types on API changes
+- [ ] Test type safety
+- [ ] Update documentation
+
+---
+
+## Cost-Benefit Analysis
+
+### Separate Repositories
+
+**Pros:**
+- ✅ Clean separation of concerns
+- ✅ Independent deployment
+- ✅ Team autonomy
+- ✅ Technology flexibility
+- ✅ Can deploy frontend and backend independently
+
+**Cons:**
+- ❌ More complex CI/CD setup
+- ❌ Need API contract management
+- ❌ Coordination overhead for API changes
+
+### OpenAPI Type Generation
+
+**Pros:**
+- ✅ Type safety without manual type definitions
+- ✅ Types automatically stay in sync with backend
+- ✅ Works with existing Python FastAPI backend
+- ✅ No code generation overhead (just type generation)
+- ✅ Industry standard approach
+
+**Cons:**
+- ❌ Need to regenerate types when API changes
+- ❌ Generated types can be verbose
+- ❌ Less flexible than manual type definitions
+
+---
+
+## Recommendation
+
+**For your current situation (Python FastAPI backend + Nuxt frontend):**
+
+✅ **Separate repositories + OpenAPI type generation**
+- Keep Python FastAPI backend (no migration needed)
+- Generate TypeScript types from OpenAPI schema
+- Clean separation without major migration
+- Type safety through code generation
+- Industry standard approach
+
+**Implementation Priority:**
+1. Separate repositories (clean architecture)
+2. Set up OpenAPI type generation (type safety)
+3. Update CI/CD to regenerate types automatically
+
+---
+
+## References
+
+- [OpenAPI TypeScript Generator](https://github.com/drwpow/openapi-typescript)
+- [FastAPI OpenAPI Documentation](https://fastapi.tiangolo.com/advanced/openapi-customization/)
+- [Git Subtree Guide](https://www.atlassian.com/git/tutorials/git-subtree)
+- [Nuxt 3 API Routes](https://nuxt.com/docs/guide/directory-structure/server)
+

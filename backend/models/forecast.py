@@ -106,7 +106,7 @@ class ForecastRun(Base):
 
     forecast_run_id = Column(GUID(), primary_key=True, default=uuid.uuid4)
     client_id = Column(GUID(), nullable=False, index=True)
-    user_id = Column(String, ForeignKey("users.id"), nullable=False)  # Keep String for FK compatibility
+    user_id = Column(String, ForeignKey("users.id"), nullable=True)  # Nullable for system-generated forecasts
 
     # Configuration
     primary_model = Column(String(50), nullable=False, default="chronos-2")

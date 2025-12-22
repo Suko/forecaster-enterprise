@@ -20,7 +20,10 @@ class ForecastRequest(BaseModel):
     prediction_length: int = Field(30, ge=1, le=365, description="Forecast horizon in days")
     model: Optional[str] = Field("chronos-2", description="Primary model to use")
     include_baseline: bool = Field(True, description="Include statistical_ma7 baseline")
+    run_all_methods: bool = Field(False, description="Run all available methods for comparison (Test Bed use case). Default: False for performance.")
+    skip_persistence: bool = Field(False, description="Skip saving to database (Test Bed use case). Results returned in-memory only.")
     client_id: Optional[str] = Field(None, description="Client ID (required for service API key calls, optional for JWT)")
+    training_end_date: Optional[date_type] = Field(None, description="Cutoff date for training data (for backtesting). Forecast starts from this date + 1.")
 
     class Config:
         json_schema_extra = {
@@ -29,6 +32,7 @@ class ForecastRequest(BaseModel):
                 "prediction_length": 30,
                 "model": "chronos-2",
                 "include_baseline": True,
+                "training_end_date": "2025-11-12",
             }
         }
 

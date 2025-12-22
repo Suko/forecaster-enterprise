@@ -23,6 +23,12 @@ const mainMenuItems = computed<NavigationMenuItem[]>(() => [
     to: "/purchase-orders/draft",
     active: route.path.startsWith("/purchase-orders"),
   },
+  {
+    label: "Experiments",
+    icon: "i-lucide-flask-conical",
+    to: "/experiments/testbed",
+    active: route.path.startsWith("/experiments"),
+  },
 ]);
 
 const settingsItem = ref<NavigationMenuItem>({
@@ -100,6 +106,7 @@ const handleLogout = async () => {
 const pageTitle = computed(() => {
   if (route.path.startsWith("/inventory")) return "Inventory";
   if (route.path.startsWith("/purchase-orders")) return "Purchase Orders";
+  if (route.path.startsWith("/experiments")) return "Experiments";
   if (route.path.startsWith("/settings")) return "Settings";
   return "Dashboard";
 });

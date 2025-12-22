@@ -1,6 +1,6 @@
 # API Reference
 
-**Source of Truth:** FastAPI OpenAPI (`/openapi.json`)  
+**Source of Truth:** FastAPI OpenAPI (`/openapi.json`)
 **Base URL:** `http://localhost:8000`  
 **Last Generated:** 2025-12-17
 

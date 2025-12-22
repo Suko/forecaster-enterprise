@@ -95,6 +95,7 @@ class QualityCalculator:
         method: str,
         start_date: Optional[date] = None,
         end_date: Optional[date] = None,
+        forecast_run_id: Optional[str] = None,
     ) -> Dict[str, Optional[float]]:
         """
         Calculate quality metrics for a specific item and method.
@@ -105,18 +106,31 @@ class QualityCalculator:
             method: Forecasting method ("chronos-2", "statistical_ma7")
             start_date: Start date for analysis
             end_date: End date for analysis
+            forecast_run_id: Optional forecast run ID to filter by
 
         Returns:
             Dictionary with MAPE, MAE, RMSE, Bias, and sample_size
         """
+        # Build base filter conditions
+        conditions = [
+            ForecastResult.client_id == client_id,  # Multi-tenant filter
+            ForecastResult.item_id == item_id,
+            ForecastResult.method == method,
+            ForecastResult.actual_value.isnot(None),
+        ]
+        
+        # Add forecast_run_id filter if provided
+        if forecast_run_id:
+            import uuid
+            try:
+                forecast_run_id_uuid = uuid.UUID(forecast_run_id)
+                conditions.append(ForecastResult.forecast_run_id == forecast_run_id_uuid)
+            except ValueError:
+                pass  # Invalid UUID format, ignore filter
+        
         # Build query with client_id filter (unified multi-tenant)
         query = select(ForecastResult).where(
-            and_(
-                ForecastResult.client_id == client_id,  # Multi-tenant filter
-                ForecastResult.item_id == item_id,
-                ForecastResult.method == method,
-                ForecastResult.actual_value.isnot(None),
-            )
+            and_(*conditions)
         )
 
         if start_date:

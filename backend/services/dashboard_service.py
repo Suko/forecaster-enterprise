@@ -120,7 +120,7 @@ class DashboardService:
         self,
         client_id: UUID,
         item_ids: List[str],
-        user_id: str = "system"
+        user_id: Optional[str] = None
     ) -> None:
         """
         Trigger background forecast refresh for items.
@@ -140,7 +140,7 @@ class DashboardService:
                     logger.info(f"Starting background forecast refresh for {len(item_ids)} items")
                     await forecast_service.generate_forecast(
                         client_id=str(client_id),
-                        user_id=user_id,
+                        user_id=user_id or None,  # Convert "system" to None if needed
                         item_ids=item_ids,
                         prediction_length=30,
                         primary_model="chronos-2",

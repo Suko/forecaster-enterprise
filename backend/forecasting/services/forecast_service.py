@@ -55,11 +55,13 @@ class ForecastService:
     async def generate_forecast(
         self,
         client_id: str,
-        user_id: str,
+        user_id: Optional[str],
         item_ids: List[str],
         prediction_length: int,
         primary_model: str = "chronos-2",
         include_baseline: bool = True,
+        run_all_methods: bool = False,
+        skip_persistence: bool = False,
         quantile_levels: List[float] = None,
         training_end_date: Optional[date] = None,
     ) -> ForecastRun:
@@ -88,7 +90,7 @@ class ForecastService:
             item_count=len(item_ids),
             client_id=client_id,
         ):
-            # Create forecast run record
+            # Create forecast run record (in-memory only if skip_persistence)
             forecast_run = ForecastRun(
                 client_id=client_id,
                 user_id=user_id,
@@ -97,8 +99,14 @@ class ForecastService:
                 item_ids=item_ids,
                 status=ForecastStatus.PENDING.value,
             )
-            self.db.add(forecast_run)
-            await self.db.flush()  # Get forecast_run_id
+            if not skip_persistence:
+                self.db.add(forecast_run)
+                await self.db.flush()  # Get forecast_run_id
+            else:
+                # For Test Bed: generate a temporary ID without saving
+                import uuid
+                forecast_run.forecast_run_id = uuid.uuid4()
+                logger.info(f"Test Bed mode: Skipping database persistence for forecast_run_id={forecast_run.forecast_run_id}")
 
             results_by_method: Dict[str, Dict[str, pd.DataFrame]] = {}
 
@@ -186,18 +194,34 @@ class ForecastService:
                     )
 
             # Determine methods to run
-            if recommended_methods:
-                # Use the most common recommended method, or primary_model if no consensus
+            if run_all_methods:
+                # Test Bed use case: Run all available methods for comparison
+                all_methods = self.model_factory.list_models()
+                methods_to_run = all_methods
+                recommended_method = primary_model  # Still track recommended for reference
+                logger.info(f"Running all methods for comparison: {methods_to_run}")
+            elif recommended_methods:
+                # PRIORITY: Use primary_model (user's explicit selection) first, then recommended_method
+                # Use the most common recommended method for reference
                 from collections import Counter
                 method_counts = Counter(recommended_methods)
                 recommended_method = method_counts.most_common(1)[0][0]
-                methods_to_run = [recommended_method]
+                
+                # Always use primary_model when user explicitly selects it (even if different from recommended)
+                methods_to_run = [primary_model]
+                
+                # Log if user's selection differs from recommendation
+                if recommended_method != primary_model:
+                    logger.info(
+                        f"User selected {primary_model}, but classification recommends {recommended_method}. "
+                        f"Using user's selection: {primary_model}"
+                    )
 
                 # Always include baseline for comparison
                 if include_baseline and "statistical_ma7" not in methods_to_run:
                     methods_to_run.append("statistical_ma7")
 
-                logger.info(f"Using recommended method routing: {methods_to_run} (from classifications)")
+                logger.info(f"Using primary_model (user selection): {methods_to_run}")
             else:
                 # No classifications available, use primary_model
                 recommended_method = primary_model
@@ -331,13 +355,14 @@ class ForecastService:
                         # Store error in forecast_run
                         forecast_run.error_message = f"{method_id} failed: {str(e)}"
 
-                # Store results in database (only if we have results)
+                # Store results in database (only if we have results and not skipping persistence)
                 if results_by_method:
-                    await self._store_results(
-                        forecast_run, results_by_method, item_ids, prediction_length
-                    )
-                    # Flush to ensure results are in the session before commit
-                    await self.db.flush()
+                    if not skip_persistence:
+                        await self._store_results(
+                            forecast_run, results_by_method, item_ids, prediction_length
+                        )
+                        # Flush to ensure results are in the session before commit
+                        await self.db.flush()
 
                     # Update forecast run - only set to completed if we have results
                     forecast_run.recommended_method = recommended_method
@@ -349,15 +374,21 @@ class ForecastService:
                     forecast_run.error_message = "No forecast results generated for any method"
                     forecast_run.recommended_method = None
 
-                await self.db.commit()
+                if not skip_persistence:
+                    await self.db.commit()
+                else:
+                    logger.info("Test Bed mode: Skipping database commit")
+                    # Store results_by_method in forecast_run for API access when skip_persistence=True
+                    forecast_run._results_by_method = results_by_method
 
             except Exception as e:
                 forecast_run.status = ForecastStatus.FAILED.value
                 forecast_run.error_message = str(e)
-                try:
-                    await self.db.commit()
-                except Exception:
-                    await self.db.rollback()
+                if not skip_persistence:
+                    try:
+                        await self.db.commit()
+                    except Exception:
+                        await self.db.rollback()
                 raise
 
             # Post-forecast hook: Refresh inventory metrics for forecasted items

@@ -285,7 +285,7 @@ class InventoryService:
         self,
         client_id: UUID,
         item_ids: List[str],
-        user_id: str = "system"
+        user_id: Optional[str] = None
     ) -> None:
         """
         Trigger background forecast refresh for items.

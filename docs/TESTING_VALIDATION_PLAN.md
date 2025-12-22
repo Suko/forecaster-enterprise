@@ -718,5 +718,81 @@ curl -X POST http://localhost:8000/api/v1/forecast \
 
 ---
 
+## 10. Data Validation Testing
+
+**Purpose:** Verify that all displayed data is mathematically correct and matches backend calculations.
+
+### 10.1 Quality Metrics Validation
+
+#### Test: MAPE Calculation Accuracy
+- **Formula:** `MAPE = (100/n) × Σ|Actual - Forecast|/Actual`
+- **Steps:**
+  1. Generate forecast with known actuals
+  2. Extract actuals and forecasts from API
+  3. Manually calculate MAPE
+  4. Compare with displayed MAPE
+- **Expected:** Frontend MAPE = Backend MAPE (within 0.1% tolerance)
+
+#### Test: RMSE Calculation Accuracy
+- **Formula:** `RMSE = √[(1/n) × Σ(Actual - Forecast)²]`
+- **Expected:** Frontend RMSE = Backend RMSE (within 0.01 tolerance)
+
+#### Test: MAE Calculation Accuracy
+- **Formula:** `MAE = (1/n) × Σ|Actual - Forecast|`
+- **Expected:** Frontend MAE = Backend MAE (within 0.01 tolerance)
+
+#### Test: Bias Calculation Accuracy
+- **Formula:** `Bias = (1/n) × Σ(Forecast - Actual)`
+- **Expected:** Frontend Bias = Backend Bias (within 0.01 tolerance)
+
+**Status:** ✅ **VERIFIED** - All formulas match between frontend and backend (see `docs/TEST_BED_FEATURE_SUMMARY.md` for details)
+
+### 10.2 Forecast Data Validation
+
+#### Test: Forecast Date Alignment
+- Verify forecast start date = `training_end_date + 1`
+- Verify all forecast dates are sequential
+- Verify no date overlaps with training data
+
+#### Test: Forecast Value Totals
+- Sum all `point_forecast` values
+- Compare with displayed "Forecasted" total in header
+- **Expected:** Sum = Header value
+
+#### Test: Actual Value Totals
+- Sum all `actual_value` values
+- Compare with displayed "Actual" total in header
+- **Expected:** Sum = Header value
+
+#### Test: Sample Count Validation
+- Count number of forecast-actual pairs
+- Compare with displayed "Samples" in table
+- **Expected:** Sample count = Number of matching dates
+
+### 10.3 SKU Classification Validation
+
+#### Test: ABC Classification
+- Get revenue data for all products
+- Calculate ABC class manually (A=top 80%, B=next 15%, C=bottom 5%)
+- Compare with displayed ABC class
+
+#### Test: XYZ Classification
+- Calculate Coefficient of Variation (CV = std/mean)
+- Classify: X (CV<0.5), Y (0.5≤CV<1.0), Z (CV≥1.0)
+- Compare with displayed XYZ class
+
+#### Test: Demand Pattern
+- Calculate ADI and CV²
+- Classify: Regular (ADI≤1.32), Intermittent (ADI>1.32), Lumpy (ADI>1.32 & CV²>0.49)
+- Compare with displayed demand pattern
+
+#### Test: Recommended Method
+- Apply recommendation rules based on ABC-XYZ and demand pattern
+- Compare with displayed recommended method
+
+**See:** `docs/DATA_VALIDATION_TEST_PLAN.md` for detailed validation steps (archived - content merged here)
+
+---
+
 **Ready to start testing?** Begin with the Quick Smoke Test, then proceed through each section systematically.
 

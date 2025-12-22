@@ -69,6 +69,35 @@ The Test Bed is a forecasting validation tool that allows users to:
 
 ---
 
+## Calculation Verification
+
+All frontend calculation formulas match the backend exactly:
+
+### MAPE (Mean Absolute Percentage Error)
+**Formula:** `MAPE = (100/n) × Σ|Actual - Forecast|/Actual`
+- ✅ Frontend and backend use identical formulas
+- ✅ Skips zero actuals (prevents division by zero)
+- ✅ Returns percentage (0-100%)
+
+### MAE (Mean Absolute Error)
+**Formula:** `MAE = (1/n) × Σ|Actual - Forecast|`
+- ✅ Frontend and backend use identical formulas
+- ✅ Returns absolute error in units
+
+### RMSE (Root Mean Squared Error)
+**Formula:** `RMSE = √[(1/n) × Σ(Actual - Forecast)²]`
+- ✅ Frontend and backend use identical formulas
+- ✅ Penalizes large errors more than small ones
+
+### Bias
+**Formula:** `Bias = (1/n) × Σ(Forecast - Actual)`
+- ✅ Frontend and backend use identical formulas
+- ✅ Positive = over-forecasting, Negative = under-forecasting
+
+**Verification:** All formulas verified by comparing frontend TypeScript code with backend Python code. See `docs/FRONTEND_BACKEND_CALCULATION_COMPARISON.md` for detailed comparison (archived).
+
+---
+
 ## Usage
 
 1. Navigate to `/experiments/testbed`

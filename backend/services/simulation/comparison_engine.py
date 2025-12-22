@@ -32,6 +32,7 @@ class ComparisonEngine:
         simulated_stock: float,
         real_stock: float,
         unit_cost: Decimal,
+        actual_sales: Optional[float] = None,
         order_placed: Optional[bool] = None,
         order_quantity: Optional[float] = None
     ):
@@ -56,6 +57,7 @@ class ComparisonEngine:
             "item_id": item_id,
             "simulated_stock": simulated_stock,
             "real_stock": real_stock,
+            "actual_sales": actual_sales,
             "simulated_stockout": simulated_stockout,
             "real_stockout": real_stockout,
             "order_placed": order_placed,

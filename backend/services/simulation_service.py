@@ -16,6 +16,7 @@ from collections import defaultdict
 from models.product import Product
 from models.stock import StockLevel
 from models.product_supplier import ProductSupplierCondition
+from models.supplier import Supplier
 from models.settings import ClientSettings
 from forecasting.services.forecast_service import ForecastService
 from forecasting.applications.inventory.calculator import InventoryCalculator
@@ -91,17 +92,27 @@ class SimulationService:
             # Get product data (lead times, costs, etc.)
             products = await self._get_products(request.client_id, item_ids)
             
-            # Initialize simulated stock levels
+            # Initialize simulated stock levels - start with initial stock at start_date
             simulated_stock: Dict[str, float] = {
                 item_id: initial_stock.get(item_id, 0.0)
                 for item_id in item_ids
             }
             
-            # Get real stock levels for comparison (we'll track these day by day)
-            real_stock: Dict[str, float] = {
-                item_id: initial_stock.get(item_id, 0.0)
-                for item_id in item_ids
-            }
+            # Initialize real stock levels - use stock_on_date for start_date if available,
+            # otherwise use initial_stock snapshot
+            real_stock: Dict[str, float] = {}
+            for item_id in item_ids:
+                # Try to get real stock from database for start_date
+                real_stock_start = await self._get_real_stock_for_date(
+                    request.client_id,
+                    item_id,
+                    request.start_date
+                )
+                if real_stock_start is not None:
+                    real_stock[item_id] = real_stock_start
+                else:
+                    # Fallback to initial stock snapshot
+                    real_stock[item_id] = initial_stock.get(item_id, 0.0)
             
             # Day-by-day simulation loop
             current_date = request.start_date
@@ -138,13 +149,35 @@ class SimulationService:
                         current_date
                     )
                     
+                    # IMPORTANT: Simulated and real stock are INDEPENDENT after day 1
+                    # - Simulated stock: Follows our system's logic (forecasts, reorder points, orders)
+                    # - Real stock: Historical data from database (actual inventory management)
+                    # They only match at the start, then diverge based on different decisions
+                    
+                    # Get real stock from database (for comparison only, not used in simulation logic)
+                    real_stock_today = await self._get_real_stock_for_date(
+                        request.client_id,
+                        item_id,
+                        current_date
+                    )
+                    
+                    if real_stock_today is not None:
+                        # Use actual historical stock data from database for this specific date
+                        # This is independent of simulated stock - just for comparison
+                        real_stock[item_id] = real_stock_today
+                    else:
+                        # Fallback: calculate from previous day minus sales
+                        # This is approximate since we don't know when real orders arrived
+                        # Only used when stock_on_date is not available in database
+                        real_stock[item_id] = max(0.0, real_stock[item_id] - actual_sales)
+                    
+                    # SIMULATED STOCK LOGIC (independent of real stock)
                     # Check reorder point BEFORE subtracting sales (start-of-day check)
                     # This prevents placing orders every day when stock is already low
                     stock_before_sales = simulated_stock[item_id]
                     
-                    # Update stock levels (subtract sales)
+                    # Update simulated stock levels (subtract sales)
                     simulated_stock[item_id] = max(0.0, simulated_stock[item_id] - actual_sales)
-                    real_stock[item_id] = max(0.0, real_stock[item_id] - actual_sales)
                     
                     # Generate forecast (using data up to current_date)
                     # OPTIMIZATION: Only generate forecast weekly (every 7 days) to reduce computation time
@@ -197,8 +230,12 @@ class SimulationService:
                         # Calculate inventory recommendations
                         avg_daily_demand = forecast_demand / 30.0
                         
-                        # Get lead time and safety stock days
+                        # Get lead time, MOQ, and safety stock days
                         lead_time_days = await self._get_lead_time(
+                            request.client_id,
+                            item_id
+                        )
+                        moq = await self._get_moq(
                             request.client_id,
                             item_id
                         )
@@ -239,7 +276,7 @@ class SimulationService:
                                 forecast_demand,
                                 safety_stock,
                                 simulated_stock[item_id],
-                                moq=None  # TODO: Get MOQ from product-supplier
+                                moq=moq  # Use actual MOQ from product-supplier
                             )
                             
                             # Place order
@@ -263,6 +300,7 @@ class SimulationService:
                         simulated_stock=simulated_stock[item_id],
                         real_stock=real_stock[item_id],
                         unit_cost=unit_cost,
+                        actual_sales=actual_sales,
                         order_placed=order_placed,
                         order_quantity=order_quantity
                     )
@@ -307,9 +345,46 @@ class SimulationService:
         """
         Get stock levels at a specific date.
         
-        For now, we'll use current stock levels as starting point.
-        TODO: Implement historical stock tracking or reconstruction.
+        First tries to get from ts_demand_daily.stock_on_date (historical data).
+        Falls back to current stock_levels if historical data not available.
         """
+        # Try to get historical stock from ts_demand_daily
+        query = text("""
+            SELECT item_id, SUM(stock_on_date) as total_stock
+            FROM ts_demand_daily
+            WHERE client_id = :client_id
+              AND date_local = :snapshot_date
+        """)
+        
+        params = {
+            "client_id": str(client_id),
+            "snapshot_date": snapshot_date
+        }
+        
+        if item_ids:
+            query = text("""
+                SELECT item_id, SUM(stock_on_date) as total_stock
+                FROM ts_demand_daily
+                WHERE client_id = :client_id
+                  AND date_local = :snapshot_date
+                  AND item_id = ANY(:item_ids)
+                GROUP BY item_id
+            """)
+            params["item_ids"] = item_ids
+        
+        result = await self.db.execute(query, params)
+        rows = result.all()
+        
+        stock_dict: Dict[str, float] = {}
+        for row in rows:
+            if row.total_stock is not None:
+                stock_dict[row.item_id] = float(row.total_stock)
+        
+        # If we got historical data, return it
+        if stock_dict:
+            return stock_dict
+        
+        # Fallback: use current stock levels
         query = select(StockLevel).where(
             StockLevel.client_id == client_id
         )
@@ -321,13 +396,48 @@ class SimulationService:
         stock_levels = result.scalars().all()
         
         # Aggregate by item_id (sum across locations)
-        stock_dict: Dict[str, float] = {}
         for stock in stock_levels:
             if stock.item_id not in stock_dict:
                 stock_dict[stock.item_id] = 0.0
             stock_dict[stock.item_id] += float(stock.current_stock)
         
         return stock_dict
+    
+    async def _get_real_stock_for_date(
+        self,
+        client_id: UUID,
+        item_id: str,
+        target_date: date
+    ) -> Optional[float]:
+        """
+        Get real historical stock level for a specific date.
+        
+        Uses ts_demand_daily.stock_on_date if available.
+        Returns None if stock_on_date is not populated (NULL), otherwise returns the stock value.
+        """
+        query = text("""
+            SELECT 
+                SUM(stock_on_date) as total_stock,
+                COUNT(stock_on_date) as has_data
+            FROM ts_demand_daily
+            WHERE client_id = :client_id
+              AND item_id = :item_id
+              AND date_local = :target_date
+        """)
+        
+        result = await self.db.execute(query, {
+            "client_id": str(client_id),
+            "item_id": item_id,
+            "target_date": target_date
+        })
+        row = result.one()
+        
+        # If has_data > 0, stock_on_date exists (even if it's 0)
+        # If has_data = 0, stock_on_date is NULL (no data)
+        if row.has_data and row.has_data > 0:
+            return float(row.total_stock) if row.total_stock is not None else 0.0
+        else:
+            return None  # No stock data available for this date
     
     async def _get_all_item_ids(self, client_id: UUID) -> List[str]:
         """Get all item IDs for a client"""
@@ -493,6 +603,47 @@ class SimulationService:
         # Default lead time
         return 7
     
+    async def _get_moq(
+        self,
+        client_id: UUID,
+        item_id: str
+    ) -> Optional[int]:
+        """
+        Get MOQ (Minimum Order Quantity) for an item.
+        
+        Fallback chain:
+        1. product_supplier_conditions.moq (if exists and > 0)
+        2. suppliers.default_moq (if > 0)
+        3. None (no MOQ constraint)
+        """
+        # Try to get from product-supplier conditions (primary supplier)
+        query = select(ProductSupplierCondition).where(
+            ProductSupplierCondition.client_id == client_id,
+            ProductSupplierCondition.item_id == item_id,
+            ProductSupplierCondition.is_primary == True
+        ).limit(1)
+        
+        result = await self.db.execute(query)
+        condition = result.scalar_one_or_none()
+        
+        if condition and condition.moq and condition.moq > 0:
+            return condition.moq
+        
+        # Fallback to supplier default (if we have a supplier)
+        if condition and condition.supplier_id:
+            supplier_query = select(Supplier).where(
+                Supplier.client_id == client_id,
+                Supplier.id == condition.supplier_id
+            )
+            supplier_result = await self.db.execute(supplier_query)
+            supplier = supplier_result.scalar_one_or_none()
+            
+            if supplier and supplier.default_moq and supplier.default_moq > 0:
+                return supplier.default_moq
+        
+        # No MOQ constraint
+        return None
+    
     async def _get_historical_average_demand(
         self,
         client_id: UUID,
@@ -583,6 +734,7 @@ class SimulationService:
                 item_id=c["item_id"],
                 simulated_stock=c["simulated_stock"],
                 real_stock=c["real_stock"],
+                actual_sales=c.get("actual_sales"),
                 simulated_stockout=c["simulated_stockout"],
                 real_stockout=c["real_stockout"],
                 order_placed=c.get("order_placed"),

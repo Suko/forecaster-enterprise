@@ -60,6 +60,7 @@ class DailyComparison(BaseModel):
     item_id: str
     simulated_stock: float
     real_stock: float
+    actual_sales: Optional[float] = Field(None, description="Actual sales for this day")
     simulated_stockout: bool
     real_stockout: bool
     order_placed: Optional[bool] = None

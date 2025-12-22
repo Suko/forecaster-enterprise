@@ -127,6 +127,10 @@ class SimulationService:
                     if not product:
                         continue
                     
+                    # Initialize order tracking variables
+                    order_placed = False
+                    order_quantity: Optional[float] = None
+                    
                     # Get actual sales for this day (from historical data)
                     actual_sales = await self._get_actual_sales(
                         request.client_id,
@@ -134,13 +138,13 @@ class SimulationService:
                         current_date
                     )
                     
+                    # Check reorder point BEFORE subtracting sales (start-of-day check)
+                    # This prevents placing orders every day when stock is already low
+                    stock_before_sales = simulated_stock[item_id]
+                    
                     # Update stock levels (subtract sales)
                     simulated_stock[item_id] = max(0.0, simulated_stock[item_id] - actual_sales)
                     real_stock[item_id] = max(0.0, real_stock[item_id] - actual_sales)
-                    
-                    # Initialize order tracking variables
-                    order_placed = False
-                    order_quantity: Optional[float] = None
                     
                     # Generate forecast (using data up to current_date)
                     # OPTIMIZATION: Only generate forecast weekly (every 7 days) to reduce computation time
@@ -215,11 +219,21 @@ class SimulationService:
                         )
                         
                         # Check if we should place an order
+                        # Use stock BEFORE sales to check reorder point (start-of-day inventory)
+                        # Also check if we already have an order in transit for this item
+                        orders_in_transit = [
+                            o for o in self.order_simulator.orders
+                            if o.item_id == item_id and not o.received and o.arrival_date > current_date
+                        ]
+                        
                         # DEBUG: Log reorder point calculation
                         if days_since_start % 30 == 0:  # Log every 30 days
-                            logger.info(f"Day {days_since_start} - {item_id}: stock={simulated_stock[item_id]:.1f}, reorder_point={reorder_point:.1f}, avg_daily={avg_daily_demand:.2f}, safety_stock={safety_stock:.1f}")
+                            logger.info(f"Day {days_since_start} - {item_id}: stock_before={stock_before_sales:.1f}, stock_after={simulated_stock[item_id]:.1f}, reorder_point={reorder_point:.1f}, orders_in_transit={len(orders_in_transit)}")
                         
-                        if config.auto_place_orders and simulated_stock[item_id] <= reorder_point:
+                        # Only place order if:
+                        # 1. Stock before sales is at or below reorder point
+                        # 2. No orders already in transit (prevent duplicate orders)
+                        if config.auto_place_orders and stock_before_sales <= reorder_point and len(orders_in_transit) == 0:
                             # Calculate recommended order quantity
                             recommended_qty = self.inventory_calc.calculate_recommended_order_quantity(
                                 forecast_demand,

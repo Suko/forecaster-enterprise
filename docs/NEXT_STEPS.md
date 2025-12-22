@@ -11,6 +11,12 @@
 Backend MVP (Phases 1-4) is **complete** ✅, and frontend MVP is **~87% complete** ✅. This document outlines the prioritized next steps to complete the MVP and prepare for production.
 
 **Recently Completed:**
+- ✅ **Test Bed Feature** - Complete Experiments page with Test Bed & ROI Calculator (2025-12-22)
+  - Multi-method forecast comparison
+  - SKU classification and system recommendations
+  - Backtesting with actual data validation
+  - All tests passing, data accuracy verified
+  - See: `docs/CHANGELOG_TEST_BED.md` for details
 - ✅ Data Validation - Complete validation service with quality checks
 - ✅ Forecasting Integration - Forecasts now used in dashboard, products, and recommendations
 - ✅ ETL Bug Fix - Fixed `location_id` missing in sales history sync

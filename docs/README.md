@@ -231,6 +231,7 @@
 **Status:**
 - Backend MVP: ✅ Complete (Phases 1-4)
 - Frontend MVP: ✅ ~87% Complete
+- **Test Bed Feature:** ✅ Complete & Validated (2025-12-22)
 - Next: Forecasting hardening + contract alignment
 
 </details>
@@ -271,6 +272,9 @@ docs/
 │   └── SHARED_TEST_DATA_SUPABASE.md  # Shared test data workflow
 │
 ├── features/                     # Feature planning
+│   ├── EXPERIMENTS_PAGE_MIGRATION_PLAN.md # Test Bed & ROI Calculator (✅ Complete)
+│   ├── TEST_BED_SYSTEM_VALIDATION.md # System validation explanation
+│   ├── FORECAST_METHOD_COMPARISON_ANALYSIS.md # Design decisions
 │   ├── WORKING_ORDERS_FEATURE.md # Working Orders feature plan
 │   ├── INVENTORY_IMPROVEMENTS.md # Inventory page enhancements
 │   ├── PURCHASE_ORDER_IMPROVEMENTS.md # Purchase Order UI/UX improvements
@@ -291,7 +295,9 @@ docs/
 │   ├── TEST_PLAN.md              # (stub) archived checklist
 │   └── forecasting/
 │       ├── README.md             # Forecasting module status
-│       └── METHODS.md            # Method implementations
+│       ├── METHODS.md            # Method implementations
+│       ├── METRICS_BEST_PRACTICES.md # MAPE calculation guide
+│       └── INVENTORY_ORDERING_GUIDE.md # Metric selection guide
 │
 ├── frontend/
 │   ├── AUTH_BEST_PRACTICES.md    # Auth implementation guide
@@ -397,4 +403,4 @@ bun run format:check
 
 ---
 
-*Last updated: 2025-12-17*
+*Last updated: 2025-12-22*

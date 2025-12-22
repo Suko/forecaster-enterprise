@@ -164,7 +164,7 @@ class SimulationService:
                         
                         # Check if we should place an order
                         order_placed = False
-                        order_quantity = None
+                        order_quantity: Optional[float] = None
                         
                         if config.auto_place_orders and simulated_stock[item_id] <= reorder_point:
                             # Calculate recommended order quantity
@@ -196,7 +196,7 @@ class SimulationService:
                         simulated_stock=simulated_stock[item_id],
                         real_stock=real_stock[item_id],
                         unit_cost=unit_cost,
-                        order_placed=order_placed if order_placed else None,
+                        order_placed=order_placed,
                         order_quantity=order_quantity
                     )
                 

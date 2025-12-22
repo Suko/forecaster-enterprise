@@ -371,6 +371,18 @@ class SimulationService:
         Uses existing ForecastService with training_end_date parameter.
         """
         try:
+            # First, check if we have training data up to training_end_date
+            training_data_count = await self._check_training_data(
+                client_id, item_id, training_end_date
+            )
+            
+            if training_data_count < 7:  # Need at least 7 days for forecasting
+                logger.warning(
+                    f"Insufficient training data for {item_id} up to {training_end_date}: "
+                    f"only {training_data_count} days available (need 7+)"
+                )
+                return 0.0
+            
             forecast_run = await self.forecast_service.generate_forecast(
                 client_id=str(client_id),
                 user_id=None,
@@ -387,18 +399,63 @@ class SimulationService:
                 forecast_run_id=forecast_run.forecast_run_id
             )
             
-            if item_id in results and results[item_id]:
-                # Sum all forecasted values
-                total_forecast = sum(
-                    p.get("point_forecast", 0.0) for p in results[item_id]
+            if item_id not in results:
+                logger.warning(
+                    f"No forecast results returned for {item_id} on {training_end_date}. "
+                    f"Forecast run status: {forecast_run.status}"
                 )
-                return float(total_forecast)
+                return 0.0
             
-            return 0.0
+            if not results[item_id]:
+                logger.warning(
+                    f"Empty forecast results for {item_id} on {training_end_date}. "
+                    f"Expected {prediction_length} predictions, got 0"
+                )
+                return 0.0
+            
+            # Sum all forecasted values
+            total_forecast = sum(
+                p.get("point_forecast", 0.0) for p in results[item_id]
+            )
+            
+            if total_forecast == 0.0:
+                logger.warning(
+                    f"Forecast returned 0 for {item_id} on {training_end_date}. "
+                    f"Number of predictions: {len(results[item_id])}, "
+                    f"Sample values: {[p.get('point_forecast', 0) for p in results[item_id][:5]]}"
+                )
+            
+            return float(total_forecast)
         
         except Exception as e:
-            logger.warning(f"Forecast generation failed for {item_id} on {training_end_date}: {e}")
+            logger.error(
+                f"Forecast generation failed for {item_id} on {training_end_date}: {e}",
+                exc_info=True
+            )
             return 0.0
+    
+    async def _check_training_data(
+        self,
+        client_id: UUID,
+        item_id: str,
+        end_date: date
+    ) -> int:
+        """Check how many days of training data we have up to end_date"""
+        query = text("""
+            SELECT COUNT(DISTINCT date_local) as data_days
+            FROM ts_demand_daily
+            WHERE client_id = :client_id
+              AND item_id = :item_id
+              AND date_local <= :end_date
+        """)
+        
+        result = await self.db.execute(query, {
+            "client_id": str(client_id),
+            "item_id": item_id,
+            "end_date": end_date
+        })
+        row = result.one()
+        return int(row.data_days) if row.data_days else 0
     
     async def _get_lead_time(
         self,

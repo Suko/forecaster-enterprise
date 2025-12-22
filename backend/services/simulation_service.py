@@ -44,6 +44,7 @@ class SimulationService:
         self.inventory_calc = InventoryCalculator()
         self.order_simulator = OrderSimulator()
         self.comparison_engine = ComparisonEngine()
+        self._forecast_cache: Dict[Tuple[str, date], float] = {}
     
     async def run_simulation(
         self,
@@ -65,6 +66,7 @@ class SimulationService:
             # Reset state
             self.order_simulator.reset()
             self.comparison_engine.reset()
+            self._forecast_cache = {}  # Clear forecast cache
             
             # Get configuration (use defaults if not provided)
             from schemas.simulation import SimulationConfig
@@ -79,6 +81,12 @@ class SimulationService:
             
             # Get all items to simulate
             item_ids = request.item_ids or await self._get_all_item_ids(request.client_id)
+            
+            # OPTIMIZATION: Limit items for testing (remove this limit for production)
+            # For now, limit to first 5 items to speed up testing
+            if not request.item_ids and len(item_ids) > 5:
+                logger.info(f"Limiting simulation to first 5 items (out of {len(item_ids)} total) for performance")
+                item_ids = item_ids[:5]
             
             # Get product data (lead times, costs, etc.)
             products = await self._get_products(request.client_id, item_ids)
@@ -144,6 +152,7 @@ class SimulationService:
                     )
                     
                     if should_regenerate_forecast:
+                        logger.info(f"Generating forecast for {item_id} on {current_date} (day {days_since_start})")
                         forecast_demand = await self._get_forecasted_demand(
                             request.client_id,
                             item_id,
@@ -151,13 +160,10 @@ class SimulationService:
                             prediction_length=30
                         )
                         # Cache forecast for next 7 days
-                        if not hasattr(self, '_forecast_cache'):
-                            self._forecast_cache: Dict[Tuple[str, date], float] = {}
                         self._forecast_cache[(item_id, current_date)] = forecast_demand
+                        logger.info(f"Cached forecast for {item_id}: {forecast_demand:.2f}")
                     else:
                         # Use cached forecast (from most recent generation)
-                        if not hasattr(self, '_forecast_cache'):
-                            self._forecast_cache: Dict[Tuple[str, date], float] = {}
                         # Find most recent cached forecast for this item
                         cached_forecast = None
                         for (cached_item, cached_date), cached_value in self._forecast_cache.items():

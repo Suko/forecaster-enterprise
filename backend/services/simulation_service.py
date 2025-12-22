@@ -12,6 +12,7 @@ from sqlalchemy import select, text
 from decimal import Decimal
 import logging
 from collections import defaultdict
+import pandas as pd
 
 from models.product import Product
 from models.stock import StockLevel
@@ -519,6 +520,44 @@ class SimulationService:
             )
             
             # Get forecast results
+            # When skip_persistence=True, results are stored in-memory in forecast_run._results_by_method
+            # We need to access them directly instead of querying the database
+            if hasattr(forecast_run, '_results_by_method') and forecast_run._results_by_method:
+                # Extract results from in-memory storage
+                method = forecast_run.recommended_method or forecast_run.primary_model or "chronos-2"
+                if method in forecast_run._results_by_method:
+                    item_results = forecast_run._results_by_method[method]
+                    if item_id in item_results:
+                        # Convert DataFrame to list of dicts (matching get_forecast_results format)
+                        predictions_df = item_results[item_id]
+                        if not predictions_df.empty:
+                            predictions = []
+                            for _, row in predictions_df.iterrows():
+                                prediction = {
+                                    "date": pd.to_datetime(row["timestamp"]).date() if "timestamp" in row else None,
+                                    "point_forecast": float(row.get("point_forecast", 0.0))
+                                }
+                                # Add quantiles if available
+                                quantiles = {}
+                                for q in ["p10", "p50", "p90"]:
+                                    if q in row and pd.notna(row[q]):
+                                        quantiles[q] = float(row[q])
+                                if quantiles:
+                                    prediction["quantiles"] = quantiles
+                                predictions.append(prediction)
+                            
+                            # Sum all forecasted values
+                            total_forecast = sum(p.get("point_forecast", 0.0) for p in predictions)
+                            
+                            if total_forecast == 0.0:
+                                logger.warning(
+                                    f"Forecast returned 0 for {item_id} on {training_end_date}. "
+                                    f"Number of predictions: {len(predictions)}"
+                                )
+                            
+                            return float(total_forecast)
+            
+            # Fallback: Try database query (in case skip_persistence was False or results not in memory)
             results = await self.forecast_service.get_forecast_results(
                 forecast_run_id=forecast_run.forecast_run_id
             )

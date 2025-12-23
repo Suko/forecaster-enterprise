@@ -2,9 +2,7 @@
 
 **Source of Truth:** FastAPI OpenAPI (`/openapi.json`)
 **Base URL:** `http://localhost:8000`  
-**Last Generated:** 2025-12-17
-
-> **Note:** This document should be regenerated from the OpenAPI schema (`/openapi.json`) when API endpoints change. The canonical source of truth is the FastAPI application's OpenAPI schema, accessible at `/docs` (Swagger UI) or `/openapi.json` (JSON schema).
+**Last Generated:** 2025-12-23
 
 ---
 
@@ -242,6 +240,70 @@ Both methods are stored in database for future quality analysis.
 - `201` `ForecastResponse` — Successful Response
 - `422` `HTTPValidationError` — Validation Error
 
+### `GET /api/v1/forecast/date-range`
+
+**Summary:** Get Date Range
+
+Get the date range of available historical data.
+
+Authentication (choose one):
+- JWT token (user calls): client_id from user's JWT token
+- Service API key (system calls): X-API-Key header
+
+Returns min/max dates and total days of data.
+
+**Responses**
+- `200` — Successful Response
+- `422` `HTTPValidationError` — Validation Error
+
+### `GET /api/v1/forecast/historical`
+
+**Summary:** Get Historical Data
+
+Get historical sales data for an item.
+
+Authentication (choose one):
+- JWT token (user calls): client_id from user's JWT token
+- Service API key (system calls): X-API-Key header
+
+Returns daily units sold.
+
+**Responses**
+- `200` — Successful Response
+- `422` `HTTPValidationError` — Validation Error
+
+### `GET /api/v1/forecast/models`
+
+**Summary:** List Available Models
+
+List all available forecasting models.
+
+Returns list of model IDs with metadata.
+No authentication required - public endpoint.
+
+**Responses**
+- `200` — Successful Response
+
+### `GET /api/v1/forecast/{forecast_id}/results`
+
+**Summary:** Get Forecast Results By Method
+
+Get forecast results for a specific method from a forecast run.
+
+Authentication (choose one):
+- JWT token (user calls): client_id from user's JWT token
+- Service API key (system calls): X-API-Key header
+
+Args:
+    forecast_id: Forecast run ID
+    method: Forecast method to retrieve (e.g., "chronos-2", "statistical_ma7")
+
+Returns forecast results for the specified method.
+
+**Responses**
+- `200` — Successful Response
+- `422` `HTTPValidationError` — Validation Error
+
 ### `POST /api/v1/forecasts/actuals`
 
 **Summary:** Backfill Actuals
@@ -297,6 +359,21 @@ Generates forecast first, then calculates inventory metrics using industry-stand
 **Responses**
 - `201` `InventoryCalculationResponse` — Successful Response
 - `422` `HTTPValidationError` — Validation Error
+
+### `GET /api/v1/products/categories`
+
+**Summary:** Get Product Categories
+
+Get list of distinct product categories.
+
+Authentication (choose one):
+- JWT token (user calls): client_id from user's JWT token
+- Service API key (system calls): X-API-Key header
+
+Returns list of category names.
+
+**Responses**
+- `200` — Successful Response
 
 ### `GET /api/v1/skus/{item_id}/classification`
 
@@ -733,6 +810,58 @@ Update recommendation rules
 
 **Responses**
 - `200` `object` — Successful Response
+- `422` `HTTPValidationError` — Validation Error
+
+## Simulation
+
+### `POST /api/v1/simulation/run`
+
+**Summary:** Run Simulation
+
+Run historical simulation to validate system effectiveness.
+
+Simulates the system running over a historical period (e.g., 12 months),
+automatically following system recommendations, and compares outcomes
+against real historical data.
+
+**Authentication:** Requires JWT token (user calls)
+
+**What it does:**
+1. Starts from `start_date` with initial stock levels
+2. For each day until `end_date`:
+   - Generates forecast using data up to that day
+   - Calculates inventory recommendations
+   - Automatically places orders when reorder point is triggered
+   - Tracks simulated stock levels
+   - Compares with real stock levels
+
+**Returns:**
+- Overall metrics (stockout rate, inventory value, service level)
+- Improvement metrics vs baseline
+- Daily comparisons
+- Item-level results
+
+**Example:**
+```json
+{
+  "client_id": "123e4567-e89b-12d3-a456-426614174000",
+  "start_date": "2024-01-01",
+  "end_date": "2024-12-22",
+  "item_ids": ["SKU001", "SKU002"],
+  "simulation_config": {
+    "auto_place_orders": true,
+    "lead_time_buffer_days": 0,
+    "min_order_quantity": 1,
+    "service_level": 0.95
+  }
+}
+```
+
+**Request Body**
+- `application/json` → `SimulationRequest`
+
+**Responses**
+- `201` `SimulationResponse` — Successful Response
 - `422` `HTTPValidationError` — Validation Error
 
 ## Suppliers

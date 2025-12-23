@@ -178,6 +178,14 @@ async def endpoint(
 
 ---
 
+## Repository Structure
+
+### Two Separate Git Repositories
+- **Backend Repository**: Contains `backend/`, `docs/`, scripts, and configuration files
+- **Frontend Repository**: Separate repository containing `frontend/` directory
+- The `frontend/` directory is in `.gitignore` for the backend repository
+- Contract synchronization must be maintained across both repositories
+
 ## Preventing Future Drift (Process)
 
 ### Source of Truth
@@ -187,11 +195,20 @@ async def endpoint(
 
 ### Definition of Done (Contract-Sensitive Changes)
 When changing an endpoint/response:
-1. Update backend schema + router
-2. Update/regen `docs/backend/API_REFERENCE.md`
-3. Update frontend server proxy route + TS types
-4. Add/adjust backend tests for the contract change
-5. Run: backend tests + ruff, frontend lint + format check
+1. **Backend Repository:**
+   - Update backend schema + router
+   - Update/regen `docs/backend/API_REFERENCE.md`
+   - Add/adjust backend tests for the contract change
+   - Run: backend tests + ruff
+   - Commit and push backend changes
+
+2. **Frontend Repository:**
+   - Update frontend server proxy route + TS types in `frontend/app/types/*` and `frontend/server/api/*`
+   - Ensure types match backend schema shapes and paths
+   - Run: frontend lint + format check
+   - Commit and push frontend changes
+
+**Note:** Since backend and frontend are in separate repositories, contract changes require commits in both repositories to maintain synchronization.
 
 
 

@@ -1,4 +1,5 @@
-from pydantic import BaseModel, EmailStr, field_validator
+from pydantic import BaseModel, EmailStr, field_validator, field_serializer
+from uuid import UUID
 
 
 # Password validation constants
@@ -28,6 +29,11 @@ class UserResponse(BaseModel):
     name: str | None
     role: str
     is_active: bool
+    client_id: str | UUID
+
+    @field_serializer("client_id")
+    def serialize_client_id(self, v: str | UUID) -> str:
+        return str(v)
 
     class Config:
         from_attributes = True

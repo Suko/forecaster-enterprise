@@ -90,23 +90,67 @@ class DataAccess:
             if filters:
                 filters_sql = " AND " + " AND ".join(filters)
 
-            query = text(f"""
-                SELECT
-                    item_id as id,
-                    date_local as timestamp,
-                    units_sold as target,
-                    COALESCE(promotion_flag, false) as promo_flag,
-                    COALESCE(holiday_flag, false) as holiday_flag,
-                    COALESCE(is_weekend, false) as is_weekend,
-                    COALESCE(marketing_spend, 0) as marketing_spend
-                FROM ts_demand_daily
-                WHERE client_id = :client_id
-                  AND item_id IN :item_ids
-                  {filters_sql}
-                ORDER BY item_id, date_local
-            """).bindparams(bindparam("item_ids", expanding=True))
+            # Handle item_ids list properly for IN clause
+            # Use ANY() for PostgreSQL, or expand manually for SQLite
+            # Check database dialect from engine URL
+            try:
+                # Get engine from session
+                engine = self.db.bind if hasattr(self.db, 'bind') else None
+                if engine is None and hasattr(self.db, 'sync_session'):
+                    engine = getattr(self.db.sync_session, 'bind', None)
+                
+                if engine:
+                    dialect = engine.dialect.name
+                else:
+                    # Try to infer from connection URL if available
+                    # Default to PostgreSQL (production database)
+                    dialect = 'postgresql'
+            except Exception:
+                # Fallback to PostgreSQL if detection fails
+                dialect = 'postgresql'
+            
+            if dialect == 'postgresql':
+                # PostgreSQL: Use ANY() with array
+                query = text(f"""
+                    SELECT
+                        item_id as id,
+                        date_local as timestamp,
+                        units_sold as target,
+                        COALESCE(promotion_flag, false) as promo_flag,
+                        COALESCE(holiday_flag, false) as holiday_flag,
+                        COALESCE(is_weekend, false) as is_weekend,
+                        COALESCE(marketing_spend, 0) as marketing_spend
+                    FROM ts_demand_daily
+                    WHERE client_id = :client_id
+                      AND item_id = ANY(:item_ids)
+                      {filters_sql}
+                    ORDER BY item_id, date_local
+                """)
+            else:
+                # SQLite or other: Expand manually with placeholders
+                placeholders = ','.join([f':item_id_{i}' for i in range(len(item_ids))])
+                query = text(f"""
+                    SELECT
+                        item_id as id,
+                        date_local as timestamp,
+                        units_sold as target,
+                        COALESCE(promotion_flag, false) as promo_flag,
+                        COALESCE(holiday_flag, false) as holiday_flag,
+                        COALESCE(is_weekend, false) as is_weekend,
+                        COALESCE(marketing_spend, 0) as marketing_spend
+                    FROM ts_demand_daily
+                    WHERE client_id = :client_id
+                      AND item_id IN ({placeholders})
+                      {filters_sql}
+                    ORDER BY item_id, date_local
+                """)
+                # Add individual item_id parameters
+                for i, item_id in enumerate(item_ids):
+                    params[f'item_id_{i}'] = item_id
+                # Remove item_ids from params since we expanded it
+                del params['item_ids']
 
-            # Execute query (dialect-agnostic: works in both SQLite + Postgres)
+            # Execute query
             result = await self.db.execute(query, params)
             rows = result.fetchall()
 

@@ -47,9 +47,6 @@ class SimulationService:
         self.order_simulator = OrderSimulator()
         self.comparison_engine = ComparisonEngine()
         self._forecast_cache: Dict[Tuple[str, date], float] = {}
-        # Use InventoryService for consistent buffer/lead time logic
-        from services.inventory_service import InventoryService
-        self.inventory_service = InventoryService(db)
     
     async def run_simulation(
         self,
@@ -243,30 +240,14 @@ class SimulationService:
                             request.client_id,
                             item_id
                         )
-                        # Use same fallback chain as production system
-                        safety_stock_days = await self.inventory_service.get_effective_buffer(
-                            request.client_id,
-                            item_id
-                        )
-                        
-                        # Calculate demand standard deviation for better safety stock
-                        demand_std = await self._get_demand_standard_deviation(
-                            request.client_id,
-                            item_id,
-                            current_date,
-                            days=30
-                        )
+                        safety_stock_days = product.safety_buffer_days or 7
                         
                         # Calculate safety stock and reorder point
-                        # Use 95% service level (industry standard) - balances cost and service
-                        # Can be overridden via config if needed (e.g., 0.99 for critical items)
-                        service_level = getattr(config, 'service_level', 0.95) if config else 0.95
                         safety_stock = self.inventory_calc.calculate_safety_stock(
                             avg_daily_demand,
                             lead_time_days,
                             safety_stock_days,
-                            service_level,
-                            demand_std=demand_std
+                            config.service_level
                         )
                         
                         reorder_point = self.inventory_calc.calculate_reorder_point(
@@ -274,11 +255,6 @@ class SimulationService:
                             lead_time_days,
                             safety_stock
                         )
-                        
-                        # Real system likely was more conservative - add buffer to reorder point
-                        # This accounts for forecast uncertainty and demand variability
-                        # Multiply by 1.2 (20% buffer) to be more conservative like real system
-                        reorder_point = reorder_point * 1.2
                         
                         # Check if we should place an order
                         # Use stock BEFORE sales to check reorder point (start-of-day inventory)
@@ -288,17 +264,9 @@ class SimulationService:
                             if o.item_id == item_id and not o.received and o.arrival_date > current_date
                         ]
                         
-                        # DEBUG: Log reorder point calculation (every 30 days or when stockout occurs)
-                        should_log = (days_since_start % 30 == 0) or (simulated_stock[item_id] <= 0)
-                        if should_log:
-                            demand_std_str = f"{demand_std:.2f}" if demand_std is not None else "N/A"
-                            logger.info(
-                                f"Day {days_since_start} - {item_id}: "
-                                f"stock_before={stock_before_sales:.1f}, stock_after={simulated_stock[item_id]:.1f}, "
-                                f"avg_demand={avg_daily_demand:.2f}, demand_std={demand_std_str}, "
-                                f"safety_stock={safety_stock:.1f}, reorder_point={reorder_point:.1f}, "
-                                f"lead_time={lead_time_days}, orders_in_transit={len(orders_in_transit)}"
-                            )
+                        # DEBUG: Log reorder point calculation
+                        if days_since_start % 30 == 0:  # Log every 30 days
+                            logger.info(f"Day {days_since_start} - {item_id}: stock_before={stock_before_sales:.1f}, stock_after={simulated_stock[item_id]:.1f}, reorder_point={reorder_point:.1f}, orders_in_transit={len(orders_in_transit)}")
                         
                         # Only place order if:
                         # 1. Stock before sales is at or below reorder point
@@ -311,10 +279,6 @@ class SimulationService:
                                 simulated_stock[item_id],
                                 moq=moq  # Use actual MOQ from product-supplier
                             )
-                            
-                            # Real system likely ordered more conservatively - add 15% buffer to order quantity
-                            # This ensures we have enough stock to cover forecast uncertainty
-                            recommended_qty = recommended_qty * 1.15
                             
                             # Place order
                             order = self.order_simulator.place_order(
@@ -719,40 +683,6 @@ class SimulationService:
         # No MOQ constraint
         return None
     
-    async def _get_demand_standard_deviation(
-        self,
-        client_id: UUID,
-        item_id: str,
-        end_date: date,
-        days: int = 30
-    ) -> Optional[float]:
-        """Get standard deviation of daily demand from historical data"""
-        from datetime import timedelta
-        start_date = end_date - timedelta(days=days)
-        
-        query = text("""
-            SELECT STDDEV(daily_total) as std_demand
-            FROM (
-                SELECT date_local, SUM(units_sold) as daily_total
-                FROM ts_demand_daily
-                WHERE client_id = :client_id
-                  AND item_id = :item_id
-                  AND date_local >= :start_date
-                  AND date_local < :end_date
-                GROUP BY date_local
-            ) daily_sales
-        """)
-        
-        result = await self.db.execute(query, {
-            "client_id": str(client_id),
-            "item_id": item_id,
-            "start_date": start_date,
-            "end_date": end_date
-        })
-        row = result.one()
-        std_value = row.std_demand if row.std_demand is not None else None
-        return float(std_value) if std_value is not None else None
-    
     async def _get_historical_average_demand(
         self,
         client_id: UUID,
@@ -888,4 +818,3 @@ class SimulationService:
             ))
         
         return results
-

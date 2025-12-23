@@ -1,0 +1,34 @@
+name: Docs Contract
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  docs-contract:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Set up uv
+        uses: astral-sh/setup-uv@v4
+        with:
+          enable-cache: true
+
+      - name: Install backend dependencies (needed for OpenAPI generation)
+        run: cd backend && uv sync --frozen
+
+      - name: Verify docs are in sync with OpenAPI
+        run: ./scripts/check_docs_drift.sh
+

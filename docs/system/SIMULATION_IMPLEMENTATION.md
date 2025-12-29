@@ -316,33 +316,36 @@ The simulation accurately represents:
 
 #### 1. **Testing** (High Priority)
 
-**Status**: ❌ No tests exist
+**Status**: ✅ Baseline tests added
 
 **What to add:**
-- [ ] Unit tests for `SimulationService`
-  - Test day-by-day loop
-  - Test order placement logic
-  - Test forecast integration
-  - Test stock calculations
-- [ ] Unit tests for `OrderSimulator`
-  - Test order placement
-  - Test order arrivals
-  - Test lead time handling
-- [ ] Unit tests for `ComparisonEngine`
-  - Test metrics calculations
-  - Test daily comparison recording
-- [ ] Integration tests for API endpoint
-  - Test successful simulation
-  - Test error handling
-  - Test validation (date range, client_id)
-- [ ] Test fixtures for simulation data
+- [x] Unit tests for `OrderSimulator`
+  - Order placement, MOQ behavior, arrivals, idempotent receipt
+- [x] Unit tests for `ComparisonEngine`
+  - Item and global metric calculations
+- [x] `SimulationService` invariants (mocked dependencies)
+  - Order placement + in-transit protection, arrival-before-sales convention, non-negative stock clamp, time-travel forecast call signature
+- [x] API request validation tests for `POST /api/v1/simulation/run`
+  - Client mismatch and date window validation
+- [ ] Expand `SimulationService` coverage
+  - Add cases for forecast fallback paths, real-stock fallback paths, missing product data, and multi-item behavior
 
-**Files to create:**
-- `backend/tests/test_services/test_simulation_service.py`
+**Tests added:**
+- `backend/tests/test_services/test_order_simulator.py`
+- `backend/tests/test_services/test_comparison_engine.py`
+- `backend/tests/test_services/test_simulation_service_invariants.py`
 - `backend/tests/test_api/test_simulation_api.py`
-- `backend/tests/test_simulation/` (new directory)
 
-**Estimated Time**: 1-2 days
+**How to run:**
+```bash
+cd backend
+uv run pytest tests/test_services/test_order_simulator.py -q
+uv run pytest tests/test_services/test_comparison_engine.py -q
+uv run pytest tests/test_services/test_simulation_service_invariants.py -q
+uv run pytest tests/test_api/test_simulation_api.py -q
+```
+
+**Estimated Time (to expand coverage)**: 0.5-1 day
 
 #### 2. **API Documentation Update** (Medium Priority)
 

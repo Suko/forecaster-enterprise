@@ -58,9 +58,11 @@ CLIENT_NAME="${CLIENT_NAME:-Demo Client}"
 CSV_PATH="${CSV_PATH:-../data/synthetic_data/synthetic_ecom_chronos2_demo.csv}"
 SKIP_ADMIN="${SKIP_ADMIN:-false}"
 SKIP_TEST_USER="${SKIP_TEST_USER:-false}"
-SKIP_TEST_DATA="${SKIP_TEST_DATA:-false}"
-SKIP_CSV_IMPORT="${SKIP_CSV_IMPORT:-false}"
+# Default: client-only setup (no demo data). Use --with-demo-data to import demo data.
+SKIP_TEST_DATA="${SKIP_TEST_DATA:-true}"
+SKIP_CSV_IMPORT="${SKIP_CSV_IMPORT:-true}"
 USE_M5_DATA="${USE_M5_DATA:-false}"
+WITH_DEMO_DATA="${WITH_DEMO_DATA:-false}"
 
 # Parse arguments
 while [[ $# -gt 0 ]]; do
@@ -110,6 +112,12 @@ while [[ $# -gt 0 ]]; do
             M5_ONLY="true"
             shift
             ;;
+        --with-demo-data)
+            WITH_DEMO_DATA="true"
+            SKIP_CSV_IMPORT="false"
+            SKIP_TEST_DATA="false"
+            shift
+            ;;
         --csv-path)
             CSV_PATH="$2"
             shift 2
@@ -126,23 +134,27 @@ while [[ $# -gt 0 ]]; do
             echo "Usage: ./setup.sh [options]"
             echo ""
             echo "Options:"
+            echo "  --client-name NAME        Client name (default: Demo Client)"
             echo "  --admin-email EMAIL       Admin user email (default: admin@example.com)"
             echo "  --admin-password PWD      Admin user password (default: admin123)"
             echo "  --admin-name NAME         Admin user name (default: Admin User)"
-            echo "  --client-name NAME        Client name (default: Demo Client)"
             echo "  --test-email EMAIL        Test user email (default: test@example.com)"
-            echo "  --test-password PWD        Test user password (default: testpassword123)"
-            echo "  --csv-path PATH           Path to CSV file (default: ../data/synthetic_data/synthetic_ecom_chronos2_demo.csv)"
+            echo "  --test-password PWD       Test user password (default: testpassword123)"
+            echo "  --with-demo-data          Import demo data (CSV + M5) and setup test products/stock"
+            echo "  --csv-path PATH           Path to CSV file (requires --with-demo-data)"
+            echo "  --csv-only                Import only CSV data (requires --with-demo-data)"
+            echo "  --m5-only                 Import only M5 data (requires --with-demo-data)"
             echo "  --skip-admin              Skip admin user creation"
             echo "  --skip-test-user          Skip test user creation"
-            echo "  --skip-csv-import         Skip CSV data import"
-            echo "  --skip-test-data          Skip test data setup"
-            echo "  --use-m5-data             Import M5 dataset (deprecated: use --m5-only)"
-            echo "  --csv-only                Import only CSV data (skip M5)"
-            echo "  --m5-only                 Import only M5 data (skip CSV)"
             echo "  --help                    Show this help message"
             echo ""
-            echo "Default behavior: Imports both CSV and M5 datasets"
+            echo "Default behavior: Creates client + users only (no demo data)."
+            echo "Use --with-demo-data for development/testing with sample data."
+            echo ""
+            echo "Examples:"
+            echo "  ./setup.sh --client-name \"My Company\"              # Production: client + users only"
+            echo "  ./setup.sh --with-demo-data                         # Development: with demo data"
+            echo "  ./setup.sh --with-demo-data --m5-only               # Development: M5 data only"
             echo ""
             echo "Environment variables:"
             echo "  ADMIN_EMAIL, ADMIN_PASSWORD, ADMIN_NAME, CLIENT_NAME"

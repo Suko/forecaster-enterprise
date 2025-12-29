@@ -17,6 +17,22 @@ The simulation system should validate:
 
 ---
 
+## Automated Tests (Baseline)
+
+Run the current automated tests (fast, deterministic):
+
+```bash
+cd backend
+uv run pytest tests/test_services/test_order_simulator.py -q
+uv run pytest tests/test_services/test_comparison_engine.py -q
+uv run pytest tests/test_services/test_simulation_service_invariants.py -q
+uv run pytest tests/test_api/test_simulation_api.py -q
+```
+
+These prove core invariants (order arrival/receipt, metric math, orchestration invariants, and API validation). They do not validate production data quality or forecast accuracy.
+
+---
+
 ## Test Scenarios
 
 ### Scenario 1: High Stockout Products

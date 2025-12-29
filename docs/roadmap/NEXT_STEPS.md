@@ -28,6 +28,24 @@ v1 is considered complete. This document captures **future improvements** and fo
 
 ## Current Priorities
 
+### 0. First Release (v0.0.1) 🚨 **BLOCKING**
+**Goal:** Deploy working application to stage/production
+
+**Status:** Pre-deployment setup required
+**Timeline:** Complete before any other work
+**Documentation:** `docs/setup/FIRST_RELEASE_CHECKLIST.md`
+
+**Critical Path:**
+- [ ] Set up GitHub environments (stage/prod) with secrets
+- [ ] Configure deployment servers with Docker + SSH access
+- [ ] Implement actual deployment logic in workflow files
+- [ ] Test deployment process end-to-end
+- [ ] Deploy v0.0.1 safely
+
+**Risk:** Without deployment infrastructure, codebase cannot be used by end users.
+
+---
+
 ### 1. Frontend Polish (Optional)
 **Goal:** Complete MVP UX and user-facing features
 

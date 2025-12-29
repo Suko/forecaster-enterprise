@@ -1,0 +1,28 @@
+name: Deploy Stage
+
+on:
+  workflow_dispatch:
+    inputs:
+      image_tag:
+        description: "Release tag to deploy (e.g., v0.1.0)"
+        required: true
+
+permissions:
+  contents: read
+
+concurrency:
+  group: deploy-stage
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment: stage
+    timeout-minutes: 30
+    steps:
+      - name: Deploy placeholder
+        run: |
+          echo "Stage deploy is intentionally not implemented in-repo."
+          echo "Configure this job to pull images and run docker compose on your stage host."
+          echo "Use GitHub Environments to store secrets and (optionally) require approvals."
+          echo "Requested release tag='${{ inputs.image_tag }}'"

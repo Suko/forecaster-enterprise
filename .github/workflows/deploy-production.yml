@@ -1,0 +1,28 @@
+name: Deploy Production
+
+on:
+  workflow_dispatch:
+    inputs:
+      image_tag:
+        description: "Release tag to deploy (e.g., v0.1.0)"
+        required: true
+
+permissions:
+  contents: read
+
+concurrency:
+  group: deploy-production
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment: production
+    timeout-minutes: 45
+    steps:
+      - name: Deploy placeholder
+        run: |
+          echo "Production deploy is intentionally not implemented in-repo."
+          echo "Configure this job to pull images and run docker compose on your prod host."
+          echo "Use GitHub Environments with required reviewers for approval gating."
+          echo "Requested release tag='${{ inputs.image_tag }}'"

@@ -1,4 +1,4 @@
-name: Docs Contract
+name: Backend CI
 
 on:
   pull_request:
@@ -9,9 +9,9 @@ permissions:
   contents: read
 
 jobs:
-  docs-contract:
+  backend-ci:
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 20
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -26,8 +26,11 @@ jobs:
         with:
           enable-cache: true
 
-      - name: Install backend dependencies (needed for OpenAPI generation)
+      - name: Install backend dependencies
         run: cd backend && uv sync --frozen
 
-      - name: Verify docs are in sync with OpenAPI
-        run: ./scripts/check_docs_drift.sh
+      - name: Lint (ruff)
+        run: cd backend && uv run ruff check .
+
+      - name: Run tests (pytest)
+        run: cd backend && uv run pytest tests/ -q

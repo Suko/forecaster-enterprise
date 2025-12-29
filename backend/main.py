@@ -5,13 +5,16 @@ from sentry_sdk.integrations.fastapi import FastApiIntegration
 from sentry_sdk.integrations.sqlalchemy import SqlalchemyIntegration
 from sentry_sdk.integrations.logging import LoggingIntegration
 
-from fastapi import FastAPI, Request
+from fastapi import FastAPI, Request, Depends
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from slowapi.errors import RateLimitExceeded
 from config import settings
+from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy import text
 
 from models import init_db
+from models.database import get_db
 from api import auth, forecast, monitoring, inventory, orders, purchase_orders, etl, suppliers, locations
 from api import settings as settings_api, simulation
 
@@ -156,3 +159,23 @@ async def root():
 @app.get("/health")
 async def health():
     return {"status": "healthy"}
+
+
+@app.get("/ready")
+async def ready(db: AsyncSession = Depends(get_db)):
+    """
+    Readiness endpoint (no auth required).
+
+    Intended for container/orchestrator readiness checks. Verifies:
+    - Database connectivity
+    - Alembic migrations have been applied (alembic_version table is readable)
+    """
+    try:
+        await db.execute(text("SELECT 1"))
+        await db.execute(text("SELECT version_num FROM alembic_version LIMIT 1"))
+        return {"status": "ready"}
+    except Exception as exc:
+        return JSONResponse(
+            status_code=503,
+            content={"status": "not_ready", "error": str(exc)},
+        )

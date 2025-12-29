@@ -397,7 +397,7 @@ class InventoryService:
 
                     # Get forecast results (same logic as sync version)
                     forecast_service = ForecastService(db_session)
-                    from applications.inventory.calculator import InventoryCalculator
+                    from forecasting.applications.inventory.calculator import InventoryCalculator
                     inventory_calc = InventoryCalculator()
 
                     # Check if this is a user call (has JWT token) - for now assume system call

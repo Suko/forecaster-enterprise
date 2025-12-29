@@ -132,7 +132,8 @@ class ETLService:
         async with self.db.begin():
             if replace:
                 await self.db.execute(text(delete_sql), delete_params)
-            await self.db.execute(insert_query, validated_data)
+            for row_data in validated_data:
+                await self.db.execute(insert_query, row_data)
 
         return {
             "success": True,
@@ -207,7 +208,8 @@ class ETLService:
                     updated_at = CURRENT_TIMESTAMP
             """)
             async with self.db.begin():
-                await self.db.execute(upsert_query, validated_data)
+                for row_data in validated_data:
+                    await self.db.execute(upsert_query, row_data)
 
         return {
             "success": True,
@@ -290,7 +292,8 @@ class ETLService:
                     {"client_id": str(client_id)},
                 )
             if validated_data:
-                await self.db.execute(upsert_query, validated_data)
+                for row_data in validated_data:
+                    await self.db.execute(upsert_query, row_data)
 
         return {
             "success": True,
@@ -378,7 +381,8 @@ class ETLService:
 
         if validated_data:
             async with self.db.begin():
-                await self.db.execute(upsert_query, validated_data)
+                for row_data in validated_data:
+                    await self.db.execute(upsert_query, row_data)
 
         return {
             "success": True,

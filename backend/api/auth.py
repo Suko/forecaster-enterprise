@@ -153,4 +153,3 @@ async def update_user_preferences(
     await db.refresh(user)
     
     return UserPreferencesResponse(preferences=user.preferences or {})
-    return None

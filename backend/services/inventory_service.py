@@ -847,7 +847,10 @@ class InventoryService:
                 # Get supplier info for each condition
                 for condition in conditions:
                     supplier_result = await self.db.execute(
-                        select(Supplier).where(Supplier.id == condition.supplier_id)
+                        select(Supplier).where(
+                            Supplier.client_id == client_id,
+                            Supplier.id == condition.supplier_id,
+                        )
                     )
                     supplier = supplier_result.scalar_one_or_none()
                     

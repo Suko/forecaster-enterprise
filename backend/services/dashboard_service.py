@@ -7,7 +7,7 @@ from typing import List, Dict, Optional, Tuple
 from uuid import UUID
 from datetime import date, timedelta, datetime, timezone
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select, func, and_, or_, text
+from sqlalchemy import bindparam, select, func, and_, or_, text
 from decimal import Decimal
 import asyncio
 import logging
@@ -442,21 +442,20 @@ class DashboardService:
         end_date = date.today()
         start_date = end_date - timedelta(days=days)
 
-        # Optimized batch query using array operator
-        # SQLAlchemy will handle type conversion automatically
+        # Use an expanding IN clause so this works on both PostgreSQL and SQLite.
         sql_query = text("""
             SELECT item_id, AVG(daily_total) as avg_demand
             FROM (
                 SELECT item_id, date_local, SUM(units_sold) as daily_total
                 FROM ts_demand_daily
                 WHERE client_id = :client_id
-                  AND item_id = ANY(:item_ids)
+                  AND item_id IN :item_ids
                   AND date_local >= :start_date
                   AND date_local <= :end_date
                 GROUP BY item_id, date_local
             ) daily_totals
             GROUP BY item_id
-        """)
+        """).bindparams(bindparam("item_ids", expanding=True))
 
         result = await self.db.execute(
             sql_query,
@@ -486,7 +485,7 @@ class DashboardService:
                         SUM(units_sold) as daily_total
                     FROM ts_demand_daily
                     WHERE client_id = :client_id
-                      AND item_id = ANY(:item_ids)
+                      AND item_id IN :item_ids
                       AND units_sold > 0
                     GROUP BY item_id, date_local
                 ),
@@ -502,7 +501,7 @@ class DashboardService:
                 FROM ranked_days
                 WHERE rn <= :days
                 GROUP BY item_id
-            """)
+            """).bindparams(bindparam("item_ids", expanding=True))
 
             fallback_result = await self.db.execute(
                 fallback_query,

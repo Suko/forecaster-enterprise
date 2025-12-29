@@ -7,9 +7,10 @@ from typing import List, Optional, Dict
 from uuid import UUID
 from datetime import date
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select, and_, func
+from sqlalchemy import select, func
 from decimal import Decimal
-import uuid
+import secrets
+import time
 
 from models.purchase_order import PurchaseOrder, PurchaseOrderItem
 from models.product import Product
@@ -31,7 +32,9 @@ class PurchaseOrderService:
         self,
         client_id: UUID,
         data: PurchaseOrderCreate,
-        created_by: Optional[str] = None
+        created_by: Optional[str] = None,
+        *,
+        commit: bool = True,
     ) -> PurchaseOrder:
         """Create purchase order from cart items or direct items"""
         # Verify supplier exists
@@ -123,35 +126,28 @@ class PurchaseOrderService:
             item.po_id = po.id
             self.db.add(item)
 
-        await self.db.commit()
-        await self.db.refresh(po)
+        if commit:
+            await self.db.commit()
+            await self.db.refresh(po)
 
         return po
 
     async def _generate_po_number(self, client_id: UUID) -> str:
         """Generate unique PO number"""
-        # Get count of POs for this client
-        result = await self.db.execute(
-            select(func.count(PurchaseOrder.id)).where(
-                PurchaseOrder.client_id == client_id
-            )
-        )
-        count = result.scalar() or 0
-
-        # Format: PO-{client_id_short}-{count+1}
+        # Format: PO-{client_id_short}-{epoch}-{rand}
         client_short = str(client_id)[:8].upper()
-        po_number = f"PO-{client_short}-{count + 1:06d}"
+        epoch = int(time.time())
 
-        # Ensure uniqueness
-        existing_result = await self.db.execute(
-            select(PurchaseOrder).where(PurchaseOrder.po_number == po_number)
-        )
-        if existing_result.scalar_one_or_none():
-            # If exists, append timestamp
-            import time
-            po_number = f"{po_number}-{int(time.time())}"
+        # Extremely low collision risk, but we still check-and-retry to satisfy uniqueness constraint.
+        for _ in range(5):
+            rand = secrets.token_hex(3).upper()
+            po_number = f"PO-{client_short}-{epoch}-{rand}"
+            existing = await self.db.execute(select(PurchaseOrder.id).where(PurchaseOrder.po_number == po_number))
+            if existing.scalar_one_or_none() is None:
+                return po_number
+            epoch = int(time.time())
 
-        return po_number
+        raise RuntimeError("Failed to generate unique PO number")
 
     async def get_purchase_orders(
         self,
@@ -244,52 +240,49 @@ class PurchaseOrderService:
         created_by: Optional[str] = None
     ) -> PurchaseOrder:
         """Create purchase order from cart items for a specific supplier"""
-        # Get cart items for this supplier
-        cart_result = await self.db.execute(
-            select(OrderCartItem).where(
-                OrderCartItem.client_id == client_id,
-                OrderCartItem.session_id == session_id,
-                OrderCartItem.supplier_id == supplier_id
+        async with self.db.begin():
+            cart_result = await self.db.execute(
+                select(OrderCartItem).where(
+                    OrderCartItem.client_id == client_id,
+                    OrderCartItem.session_id == session_id,
+                    OrderCartItem.supplier_id == supplier_id,
+                )
             )
-        )
-        cart_items = cart_result.scalars().all()
+            cart_items = cart_result.scalars().all()
 
-        if not cart_items:
-            raise ValueError("No items in cart for this supplier")
+            if not cart_items:
+                raise ValueError("No items in cart for this supplier")
 
-        # Convert cart items to PO items
-        from schemas.order import PurchaseOrderItemCreate
+            from schemas.order import PurchaseOrderItemCreate
 
-        po_items = []
-        for cart_item in cart_items:
-            po_items.append(PurchaseOrderItemCreate(
-                item_id=cart_item.item_id,
-                quantity=cart_item.quantity,
-                unit_cost=cart_item.unit_cost,
-                packaging_unit=cart_item.packaging_unit,
-                packaging_qty=cart_item.packaging_qty
-            ))
+            po_items = [
+                PurchaseOrderItemCreate(
+                    item_id=cart_item.item_id,
+                    quantity=cart_item.quantity,
+                    unit_cost=cart_item.unit_cost,
+                    packaging_unit=cart_item.packaging_unit,
+                    packaging_qty=cart_item.packaging_qty,
+                )
+                for cart_item in cart_items
+            ]
 
-        # Create PO
-        po_data = PurchaseOrderCreate(
-            supplier_id=supplier_id,
-            items=po_items,
-            shipping_method=shipping_method,
-            shipping_unit=shipping_unit,
-            notes=notes
-        )
+            po_data = PurchaseOrderCreate(
+                supplier_id=supplier_id,
+                items=po_items,
+                shipping_method=shipping_method,
+                shipping_unit=shipping_unit,
+                notes=notes,
+            )
 
-        po = await self.create_purchase_order(
-            client_id=client_id,
-            data=po_data,
-            created_by=created_by
-        )
+            po = await self.create_purchase_order(
+                client_id=client_id,
+                data=po_data,
+                created_by=created_by,
+                commit=False,
+            )
 
-        # Remove items from cart
-        for cart_item in cart_items:
-            await self.db.delete(cart_item)
+            for cart_item in cart_items:
+                await self.db.delete(cart_item)
 
-        await self.db.commit()
-
+        await self.db.refresh(po)
         return po
-

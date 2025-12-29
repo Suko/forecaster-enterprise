@@ -158,7 +158,10 @@ async def get_product_suppliers(
     for condition in conditions:
         # Get supplier info
         supplier_result = await db.execute(
-            select(Supplier).where(Supplier.id == condition.supplier_id)
+            select(Supplier).where(
+                Supplier.client_id == client.client_id,
+                Supplier.id == condition.supplier_id,
+            )
         )
         supplier = supplier_result.scalar_one()
 
@@ -225,7 +228,10 @@ async def add_product_supplier(
         from schemas.inventory import SupplierInfo
 
         supplier_result = await db.execute(
-            select(Supplier).where(Supplier.id == condition.supplier_id)
+            select(Supplier).where(
+                Supplier.client_id == client.client_id,
+                Supplier.id == condition.supplier_id,
+            )
         )
         supplier = supplier_result.scalar_one()
         supplier_info = SupplierInfo.model_validate(supplier)

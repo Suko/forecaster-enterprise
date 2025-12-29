@@ -56,7 +56,10 @@ async def create_purchase_order(
         from models.purchase_order import PurchaseOrderItem
 
         supplier_result = await db.execute(
-            select(Supplier).where(Supplier.id == po.supplier_id)
+            select(Supplier).where(
+                Supplier.client_id == client.client_id,
+                Supplier.id == po.supplier_id,
+            )
         )
         supplier = supplier_result.scalar_one()
 
@@ -68,7 +71,10 @@ async def create_purchase_order(
         items_response = []
         for item in items:
             product_result = await db.execute(
-                select(Product).where(Product.item_id == item.item_id)
+                select(Product).where(
+                    Product.client_id == client.client_id,
+                    Product.item_id == item.item_id,
+                )
             )
             product = product_result.scalar_one()
 
@@ -123,7 +129,7 @@ async def create_po_from_cart(
     """
     service = PurchaseOrderService(db)
 
-    session_id = user.email if user else x_session_id or "anonymous"
+    session_id = str(user.id) if user else x_session_id or "anonymous"
     created_by = user.email if user else None
 
     try:
@@ -144,7 +150,10 @@ async def create_po_from_cart(
         from models.purchase_order import PurchaseOrderItem
 
         supplier_result = await db.execute(
-            select(Supplier).where(Supplier.id == po.supplier_id)
+            select(Supplier).where(
+                Supplier.client_id == client.client_id,
+                Supplier.id == po.supplier_id,
+            )
         )
         supplier = supplier_result.scalar_one()
 
@@ -156,7 +165,10 @@ async def create_po_from_cart(
         items_response = []
         for item in items:
             product_result = await db.execute(
-                select(Product).where(Product.item_id == item.item_id)
+                select(Product).where(
+                    Product.client_id == client.client_id,
+                    Product.item_id == item.item_id,
+                )
             )
             product = product_result.scalar_one()
 
@@ -220,7 +232,10 @@ async def get_purchase_orders(
     orders_response = []
     for po in result["items"]:
         supplier_result = await db.execute(
-            select(Supplier).where(Supplier.id == po.supplier_id)
+            select(Supplier).where(
+                Supplier.client_id == client.client_id,
+                Supplier.id == po.supplier_id,
+            )
         )
         supplier = supplier_result.scalar_one()
 
@@ -266,7 +281,10 @@ async def get_purchase_order(
     from models.purchase_order import PurchaseOrderItem
 
     supplier_result = await db.execute(
-        select(Supplier).where(Supplier.id == po.supplier_id)
+        select(Supplier).where(
+            Supplier.client_id == client.client_id,
+            Supplier.id == po.supplier_id,
+        )
     )
     supplier = supplier_result.scalar_one()
 
@@ -278,7 +296,10 @@ async def get_purchase_order(
     items_response = []
     for item in items:
         product_result = await db.execute(
-            select(Product).where(Product.item_id == item.item_id)
+            select(Product).where(
+                Product.client_id == client.client_id,
+                Product.item_id == item.item_id,
+            )
         )
         product = product_result.scalar_one()
 
@@ -339,7 +360,10 @@ async def update_purchase_order_status(
         from models.purchase_order import PurchaseOrderItem
 
         supplier_result = await db.execute(
-            select(Supplier).where(Supplier.id == po.supplier_id)
+            select(Supplier).where(
+                Supplier.client_id == client.client_id,
+                Supplier.id == po.supplier_id,
+            )
         )
         supplier = supplier_result.scalar_one()
 
@@ -351,7 +375,10 @@ async def update_purchase_order_status(
         items_response = []
         for item in items:
             product_result = await db.execute(
-                select(Product).where(Product.item_id == item.item_id)
+                select(Product).where(
+                    Product.client_id == client.client_id,
+                    Product.item_id == item.item_id,
+                )
             )
             product = product_result.scalar_one()
 
@@ -386,4 +413,3 @@ async def update_purchase_order_status(
 
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
-

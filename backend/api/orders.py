@@ -77,12 +77,18 @@ async def add_to_cart(
         from models.supplier import Supplier
 
         product_result = await db.execute(
-            select(Product).where(Product.item_id == cart_item.item_id)
+            select(Product).where(
+                Product.client_id == client.client_id,
+                Product.item_id == cart_item.item_id,
+            )
         )
         product = product_result.scalar_one()
 
         supplier_result = await db.execute(
-            select(Supplier).where(Supplier.id == cart_item.supplier_id)
+            select(Supplier).where(
+                Supplier.client_id == client.client_id,
+                Supplier.id == cart_item.supplier_id,
+            )
         )
         supplier = supplier_result.scalar_one()
 
@@ -134,12 +140,18 @@ async def get_cart(
 
     for item in cart_items:
         product_result = await db.execute(
-            select(Product).where(Product.item_id == item.item_id)
+            select(Product).where(
+                Product.client_id == client.client_id,
+                Product.item_id == item.item_id,
+            )
         )
         product = product_result.scalar_one()
 
         supplier_result = await db.execute(
-            select(Supplier).where(Supplier.id == item.supplier_id)
+            select(Supplier).where(
+                Supplier.client_id == client.client_id,
+                Supplier.id == item.supplier_id,
+            )
         )
         supplier = supplier_result.scalar_one()
 
@@ -220,12 +232,18 @@ async def update_cart_item(
         from services.inventory_service import InventoryService
 
         product_result = await db.execute(
-            select(Product).where(Product.item_id == cart_item.item_id)
+            select(Product).where(
+                Product.client_id == client.client_id,
+                Product.item_id == cart_item.item_id,
+            )
         )
         product = product_result.scalar_one()
 
         supplier_result = await db.execute(
-            select(Supplier).where(Supplier.id == cart_item.supplier_id)
+            select(Supplier).where(
+                Supplier.client_id == client.client_id,
+                Supplier.id == cart_item.supplier_id,
+            )
         )
         supplier = supplier_result.scalar_one()
 
@@ -441,4 +459,3 @@ async def dismiss_recommendation(
     """
     # TODO: Store dismissed recommendations in database
     return {"message": "Recommendation dismissed", "recommendation_id": recommendation_id}
-

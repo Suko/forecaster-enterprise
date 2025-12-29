@@ -125,3 +125,20 @@ bun run dev
 3. Check backend logs
 4. Refer to full testing plan for detailed validation
 
+---
+
+## Recent Backend Fixes (2025-12-29)
+
+Completed changes:
+- Fixed multi-tenant scoping issues in cart/PO/inventory response lookups (ensures `client_id` is always applied).
+- Fixed cart → purchase-order flow to use a consistent `session_id` for authenticated users.
+- Fixed Sentry startup crash (`os` import).
+- Hardened purchase-order creation:
+  - PO number generation no longer uses `count+1` (avoids concurrency races).
+  - Cart → PO creation is now transactional (PO + cart cleanup commit together).
+- ETL performance/consistency improvements (batched upserts, transactional replace for sales history).
+
+How to re-run key tests (from repo root):
+- Use `backend/.venv/bin/pytest` (plain `pytest` may run under your system Python and fail due to missing deps like `aiosqlite`).
+- `backend/.venv/bin/pytest -q backend/tests/test_services/test_purchase_order_service.py`
+- `backend/.venv/bin/pytest -q backend/tests/test_services/test_etl_service.py`

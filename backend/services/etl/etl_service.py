@@ -104,8 +104,10 @@ class ETLService:
                 "errors": errors[:10],
             }
 
-        # Note: On CONFLICT, we can't reliably distinguish insert vs update across DBs
-        # without DB-specific RETURNING logic. We report total rows upserted.
+        # Note: ON CONFLICT ... DO UPDATE (upsert) can't reliably distinguish inserts vs
+        # updates across DBs without DB-specific RETURNING logic. For API compatibility,
+        # we report total upserted rows as "rows_inserted" and 0 for "rows_updated".
+        # The actual behavior is: new rows are inserted, existing rows are updated.
         upsert_count = len(validated_data)
 
         insert_query = text("""
@@ -139,9 +141,9 @@ class ETLService:
             "success": True,
             "rows_fetched": len(external_data),
             "rows_validated": len(validated_data),
-            "rows_inserted": upsert_count,
-            "rows_updated": 0,
-            "errors": errors[:10]  # Limit error details
+            "rows_inserted": upsert_count,  # Total rows upserted (inserted or updated)
+            "rows_updated": 0,  # Not tracked separately; see comment above
+            "errors": errors[:10],
         }
 
     async def sync_products(

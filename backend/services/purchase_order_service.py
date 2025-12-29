@@ -284,5 +284,6 @@ class PurchaseOrderService:
             for cart_item in cart_items:
                 await self.db.delete(cart_item)
 
-        await self.db.refresh(po)
+            await self.db.refresh(po)
+
         return po

@@ -68,11 +68,7 @@ app = FastAPI(
 async def add_client_context(request: Request, call_next):
     """Add client_id and other business context to Sentry for better error grouping"""
     # Only add context if Sentry is enabled and initialized
-    try:
-        if not hasattr(sentry_sdk, '_initialized') or sentry_sdk._initialized is False:
-            return await call_next(request)
-    except:
-        # If we can't check Sentry status, skip context addition
+    if not sentry_sdk.is_initialized():
         return await call_next(request)
 
     try:

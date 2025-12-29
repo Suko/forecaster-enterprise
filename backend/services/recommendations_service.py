@@ -129,14 +129,12 @@ class RecommendationsService:
         Non-blocking - runs in background task (fire-and-forget).
         Uses module-level task tracking to prevent duplicates across concurrent requests.
         
-        Note: This is a synchronous function that schedules an async task.
-        It does NOT await the task, making it truly non-blocking.
+        Note: Must be called from an async context (FastAPI endpoint or async method).
         """
         task_key = f"{client_id}:refresh"
         
-        # Create background task function
         async def refresh_task():
-            # Create new database session for background task
+            """Background task that runs the actual forecast refresh."""
             from models.database import get_async_session_local
             session_local = get_async_session_local()
             async with session_local() as db_session:
@@ -157,44 +155,25 @@ class RecommendationsService:
                 except Exception as e:
                     logger.error(f"Forecast refresh failed for client {client_id}: {e}")
                 finally:
-                    # Clean up task tracking (thread-safe)
                     async with _forecast_refresh_lock:
-                        if task_key in _forecast_refresh_tasks:
-                            del _forecast_refresh_tasks[task_key]
+                        _forecast_refresh_tasks.pop(task_key, None)
         
-        # Schedule task atomically (check and create in one operation)
         async def schedule_task():
+            """Check for duplicate and schedule refresh task atomically."""
             async with _forecast_refresh_lock:
-                if task_key in _forecast_refresh_tasks:
-                    task = _forecast_refresh_tasks[task_key]
-                    if not task.done():
-                        logger.info(f"Forecast refresh already in progress for client {client_id}")
-                        return
-                    # Task is done but not cleaned up - remove it
-                    del _forecast_refresh_tasks[task_key]
-                
-                # Create and register task atomically (prevents race condition)
+                existing = _forecast_refresh_tasks.get(task_key)
+                if existing and not existing.done():
+                    logger.info(f"Forecast refresh already in progress for client {client_id}")
+                    return
+                # Create and register task atomically
                 task = asyncio.create_task(refresh_task())
                 _forecast_refresh_tasks[task_key] = task
         
-        # Schedule the task scheduling (fire-and-forget - we don't await it)
-        # Get the current event loop and schedule the task
+        # Schedule the task (fire-and-forget) - requires running event loop
         try:
-            loop = asyncio.get_running_loop()
-            # Create task without awaiting - truly fire-and-forget
-            loop.create_task(schedule_task())
+            asyncio.create_task(schedule_task())
         except RuntimeError:
-            # No running event loop - try to get/create one
-            try:
-                loop = asyncio.get_event_loop()
-                if loop.is_running():
-                    loop.create_task(schedule_task())
-                else:
-                    # Loop exists but not running - schedule for later
-                    asyncio.ensure_future(schedule_task(), loop=loop)
-            except RuntimeError:
-                # Can't schedule - log and continue (don't block)
-                logger.warning(f"Could not schedule forecast refresh task for client {client_id} - no event loop")
+            logger.warning(f"Could not schedule forecast refresh for client {client_id} - no event loop")
 
     async def get_recommendations(
         self,

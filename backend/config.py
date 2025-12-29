@@ -98,6 +98,12 @@ class Settings(BaseSettings):
     # In production, set to false to reduce overhead (validation still runs, but audit trail is minimal)
     enable_audit_logging: bool = os.getenv("ENABLE_AUDIT_LOGGING", "").lower() in ["true", "1", "yes"] or os.getenv("ENVIRONMENT", "development").lower() in ["development", "dev", "test", "testing"]
 
+    # Sentry Configuration
+    sentry_dsn: Optional[str] = os.getenv("SENTRY_DSN")
+    sentry_environment: str = os.getenv("SENTRY_ENVIRONMENT", environment)
+    sentry_traces_sample_rate: float = float(os.getenv("SENTRY_TRACES_SAMPLE_RATE", "0.1"))
+    sentry_profiles_sample_rate: float = float(os.getenv("SENTRY_PROFILES_SAMPLE_RATE", "0.1"))
+
     def model_post_init(self, __context) -> None:
         """Validate configuration after initialization"""
         is_dev = self.environment.lower() in ["development", "dev", "local"]
@@ -148,6 +154,20 @@ class Settings(BaseSettings):
                     "This is not recommended for security.",
                     UserWarning
                 )
+
+        # Sentry - Validate sample rates
+        if not (0.0 <= self.sentry_traces_sample_rate <= 1.0):
+            raise ValueError("SENTRY_TRACES_SAMPLE_RATE must be between 0.0 and 1.0")
+
+        if not (0.0 <= self.sentry_profiles_sample_rate <= 1.0):
+            raise ValueError("SENTRY_PROFILES_SAMPLE_RATE must be between 0.0 and 1.0")
+
+        # Sentry - Warn about missing DSN in production
+        if not is_dev and not self.sentry_dsn:
+            warnings.warn(
+                "SENTRY_DSN not set in production. Error monitoring will be disabled.",
+                UserWarning
+            )
 
     class Config:
         env_file = ".env"

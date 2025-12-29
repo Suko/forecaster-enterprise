@@ -360,7 +360,6 @@ class SupplierService:
 
         # If apply_to_existing is True, update product-supplier conditions
         if apply_to_existing:
-            from models.product_supplier import ProductSupplierCondition
 
             # Build update conditions
             conditions_to_update = []

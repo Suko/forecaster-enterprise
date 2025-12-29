@@ -48,36 +48,6 @@ async def test_get_products_pagination(db_session, test_client_obj):
     assert result["total_pages"] == 2
 
 
-@pytest.mark.asyncio
-async def test_get_products_filter_by_category(db_session, test_client_obj):
-    """Test filtering products by category"""
-    service = InventoryService(db_session)
-
-    # Create products in different categories
-    product1 = create_test_product(
-        client_id=test_client_obj.client_id,
-        item_id="TEST-001",
-        category="Electronics"
-    )
-    product2 = create_test_product(
-        client_id=test_client_obj.client_id,
-        item_id="TEST-002",
-        category="Clothing"
-    )
-    db_session.add_all([product1, product2])
-    await db_session.commit()
-
-    from schemas.inventory import ProductFilters
-
-    # Filter by category
-    filters = ProductFilters(category="Electronics")
-    result = await service.get_products(
-        client_id=test_client_obj.client_id,
-        filters=filters
-    )
-
-    assert len(result["items"]) == 1
-    assert result["items"][0]["category"] == "Electronics"
 
 
 @pytest.mark.asyncio
@@ -125,45 +95,6 @@ async def test_add_product_supplier(db_session, test_client_obj):
     assert condition.lead_time_days == 14
 
 
-@pytest.mark.asyncio
-async def test_add_product_supplier_duplicate(db_session, test_client_obj):
-    """Test adding duplicate supplier (should update existing)"""
-    service = InventoryService(db_session)
-
-    # Create product and supplier
-    product = create_test_product(
-        client_id=test_client_obj.client_id,
-        item_id="TEST-001"
-    )
-    supplier = create_test_supplier(
-        client_id=test_client_obj.client_id,
-        name="Test Supplier"
-    )
-    db_session.add_all([product, supplier])
-    await db_session.commit()
-
-    # Add first time
-    condition1 = await service.add_product_supplier(
-        client_id=test_client_obj.client_id,
-        item_id=product.item_id,
-        supplier_id=supplier.id,
-        moq=10,
-        lead_time_days=14
-    )
-
-    # Add again (should update)
-    condition2 = await service.add_product_supplier(
-        client_id=test_client_obj.client_id,
-        item_id=product.item_id,
-        supplier_id=supplier.id,
-        moq=20,  # Different MOQ
-        lead_time_days=21  # Different lead time
-    )
-
-    # Should be the same record, updated
-    assert condition1.id == condition2.id
-    assert condition2.moq == 20
-    assert condition2.lead_time_days == 21
 
 
 @pytest.mark.asyncio

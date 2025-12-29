@@ -116,7 +116,7 @@ class DashboardService:
         
         return result
 
-    async def _trigger_forecast_refresh(
+    def _trigger_forecast_refresh(
         self,
         client_id: UUID,
         item_ids: List[str],
@@ -124,9 +124,14 @@ class DashboardService:
     ) -> None:
         """
         Trigger background forecast refresh for items.
-        Non-blocking - runs in background task.
+        Non-blocking - runs in background task (fire-and-forget).
         Uses module-level task tracking to prevent duplicates across concurrent requests.
+        
+        Note: This is a synchronous function that schedules an async task.
+        It does NOT await the task, making it truly non-blocking.
         """
+        task_key = f"{client_id}:refresh"
+        
         # Create background task function
         async def refresh_task():
             # Create new database session for background task
@@ -155,21 +160,39 @@ class DashboardService:
                         if task_key in _forecast_refresh_tasks:
                             del _forecast_refresh_tasks[task_key]
         
-        task_key = f"{client_id}:refresh"
+        # Schedule task atomically (check and create in one operation)
+        async def schedule_task():
+            async with _forecast_refresh_lock:
+                if task_key in _forecast_refresh_tasks:
+                    task = _forecast_refresh_tasks[task_key]
+                    if not task.done():
+                        logger.info(f"Forecast refresh already in progress for client {client_id}")
+                        return
+                    # Task is done but not cleaned up - remove it
+                    del _forecast_refresh_tasks[task_key]
+                
+                # Create and register task atomically (prevents race condition)
+                task = asyncio.create_task(refresh_task())
+                _forecast_refresh_tasks[task_key] = task
         
-        # Check if refresh already in progress and create/register task atomically (thread-safe)
-        async with _forecast_refresh_lock:
-            if task_key in _forecast_refresh_tasks:
-                task = _forecast_refresh_tasks[task_key]
-                if not task.done():
-                    logger.info(f"Forecast refresh already in progress for client {client_id}")
-                    return
-                # Task is done but not cleaned up - remove it
-                del _forecast_refresh_tasks[task_key]
-            
-            # Create and register task atomically (prevents race condition)
-            task = asyncio.create_task(refresh_task())
-            _forecast_refresh_tasks[task_key] = task
+        # Schedule the task scheduling (fire-and-forget - we don't await it)
+        # Get the current event loop and schedule the task
+        try:
+            loop = asyncio.get_running_loop()
+            # Create task without awaiting - truly fire-and-forget
+            loop.create_task(schedule_task())
+        except RuntimeError:
+            # No running event loop - try to get/create one
+            try:
+                loop = asyncio.get_event_loop()
+                if loop.is_running():
+                    loop.create_task(schedule_task())
+                else:
+                    # Loop exists but not running - schedule for later
+                    asyncio.ensure_future(schedule_task(), loop=loop)
+            except RuntimeError:
+                # Can't schedule - log and continue (don't block)
+                logger.warning(f"Could not schedule forecast refresh task for client {client_id} - no event loop")
 
     async def get_dashboard_data(self, client_id: UUID) -> DashboardResponse:
         """
@@ -216,13 +239,12 @@ class DashboardService:
                 stock_by_item[sl.item_id] = 0
             stock_by_item[sl.item_id] += sl.current_stock
 
-        # Batch check for stale forecasts and trigger refresh if needed
+        # Batch check for forecast freshness (use existing forecasts if available)
+        # NOTE: We do NOT auto-trigger refresh here - that should be handled by:
+        # 1. Scheduled system jobs (every 7 days) - automatic
+        # 2. Manual refresh endpoint - user-initiated
+        # Navigation should only check and use existing forecasts, not trigger new ones
         forecast_demands = await self._batch_get_latest_forecast_demand(client_id, item_ids)
-        stale_items = [item_id for item_id, (_, is_fresh) in forecast_demands.items() if not is_fresh]
-        
-        # Trigger background refresh for stale items (non-blocking)
-        if stale_items:
-            await self._trigger_forecast_refresh(client_id, stale_items)
 
         # Batch load average daily demands (fallback for items without forecasts)
         avg_demands = await self._batch_get_average_daily_demand(client_id, item_ids)

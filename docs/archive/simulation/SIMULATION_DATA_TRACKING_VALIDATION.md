@@ -1,6 +1,12 @@
 # Simulation Data Tracking Validation
 
-**Purpose**: Confirm we're tracking all necessary data before scaling to 200 products  
+> **🛑 DEPRECATED**: This document has been consolidated into [SIMULATION_IMPLEMENTATION.md](../system/SIMULATION_IMPLEMENTATION.md)
+>
+> **Date Archived**: 2025-12-29
+>
+> This content is no longer maintained. Please refer to the consolidated documentation for current information.
+
+**Purpose**: Confirm we're tracking all necessary data before scaling to 200 products
 **Date**: 2024-12-18
 
 ---

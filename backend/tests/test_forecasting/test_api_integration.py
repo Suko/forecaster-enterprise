@@ -2,10 +2,8 @@
 Integration tests for API endpoints (with test data)
 """
 import pytest
-from fastapi.testclient import TestClient
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from main import app
 from models import User
 from forecasting.services.forecast_service import ForecastService
 from models.forecast import ForecastResult
@@ -14,13 +12,8 @@ from models.forecast import ForecastResult
 class TestForecastAPI:
     """Test forecast API endpoints with test data"""
 
-    @pytest.fixture
-    def client(self):
-        """Create test client"""
-        return TestClient(app)
-
     @pytest.mark.asyncio
-    async def test_get_forecast_results(self, db_session, sample_item_ids, test_client, populate_test_data):
+    async def test_get_forecast_results(self, db_session, sample_item_ids, test_client_obj, populate_test_data):
         """Test fetching forecast results from database"""
         service = ForecastService(db_session)
 
@@ -28,7 +21,7 @@ class TestForecastAPI:
 
         # Generate forecast (this commits internally)
         forecast_run = await service.generate_forecast(
-            client_id=str(test_client.client_id),
+            client_id=str(test_client_obj.client_id),
             user_id="test_user",
             item_ids=[item_id],
             prediction_length=7,
@@ -68,14 +61,14 @@ class TestForecastAPI:
             assert first_pred["point_forecast"] > 0
 
     @pytest.mark.asyncio
-    async def test_get_forecast_results_multiple_items(self, db_session, sample_item_ids, test_client, populate_test_data):
+    async def test_get_forecast_results_multiple_items(self, db_session, sample_item_ids, test_client_obj, populate_test_data):
         """Test fetching results for multiple items"""
         service = ForecastService(db_session)
 
         item_ids = sample_item_ids[:2]
 
         forecast_run = await service.generate_forecast(
-            client_id=str(test_client.client_id),
+            client_id=str(test_client_obj.client_id),
             user_id="test_user",
             item_ids=item_ids,
             prediction_length=7,

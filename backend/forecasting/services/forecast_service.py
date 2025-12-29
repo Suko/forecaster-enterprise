@@ -4,11 +4,12 @@ ForecastService - Orchestrates forecasting across all layers
 Coordinates model execution, method selection, and result storage.
 """
 import pandas as pd
-from typing import List, Dict, Optional, Any
+from typing import List, Dict, Optional, Any, Tuple
 from datetime import date, datetime
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 import logging
+import asyncio
 
 from models.forecast import ForecastRun, ForecastResult, ForecastStatus, SKUClassification as SKUClassificationModel
 from ..modes.factory import ModelFactory
@@ -51,6 +52,122 @@ class ForecastService:
             await model.initialize()
             self._models[model_id] = model
         return self._models[model_id]
+
+    async def _run_single_method(
+        self,
+        method_id: str,
+        context_df: pd.DataFrame,
+        item_ids: List[str],
+        forecast_run: ForecastRun,
+        prediction_length: int,
+        quantile_levels: List[float],
+        primary_model: str,
+        recommended_method: str,
+    ) -> Tuple[Dict[str, pd.DataFrame], Optional[Dict]]:
+        """
+        Run a single forecasting method for all items.
+
+        Returns:
+            Tuple of (item_results_dict, audit_trail)
+        """
+        try:
+            model = await self._get_model(method_id)
+
+            # Generate forecast for each item separately
+            # (Models may return single-item results)
+            item_results = {}
+
+            # Initialize audit logger only if audit logging is enabled
+            audit_logger = None
+            if settings.enable_audit_logging:
+                audit_logger = DataAuditLogger(self.db, str(forecast_run.forecast_run_id))
+
+            for item_id in item_ids:
+                # Filter context for this item
+                item_context = context_df[context_df["id"] == item_id].copy()
+
+                if item_context.empty:
+                    logger.warning(f"No data found for item {item_id}")
+                    continue
+
+                # VALIDATE INPUT DATA (IN) - Always validate, even if audit logging is off
+                # Enhanced validator: fills missing dates and NaN values (like Darts)
+                result = self.validator.validate_context_data(
+                    item_context,
+                    item_id,
+                    min_history_days=7,
+                    fill_missing_dates=True,  # Fill gaps (like Darts' fill_missing_dates=True)
+                    fillna_strategy="zero",  # Fill NaN with 0 (like Darts' fillna_value=0)
+                )
+
+                # Handle both old and new return signatures
+                if len(result) == 4:
+                    is_valid, validation_report, error_msg, cleaned_df = result
+                else:
+                    is_valid, validation_report, error_msg = result
+                    cleaned_df = item_context  # Fallback to original
+
+                if not is_valid:
+                    logger.error(f"Data validation failed for {item_id}: {error_msg}")
+                    if audit_logger:
+                        audit_logger.log_data_input(item_id, item_context, method_id, validation_report)
+                    continue
+
+                # Use cleaned data (with missing dates filled, NaN handled)
+                # This ensures models receive clean, complete time series (like Darts)
+                item_context = cleaned_df if cleaned_df is not None else item_context
+
+                # Log validated input data (if audit logging enabled)
+                if audit_logger:
+                    audit_logger.log_data_input(item_id, item_context, method_id, validation_report)
+
+                # Generate forecast for this item
+                try:
+                    predictions_df = await model.predict(
+                        context_df=item_context,
+                        prediction_length=prediction_length,
+                        quantile_levels=quantile_levels,
+                    )
+                except Exception as e:
+                    logger.error(
+                        f"Model prediction failed for {item_id} ({method_id}): {e}",
+                        exc_info=True,
+                    )
+                    continue
+
+                # Check if predictions_df is empty
+                if predictions_df.empty:
+                    logger.warning(f"Empty predictions DataFrame for {item_id} ({method_id})")
+                    continue
+
+                # VALIDATE OUTPUT DATA (OUT) - Always validate
+                is_valid_out, validation_report_out, error_msg_out = self.validator.validate_predictions(
+                    predictions_df, item_id, prediction_length
+                )
+
+                if not is_valid_out:
+                    logger.error(f"Prediction validation failed for {item_id}: {error_msg_out}")
+                    # Continue anyway - store invalid predictions for debugging
+
+                # Log model output (if audit logging enabled)
+                if audit_logger:
+                    audit_logger.log_model_output(
+                        item_id, predictions_df, method_id, validation_report_out
+                    )
+
+                # Ensure id column is set
+                if "id" not in predictions_df.columns:
+                    predictions_df["id"] = item_id
+
+                item_results[item_id] = predictions_df
+
+            # Return results and audit trail
+            audit_trail = audit_logger.get_audit_trail() if audit_logger and audit_logger.audit_trail else None
+            return item_results, audit_trail
+
+        except Exception as e:
+            logger.error(f"Method {method_id} execution failed: {e}", exc_info=True)
+            raise
 
     async def generate_forecast(
         self,
@@ -231,129 +348,64 @@ class ForecastService:
                 logger.info(f"No classifications available, using primary_model: {primary_model}")
 
             try:
-                # Run each method
-                for method_id in methods_to_run:
-                    try:
-                        model = await self._get_model(method_id)
+                # Fetch historical data once (shared across all methods for efficiency)
+                context_df = await self.data_access.fetch_historical_data(
+                    client_id=client_id,
+                    item_ids=item_ids,
+                    end_date=training_end_date,
+                )
 
-                        # Fetch historical data (limit to training_end_date if provided)
-                        context_df = await self.data_access.fetch_historical_data(
-                            client_id=client_id,
-                            item_ids=item_ids,
-                            end_date=training_end_date,
-                        )
+                if context_df.empty:
+                    raise ValueError(f"No historical data found for items: {item_ids}")
 
-                        if context_df.empty:
-                            raise ValueError(f"No historical data found for items: {item_ids}")
+                # Run all methods in parallel for massive performance improvement
+                # This changes execution from O(methods × items × time) to O(max(method_time) × items)
+                logger.info(f"Running {len(methods_to_run)} methods in parallel: {methods_to_run}")
 
-                        # Generate forecast for each item separately
-                        # (Models may return single-item results)
-                        item_results = {}
+                # Create tasks for parallel execution
+                tasks = [
+                    self._run_single_method(
+                        method_id=method_id,
+                        context_df=context_df,
+                        item_ids=item_ids,
+                        forecast_run=forecast_run,
+                        prediction_length=prediction_length,
+                        quantile_levels=quantile_levels,
+                        primary_model=primary_model,
+                        recommended_method=recommended_method,
+                    )
+                    for method_id in methods_to_run
+                ]
 
-                        # Initialize audit logger only if audit logging is enabled
-                        audit_logger = None
-                        if settings.enable_audit_logging:
-                            audit_logger = DataAuditLogger(self.db, str(forecast_run.forecast_run_id))
+                # Execute all methods concurrently
+                method_results = await asyncio.gather(*tasks, return_exceptions=True)
 
-                        for item_id in item_ids:
-                            # Filter context for this item
-                            item_context = context_df[context_df["id"] == item_id].copy()
-
-                            if item_context.empty:
-                                logger.warning(f"No data found for item {item_id}")
-                                continue
-
-                            # VALIDATE INPUT DATA (IN) - Always validate, even if audit logging is off
-                            # Enhanced validator: fills missing dates and NaN values (like Darts)
-                            result = self.validator.validate_context_data(
-                                item_context,
-                                item_id,
-                                min_history_days=7,
-                                fill_missing_dates=True,  # Fill gaps (like Darts' fill_missing_dates=True)
-                                fillna_strategy="zero",  # Fill NaN with 0 (like Darts' fillna_value=0)
-                            )
-
-                            # Handle both old and new return signatures
-                            if len(result) == 4:
-                                is_valid, validation_report, error_msg, cleaned_df = result
-                            else:
-                                is_valid, validation_report, error_msg = result
-                                cleaned_df = item_context  # Fallback to original
-
-                            if not is_valid:
-                                logger.error(f"Data validation failed for {item_id}: {error_msg}")
-                                if audit_logger:
-                                    audit_logger.log_data_input(item_id, item_context, method_id, validation_report)
-                                continue
-
-                            # Use cleaned data (with missing dates filled, NaN handled)
-                            # This ensures models receive clean, complete time series (like Darts)
-                            item_context = cleaned_df if cleaned_df is not None else item_context
-
-                            # Log validated input data (if audit logging enabled)
-                            if audit_logger:
-                                audit_logger.log_data_input(item_id, item_context, method_id, validation_report)
-
-                            # Generate forecast for this item
-                            try:
-                                predictions_df = await model.predict(
-                                    context_df=item_context,
-                                    prediction_length=prediction_length,
-                                    quantile_levels=quantile_levels,
-                                )
-                            except Exception as e:
-                                logger.error(
-                                    f"Model prediction failed for {item_id} ({method_id}): {e}",
-                                    exc_info=True,
-                                )
-                                continue
-
-                            # Check if predictions_df is empty
-                            if predictions_df.empty:
-                                logger.warning(f"Empty predictions DataFrame for {item_id} ({method_id})")
-                                continue
-
-                            # VALIDATE OUTPUT DATA (OUT) - Always validate
-                            is_valid_out, validation_report_out, error_msg_out = self.validator.validate_predictions(
-                                predictions_df, item_id, prediction_length
-                            )
-
-                            if not is_valid_out:
-                                logger.error(f"Prediction validation failed for {item_id}: {error_msg_out}")
-                                # Continue anyway - store invalid predictions for debugging
-
-                            # Log model output (if audit logging enabled)
-                            if audit_logger:
-                                audit_logger.log_model_output(
-                                    item_id, predictions_df, method_id, validation_report_out
-                                )
-
-                            # Ensure id column is set
-                            if "id" not in predictions_df.columns:
-                                predictions_df["id"] = item_id
-
-                            item_results[item_id] = predictions_df
-
-                        # Only add to results_by_method if we have non-empty results
-                        if item_results and any(not df.empty for df in item_results.values()):
-                            results_by_method[method_id] = item_results
-
-                            # Store audit trail in forecast_run (if audit logging enabled)
-                            if audit_logger and audit_logger.audit_trail:
-                                if forecast_run.audit_metadata is None:
-                                    forecast_run.audit_metadata = {}
-                                forecast_run.audit_metadata[method_id] = audit_logger.get_audit_trail()
-                        else:
-                            logger.warning(f"No results generated for method {method_id}")
-
-                    except Exception as e:
-                        # Log error but continue with other methods
-                        logger.error(f"Method {method_id} failed: {e}", exc_info=True)
+                # Process results from parallel execution
+                for method_id, result in zip(methods_to_run, method_results):
+                    if isinstance(result, Exception):
+                        # Handle method execution errors
+                        logger.error(f"Method {method_id} failed during parallel execution: {result}", exc_info=True)
                         if method_id == primary_model:
                             # If primary fails, use baseline
                             recommended_method = "statistical_ma7"
                         # Store error in forecast_run
-                        forecast_run.error_message = f"{method_id} failed: {str(e)}"
+                        forecast_run.error_message = f"{method_id} failed: {str(result)}"
+                        continue
+
+                    # Unpack successful method results
+                    method_item_results, method_audit_trail = result
+
+                    # Only add to results_by_method if we have non-empty results
+                    if method_item_results and any(not df.empty for df in method_item_results.values()):
+                        results_by_method[method_id] = method_item_results
+
+                        # Store audit trail in forecast_run (if audit logging enabled)
+                        if method_audit_trail:
+                            if forecast_run.audit_metadata is None:
+                                forecast_run.audit_metadata = {}
+                            forecast_run.audit_metadata[method_id] = method_audit_trail
+                    else:
+                        logger.warning(f"No results generated for method {method_id}")
 
                 # Store results in database (only if we have results and not skipping persistence)
                 if results_by_method:

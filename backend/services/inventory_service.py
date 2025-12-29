@@ -3,7 +3,7 @@ Inventory Service
 
 Business logic for inventory management operations.
 """
-from typing import Optional, List, Dict, Tuple
+from typing import Optional, List, Dict, Tuple, Any
 from uuid import UUID
 from datetime import date, timedelta, datetime, timezone
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -31,6 +31,11 @@ logger = logging.getLogger(__name__)
 # Key: f"{client_id}:refresh", Value: asyncio.Task
 _forecast_refresh_tasks: Dict[str, asyncio.Task] = {}
 _forecast_refresh_lock = asyncio.Lock()
+
+# Inventory calculation task tracking
+# Key: task_id, Value: dict with status, results, etc.
+_inventory_calculation_tasks: Dict[str, Dict] = {}
+_inventory_calculation_lock = asyncio.Lock()
 
 
 class InventoryService:
@@ -281,7 +286,7 @@ class InventoryService:
         batch_result = await self._batch_get_latest_forecast_demand(client_id, [item_id], max_age_days)
         return batch_result.get(item_id, (None, False))
 
-    async def _trigger_forecast_refresh(
+    def _trigger_forecast_refresh(
         self,
         client_id: UUID,
         item_ids: List[str],
@@ -289,8 +294,11 @@ class InventoryService:
     ) -> None:
         """
         Trigger background forecast refresh for items.
-        Non-blocking - runs in background task.
+        Non-blocking - runs in background task (fire-and-forget).
         Uses module-level task tracking to prevent duplicates across concurrent requests.
+        
+        Note: This is a synchronous function that schedules an async task.
+        It does NOT await the task, making it truly non-blocking.
         """
         task_key = f"{client_id}:refresh"
         
@@ -322,19 +330,359 @@ class InventoryService:
                         if task_key in _forecast_refresh_tasks:
                             del _forecast_refresh_tasks[task_key]
         
-        # Check if refresh already in progress and create/register task atomically (thread-safe)
-        async with _forecast_refresh_lock:
-            if task_key in _forecast_refresh_tasks:
-                task = _forecast_refresh_tasks[task_key]
-                if not task.done():
-                    logger.info(f"Forecast refresh already in progress for client {client_id}")
-                    return
-                # Task is done but not cleaned up - remove it
-                del _forecast_refresh_tasks[task_key]
-            
-            # Create and register task atomically (prevents race condition)
-            task = asyncio.create_task(refresh_task())
-            _forecast_refresh_tasks[task_key] = task
+        # Schedule task atomically (check and create in one operation)
+        async def schedule_task():
+            async with _forecast_refresh_lock:
+                if task_key in _forecast_refresh_tasks:
+                    task = _forecast_refresh_tasks[task_key]
+                    if not task.done():
+                        logger.info(f"Forecast refresh already in progress for client {client_id}")
+                        return
+                    # Task is done but not cleaned up - remove it
+                    del _forecast_refresh_tasks[task_key]
+                
+                # Create and register task atomically (prevents race condition)
+                task = asyncio.create_task(refresh_task())
+                _forecast_refresh_tasks[task_key] = task
+        
+        # Schedule the task scheduling (fire-and-forget - we don't await it)
+        # Get the current event loop and schedule the task
+        try:
+            loop = asyncio.get_running_loop()
+            # Create task without awaiting - truly fire-and-forget
+            loop.create_task(schedule_task())
+        except RuntimeError:
+            # No running event loop - try to get/create one
+            try:
+                loop = asyncio.get_event_loop()
+                if loop.is_running():
+                    loop.create_task(schedule_task())
+                else:
+                    # Loop exists but not running - schedule for later
+                    asyncio.ensure_future(schedule_task(), loop=loop)
+            except RuntimeError:
+                # Can't schedule - log and continue (don't block)
+                logger.warning(f"Could not schedule forecast refresh task for client {client_id} - no event loop")
+
+    async def calculate_inventory_async(
+        self,
+        task_id: str,
+        client_id: UUID,
+        user_id: Optional[str],
+        item_ids: List[str],
+        prediction_length: int,
+        inventory_params: Dict[str, Any],
+        model: str = "chronos-2",
+    ) -> None:
+        """
+        Background task for inventory calculations.
+        Updates task status and stores results.
+        """
+        try:
+            # Update task status to processing
+            async with _inventory_calculation_lock:
+                if task_id in _inventory_calculation_tasks:
+                    _inventory_calculation_tasks[task_id]["status"] = "processing"
+                    _inventory_calculation_tasks[task_id]["progress_percentage"] = 10
+
+            # Create new database session for background task
+            from models.database import get_async_session_local
+            session_local = get_async_session_local()
+            async with session_local() as db_session:
+                try:
+                    # Update progress
+                    async with _inventory_calculation_lock:
+                        if task_id in _inventory_calculation_tasks:
+                            _inventory_calculation_tasks[task_id]["progress_percentage"] = 25
+
+                    # Get forecast results (same logic as sync version)
+                    forecast_service = ForecastService(db_session)
+                    from applications.inventory.calculator import InventoryCalculator
+                    inventory_calc = InventoryCalculator()
+
+                    # Check if this is a user call (has JWT token) - for now assume system call
+                    is_user_call = False  # Background tasks are system calls
+
+                    forecast_run = None
+                    results_by_item = {}
+
+                    if is_user_call:
+                        # User call logic (check for existing forecast)
+                        from datetime import datetime, timedelta, timezone
+                        from models.forecast import ForecastRun, ForecastResult
+                        from sqlalchemy import select, and_
+
+                        cutoff_date = datetime.now(timezone.utc) - timedelta(days=7)
+                        forecast_run_result = await db_session.execute(
+                            select(ForecastRun)
+                            .where(
+                                and_(
+                                    ForecastRun.client_id == str(client_id),
+                                    ForecastRun.status == "completed",
+                                    ForecastRun.created_at >= cutoff_date
+                                )
+                            )
+                            .order_by(ForecastRun.created_at.desc())
+                            .limit(1)
+                        )
+                        existing_forecast_run = forecast_run_result.scalar_one_or_none()
+
+                        if existing_forecast_run:
+                            forecast_run = existing_forecast_run
+                            results_by_item = await forecast_service.get_forecast_results(
+                                forecast_run_id=forecast_run.forecast_run_id,
+                            )
+                        else:
+                            # No fresh forecast - this should not happen in background task
+                            raise ValueError("No fresh forecast available for background calculation")
+                    else:
+                        # System call - generate forecast synchronously
+                        forecast_run = await forecast_service.generate_forecast(
+                            client_id=str(client_id),
+                            user_id=user_id,
+                            item_ids=item_ids,
+                            prediction_length=prediction_length,
+                            primary_model=model,
+                            include_baseline=False,
+                        )
+
+                        # Fetch forecast results
+                        results_by_item = await forecast_service.get_forecast_results(
+                            forecast_run_id=forecast_run.forecast_run_id,
+                        )
+
+                    # Update progress
+                    async with _inventory_calculation_lock:
+                        if task_id in _inventory_calculation_tasks:
+                            _inventory_calculation_tasks[task_id]["progress_percentage"] = 50
+
+                    # Calculate inventory metrics for each item
+                    results = []
+                    for i, item_id in enumerate(item_ids):
+                        if item_id not in inventory_params:
+                            continue
+
+                        params = inventory_params[item_id]
+
+                        # Calculate average daily demand from forecast
+                        if item_id in results_by_item and results_by_item[item_id]:
+                            predictions = results_by_item[item_id]
+                            total_forecast = sum(p["point_forecast"] for p in predictions)
+                            avg_daily_demand = total_forecast / len(predictions) if predictions else 0.0
+                        else:
+                            avg_daily_demand = 0.0
+                            total_forecast = 0.0
+
+                        if avg_daily_demand <= 0:
+                            continue
+
+                        # Calculate inventory metrics
+                        dir_value = inventory_calc.calculate_days_of_inventory_remaining(
+                            params["current_stock"],
+                            avg_daily_demand,
+                        )
+
+                        safety_stock = inventory_calc.calculate_safety_stock(
+                            avg_daily_demand,
+                            params["lead_time_days"],
+                            params.get("safety_stock_days", 7),
+                            params.get("service_level", 0.95),
+                        )
+
+                        reorder_point = inventory_calc.calculate_reorder_point(
+                            avg_daily_demand,
+                            params["lead_time_days"],
+                            safety_stock,
+                        )
+
+                        recommended_qty = inventory_calc.calculate_recommended_order_quantity(
+                            total_forecast,
+                            safety_stock,
+                            params["current_stock"],
+                            params.get("moq"),
+                        )
+
+                        stockout_risk = inventory_calc.calculate_stockout_risk(
+                            total_forecast,
+                            params["current_stock"],
+                        )
+
+                        stockout_date = inventory_calc.calculate_stockout_date(
+                            params["current_stock"],
+                            avg_daily_demand,
+                        )
+
+                        recommendations = inventory_calc.get_recommended_action(
+                            dir_value,
+                            stockout_risk,
+                        )
+
+                        from schemas.forecast import InventoryMetrics, Recommendations, InventoryResult
+
+                        results.append(
+                            InventoryResult(
+                                item_id=item_id,
+                                inventory_metrics=InventoryMetrics(
+                                    current_stock=params["current_stock"],
+                                    days_of_inventory_remaining=dir_value,
+                                    safety_stock=safety_stock,
+                                    reorder_point=reorder_point,
+                                    recommended_order_quantity=recommended_qty,
+                                    stockout_risk=stockout_risk,
+                                    stockout_date=stockout_date,
+                                ),
+                                recommendations=Recommendations(**recommendations),
+                            )
+                        )
+
+                        # Update progress incrementally
+                        progress = 50 + int((i + 1) / len(item_ids) * 40)
+                        async with _inventory_calculation_lock:
+                            if task_id in _inventory_calculation_tasks:
+                                _inventory_calculation_tasks[task_id]["progress_percentage"] = progress
+
+                    # Create final response
+                    from schemas.forecast import InventoryCalculationResponse
+                    from datetime import datetime, timezone
+
+                    response = InventoryCalculationResponse(
+                        calculation_id=str(forecast_run.forecast_run_id) if forecast_run else "background-calc",
+                        results=results,
+                    )
+
+                    # Update task as completed
+                    async with _inventory_calculation_lock:
+                        if task_id in _inventory_calculation_tasks:
+                            _inventory_calculation_tasks[task_id]["status"] = "completed"
+                            _inventory_calculation_tasks[task_id]["progress_percentage"] = 100
+                            _inventory_calculation_tasks[task_id]["completed_at"] = datetime.now(timezone.utc)
+                            _inventory_calculation_tasks[task_id]["results"] = response
+
+                    logger.info(f"Inventory calculation task {task_id} completed successfully")
+
+                except Exception as e:
+                    # Update task as failed
+                    async with _inventory_calculation_lock:
+                        if task_id in _inventory_calculation_tasks:
+                            _inventory_calculation_tasks[task_id]["status"] = "failed"
+                            _inventory_calculation_tasks[task_id]["error_message"] = str(e)
+                            _inventory_calculation_tasks[task_id]["completed_at"] = datetime.now(timezone.utc)
+
+                    logger.error(f"Inventory calculation task {task_id} failed: {e}")
+                    raise
+
+        except Exception as e:
+            logger.error(f"Critical error in inventory calculation task {task_id}: {e}")
+            # Ensure task is marked as failed
+            async with _inventory_calculation_lock:
+                if task_id in _inventory_calculation_tasks:
+                    _inventory_calculation_tasks[task_id]["status"] = "failed"
+                    _inventory_calculation_tasks[task_id]["error_message"] = str(e)
+
+    async def start_inventory_calculation_task(
+        self,
+        client_id: UUID,
+        user_id: Optional[str],
+        item_ids: List[str],
+        prediction_length: int,
+        inventory_params: Dict[str, Any],
+        model: str = "chronos-2",
+    ) -> str:
+        """
+        Start an async inventory calculation task.
+        Returns task ID for polling.
+        """
+        import uuid
+        from datetime import datetime, timezone
+
+        task_id = str(uuid.uuid4())
+
+        # Initialize task tracking
+        async with _inventory_calculation_lock:
+            _inventory_calculation_tasks[task_id] = {
+                "task_id": task_id,
+                "status": "pending",
+                "progress_percentage": 0,
+                "message": "Task queued for processing",
+                "created_at": datetime.now(timezone.utc),
+                "completed_at": None,
+                "results": None,
+                "error_message": None,
+                "client_id": str(client_id),
+            }
+
+        # Create background task function
+        async def calculation_task():
+            await self.calculate_inventory_async(
+                task_id=task_id,
+                client_id=client_id,
+                user_id=user_id,
+                item_ids=item_ids,
+                prediction_length=prediction_length,
+                inventory_params=inventory_params,
+                model=model,
+            )
+
+            # Clean up old completed tasks (keep only last 100 per client)
+            await self._cleanup_old_inventory_tasks(str(client_id))
+
+        # Schedule task atomically
+        async def schedule_calculation_task():
+            async with _inventory_calculation_lock:
+                # Create and register task atomically
+                task = asyncio.create_task(calculation_task())
+                _inventory_calculation_tasks[task_id]["background_task"] = task
+
+        # Schedule the task (fire-and-forget)
+        try:
+            loop = asyncio.get_running_loop()
+            loop.create_task(schedule_calculation_task())
+        except RuntimeError:
+            try:
+                loop = asyncio.get_event_loop()
+                if loop.is_running():
+                    loop.create_task(schedule_calculation_task())
+                else:
+                    asyncio.ensure_future(schedule_calculation_task(), loop=loop)
+            except RuntimeError:
+                logger.warning(f"Could not schedule inventory calculation task {task_id} - no event loop")
+
+        logger.info(f"Started inventory calculation task {task_id} for client {client_id}")
+        return task_id
+
+    def get_inventory_calculation_task_status(self, task_id: str) -> Optional[Dict]:
+        """
+        Get the status of an inventory calculation task.
+        """
+        return _inventory_calculation_tasks.get(task_id)
+
+    async def _cleanup_old_inventory_tasks(self, client_id: str):
+        """
+        Clean up old completed inventory calculation tasks.
+        Keep only the most recent 100 tasks per client.
+        """
+        async with _inventory_calculation_lock:
+            # Get tasks for this client
+            client_tasks = {
+                task_id: task_data
+                for task_id, task_data in _inventory_calculation_tasks.items()
+                if task_data.get("client_id") == client_id
+            }
+
+            # Sort by creation time, keep only newest 100
+            if len(client_tasks) > 100:
+                sorted_tasks = sorted(
+                    client_tasks.items(),
+                    key=lambda x: x[1]["created_at"],
+                    reverse=True
+                )
+
+                # Remove old tasks
+                for task_id, _ in sorted_tasks[100:]:
+                    if task_id in _inventory_calculation_tasks:
+                        del _inventory_calculation_tasks[task_id]
+
+                logger.info(f"Cleaned up {len(sorted_tasks) - 100} old inventory calculation tasks for client {client_id}")
 
     async def get_products(
         self,
@@ -456,14 +804,13 @@ class InventoryService:
         result = await self.db.execute(query)
         products = result.scalars().all()
 
-        # Batch check for stale forecasts and trigger refresh if needed
+        # Batch check for forecast freshness (use existing forecasts if available)
+        # NOTE: We do NOT auto-trigger refresh here - that should be handled by:
+        # 1. Scheduled system jobs (every 7 days) - automatic
+        # 2. Manual refresh endpoint - user-initiated
+        # Navigation should only check and use existing forecasts, not trigger new ones
         item_ids_list = [p.item_id for p in products]
         forecast_demands = await self._batch_get_latest_forecast_demand(client_id, item_ids_list)
-        stale_items = [item_id for item_id, (_, is_fresh) in forecast_demands.items() if not is_fresh]
-        
-        # Trigger background refresh for stale items (non-blocking)
-        if stale_items:
-            await self._trigger_forecast_refresh(client_id, stale_items)
 
         # Compute metrics for each product
         items_with_metrics = []

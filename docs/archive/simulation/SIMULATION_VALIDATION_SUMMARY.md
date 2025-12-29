@@ -1,5 +1,11 @@
 # Simulation Validation Summary
 
+> **🛑 DEPRECATED**: This document has been consolidated into [SIMULATION_TESTING.md](../system/SIMULATION_TESTING.md)
+>
+> **Date Archived**: 2025-12-29
+>
+> This content is no longer maintained. Please refer to the consolidated documentation for current information.
+
 ## ✅ Validation Results
 
 **Date**: $(date +%Y-%m-%d)  

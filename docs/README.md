@@ -2,126 +2,6 @@
 
 ---
 
-## 🌓 Theme Selector
-
-<div id="theme-toggle-container" style="margin: 10px 0; padding: 12px; border: 1px solid #ddd; border-radius: 6px; background: #f9f9f9;">
-  <button id="theme-toggle-btn" onclick="toggleTheme()" style="padding: 8px 16px; border: 1px solid #ccc; border-radius: 4px; cursor: pointer; background: #fff; color: #333; font-size: 14px; display: inline-flex; align-items: center; gap: 8px;">
-    <span id="theme-icon">🌙</span>
-    <span id="theme-text">Switch to Dark Mode</span>
-  </button>
-  <span style="margin-left: 12px; font-size: 12px; color: #666;">(Works in HTML markdown viewers)</span>
-</div>
-
-<script>
-(function() {
-  'use strict';
-  
-  // Initialize theme on load
-  function initTheme() {
-    const savedTheme = localStorage.getItem('docs-theme') || 'light';
-    applyTheme(savedTheme);
-  }
-  
-  function applyTheme(theme) {
-    const isDark = theme === 'dark';
-    const root = document.documentElement;
-    
-    // CSS Variables
-    root.style.setProperty('--docs-bg', isDark ? '#1e1e1e' : '#ffffff');
-    root.style.setProperty('--docs-text', isDark ? '#d4d4d4' : '#24292e');
-    root.style.setProperty('--docs-border', isDark ? '#444' : '#ddd');
-    root.style.setProperty('--docs-code-bg', isDark ? '#252526' : '#f6f8fa');
-    root.style.setProperty('--docs-code-text', isDark ? '#d4d4d4' : '#24292e');
-    root.style.setProperty('--docs-btn-bg', isDark ? '#2d2d2d' : '#fff');
-    root.style.setProperty('--docs-btn-text', isDark ? '#d4d4d4' : '#333');
-    root.style.setProperty('--docs-container-bg', isDark ? '#252526' : '#f9f9f9');
-    
-    // Apply to body
-    if (document.body) {
-      document.body.style.backgroundColor = isDark ? '#1e1e1e' : '#ffffff';
-      document.body.style.color = isDark ? '#d4d4d4' : '#24292e';
-    }
-    
-    // Update toggle container
-    const container = document.getElementById('theme-toggle-container');
-    if (container) {
-      container.style.backgroundColor = isDark ? '#252526' : '#f9f9f9';
-      container.style.borderColor = isDark ? '#444' : '#ddd';
-    }
-    
-    // Update button
-    const btn = document.getElementById('theme-toggle-btn');
-    if (btn) {
-      btn.style.backgroundColor = isDark ? '#2d2d2d' : '#fff';
-      btn.style.color = isDark ? '#d4d4d4' : '#333';
-      btn.style.borderColor = isDark ? '#555' : '#ccc';
-    }
-    
-    // Update icon and text
-    const icon = document.getElementById('theme-icon');
-    const text = document.getElementById('theme-text');
-    if (icon) icon.textContent = isDark ? '☀️' : '🌙';
-    if (text) text.textContent = isDark ? 'Switch to Light Mode' : 'Switch to Dark Mode';
-    
-    // Update code blocks
-    document.querySelectorAll('pre').forEach(el => {
-      el.style.backgroundColor = isDark ? '#252526' : '#f6f8fa';
-      el.style.color = isDark ? '#d4d4d4' : '#24292e';
-      el.style.borderColor = isDark ? '#444' : '#ddd';
-    });
-    
-    document.querySelectorAll('code').forEach(el => {
-      if (!el.closest('pre')) {
-        el.style.backgroundColor = isDark ? '#252526' : '#f6f8fa';
-        el.style.color = isDark ? '#d4d4d4' : '#24292e';
-      }
-    });
-    
-    // Update tables
-    document.querySelectorAll('table').forEach(el => {
-      el.style.borderColor = isDark ? '#444' : '#ddd';
-    });
-    
-    // Update details/summary
-    document.querySelectorAll('details').forEach(el => {
-      el.style.borderColor = isDark ? '#444' : '#ddd';
-    });
-  }
-  
-  // Toggle function
-  window.toggleTheme = function() {
-    const currentTheme = localStorage.getItem('docs-theme') || 'light';
-    const newTheme = currentTheme === 'light' ? 'dark' : 'light';
-    localStorage.setItem('docs-theme', newTheme);
-    applyTheme(newTheme);
-  };
-  
-  // Initialize on load
-  if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', initTheme);
-  } else {
-    initTheme();
-  }
-})();
-</script>
-
-<style>
-  /* Smooth transitions */
-  body, pre, code, table, details {
-    transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease;
-  }
-  
-  /* Respect system preference on first load */
-  @media (prefers-color-scheme: dark) {
-    :root:not([data-theme]) {
-      --docs-bg: #1e1e1e;
-      --docs-text: #d4d4d4;
-    }
-  }
-</style>
-
----
-
 ## 📋 Documentation View Selector
 
 **Quick Filter:** Jump to docs by your role or interest
@@ -248,6 +128,7 @@
 | [Development Setup](setup/DEVELOPMENT_SETUP.md) | Docker & local development |
 | [Data Model](DATA_MODEL.md) | Database schema and sync strategy |
 | [System Contracts](system/CONTRACTS.md) | Auth, security, naming conventions |
+| [Logging Strategy](system/LOGGING_STRATEGY.md) | Logging implementation & monitoring |
 
 ---
 
@@ -307,6 +188,7 @@ docs/
 │   └── STANDARDS.md              # Project standards
 │
 ├── system/
+│   ├── LOGGING_STRATEGY.md       # Logging strategy & implementation
 │   ├── BACKEND_FRONTEND_COMPATIBILITY.md # Compatibility audit
 │   └── CONTRACTS.md              # System contracts
 │

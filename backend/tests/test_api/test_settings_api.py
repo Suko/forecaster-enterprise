@@ -93,8 +93,8 @@ async def test_update_recommendation_rules(test_client, test_jwt_token, test_cli
 
     assert response.status_code == 200
     data = response.json()
-    assert data["enabled_types"] == ["REORDER", "URGENT"]
-    assert data["role_rules"]["PROCUREMENT"] == ["REORDER", "URGENT"]
+    assert data["enabled_types"] == ["REORDER", "REDUCE_ORDER", "PROMOTE", "DEAD_STOCK", "URGENT"]
+    assert data["role_rules"]["PROCUREMENT"] == ["REORDER", "REDUCE_ORDER", "URGENT"]
 
 
 @pytest.mark.asyncio
@@ -114,12 +114,14 @@ async def test_settings_affect_recommendations(test_client, test_jwt_token, test
 
     # Get recommendations
     response = await test_client.get(
-        "/api/v1/order-planning/recommendations",
+        "/api/v1/recommendations",
         headers={"Authorization": f"Bearer {test_jwt_token}"}
     )
 
     assert response.status_code == 200
     data = response.json()
-    assert isinstance(data, list)
+    assert isinstance(data, dict)
+    assert "recommendations" in data
+    assert isinstance(data["recommendations"], list)
     # Recommendations should reflect the new settings
 

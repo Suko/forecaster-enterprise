@@ -1,5 +1,11 @@
 # Simulation Data Flow
 
+> **🛑 DEPRECATED**: This document has been consolidated into [SIMULATION_SYSTEM.md](../system/SIMULATION_SYSTEM.md)
+>
+> **Date Archived**: 2025-12-29
+>
+> This content is no longer maintained. Please refer to the consolidated documentation for current information.
+
 ## Overview
 This document explains how data flows through the simulation system, step by step.
 

@@ -138,6 +138,7 @@ sed -i '' 's/^ADMIN_PASSWORD=change-me-in-production/ADMIN_PASSWORD=admin123/' .
 | `ADMIN_PASSWORD` | Simple (e.g., `admin123`) | Strong, unique password |
 | `JWT_SECRET_KEY` | Can be in `.env` | **Must be in secret manager** |
 | `NUXT_SESSION_PASSWORD` | Can be in `.env` | **Must be in secret manager** |
+| `SENTRY_DSN` | Automatically ignored | **Must be in secret manager** |
 | Secrets Storage | `.env` file (gitignored) | Secret management service |
 
 ### **Production Best Practices:**
@@ -162,6 +163,17 @@ sed -i '' 's/^ADMIN_PASSWORD=change-me-in-production/ADMIN_PASSWORD=admin123/' .
    ADMIN_PASSWORD=<strong-random-password>
    JWT_SECRET_KEY=<from-secret-manager>
    NUXT_SESSION_PASSWORD=<from-secret-manager>
+
+   # Error Monitoring (Sentry)
+   SENTRY_DSN=<from-secret-manager>
+   SENTRY_ENVIRONMENT=production
+   SENTRY_TRACES_SAMPLE_RATE=0.2
+   SENTRY_PROFILES_SAMPLE_RATE=0.1
+
+   # Frontend Sentry (Nuxt)
+   NUXT_PUBLIC_SENTRY_DSN=<from-secret-manager>
+   NUXT_PUBLIC_SENTRY_ENVIRONMENT=production
+   NUXT_PUBLIC_SENTRY_TRACES_SAMPLE_RATE=0.1
    ```
 
 4. **Docker Compose with Secrets:**
@@ -186,6 +198,177 @@ sed -i '' 's/^ADMIN_PASSWORD=change-me-in-production/ADMIN_PASSWORD=admin123/' .
    - Inject secrets as environment variables
    - Never store in code or config files
    - Rotate secrets regularly
+
+---
+
+## 📊 **Sentry Error Monitoring Setup**
+
+### **Why Sentry?**
+- **Real-time error tracking** across frontend and backend
+- **Performance monitoring** with transaction tracing
+- **Multi-tenant error grouping** by client_id
+- **Release tracking** and deployment monitoring
+- **Automatic alerting** for critical issues
+
+### **Step 1: Create Sentry Projects**
+
+1. **Go to [sentry.io](https://sentry.io)** and create an account
+2. **Create two projects:**
+   - **Backend Project:** `forecaster-backend` (Python/FastAPI)
+   - **Frontend Project:** `forecaster-frontend` (Nuxt.js/Vue)
+
+3. **Note the DSN URLs** for each project:
+   - Backend DSN: `https://your-key@sentry.io/project-id`
+   - Frontend DSN: `https://your-key@sentry.io/project-id`
+
+### **Step 2: Configure Environment Variables**
+
+#### **Backend Sentry Configuration:**
+```bash
+# Add to your production environment variables
+SENTRY_DSN=https://your-backend-dsn@sentry.io/backend-project-id
+SENTRY_ENVIRONMENT=production          # or 'staging'
+SENTRY_TRACES_SAMPLE_RATE=0.2          # 20% of requests traced
+SENTRY_PROFILES_SAMPLE_RATE=0.1        # 10% of requests profiled
+```
+
+#### **Frontend Sentry Configuration:**
+```bash
+# Add to your production environment variables
+NUXT_PUBLIC_SENTRY_DSN=https://your-frontend-dsn@sentry.io/frontend-project-id
+NUXT_PUBLIC_SENTRY_ENVIRONMENT=production
+NUXT_PUBLIC_SENTRY_TRACES_SAMPLE_RATE=0.1  # 10% of page loads traced
+```
+
+### **Step 3: Deploy and Verify**
+
+#### **Test Backend Sentry:**
+```bash
+# Trigger a test error in production
+curl -X POST https://your-api.com/api/v1/test/sentry-error
+
+# Check Sentry dashboard for the error
+# Should appear within 30 seconds
+```
+
+#### **Test Frontend Sentry:**
+```bash
+# Open your production app
+# Trigger a JavaScript error (browser console):
+throw new Error("Sentry test error")
+
+# Check Sentry dashboard for the error
+```
+
+### **Step 4: Configure Alerts**
+
+#### **Critical Error Alerts:**
+1. **Go to Sentry Dashboard → Alerts**
+2. **Create alert for:**
+   - **Error Rate:** >5% error rate in 5 minutes
+   - **New Issues:** Alert on first occurrence
+   - **Performance:** P95 response time >30 seconds
+
+#### **Business-Specific Alerts:**
+1. **Forecast Failures:** Errors in `/api/v1/forecast` endpoint
+2. **Database Errors:** SQLAlchemy connection issues
+3. **Client-Specific:** High error rates for specific client_ids
+
+### **Step 5: Release Tracking**
+
+#### **Backend Release Tracking:**
+```bash
+# Set release version in deployment
+export GIT_COMMIT_SHA=$(git rev-parse HEAD)
+export SENTRY_RELEASE=$GIT_COMMIT_SHA
+
+# Deploy with release info
+# Sentry will automatically track which release introduced bugs
+```
+
+#### **Frontend Release Tracking:**
+```bash
+# Nuxt automatically tracks releases via GIT_COMMIT_SHA
+# Set in your deployment environment
+GIT_COMMIT_SHA=abc123...
+```
+
+### **Step 6: Monitor and Tune**
+
+#### **Adjust Sample Rates Based on Usage:**
+```bash
+# High-traffic production
+SENTRY_TRACES_SAMPLE_RATE=0.1  # 10% sampling
+
+# Lower-traffic staging
+SENTRY_TRACES_SAMPLE_RATE=0.5  # 50% sampling
+
+# Development (automatically disabled)
+# No Sentry traffic in development
+```
+
+#### **Key Metrics to Monitor:**
+- **Error Rate:** Should be <1% in production
+- **Performance:** P95 API response time <5 seconds
+- **Client Distribution:** Errors grouped by client_id
+- **Release Health:** Compare error rates across deployments
+
+### **Troubleshooting Sentry**
+
+#### **"Sentry disabled for development environment"**
+- ✅ **Expected behavior** - Sentry automatically disabled in development
+- ✅ **Solution** - Set `ENVIRONMENT=production` in production
+
+#### **Errors not appearing in Sentry**
+```bash
+# Check DSN is correct
+echo $SENTRY_DSN
+
+# Test with curl
+curl -H "X-Sentry-Auth: Sentry sentry_version=7, sentry_key=your-key" \
+     https://sentry.io/api/your-project-id/store/
+```
+
+#### **High error volume**
+- Adjust `SENTRY_TRACES_SAMPLE_RATE` downward
+- Add error filtering in Sentry SDK
+- Use Sentry's inbound filters
+
+### **Security Considerations**
+
+#### **DSN Exposure:**
+- ✅ **Backend DSN:** Private (server-side only)
+- ✅ **Frontend DSN:** Public but scoped to project
+- ✅ **No sensitive data** sent to Sentry
+
+#### **Data Privacy:**
+- ✅ **PII filtering** configured automatically
+- ✅ **Business context** (client_id) included for debugging
+- ✅ **Stack traces** captured for error resolution
+
+#### **Access Control:**
+- ✅ **Team-based access** in Sentry dashboard
+- ✅ **Role-based permissions** (admin, developer, viewer)
+- ✅ **Audit logs** for Sentry access
+
+---
+
+## **📋 Production Environment Checklist**
+
+### **Required for Production:**
+- [ ] `ENVIRONMENT=production`
+- [ ] `DEBUG=false`
+- [ ] `JWT_SECRET_KEY` (from secret manager)
+- [ ] `NUXT_SESSION_PASSWORD` (from secret manager)
+- [ ] `SENTRY_DSN` (from secret manager)
+- [ ] `NUXT_PUBLIC_SENTRY_DSN` (from secret manager)
+
+### **Recommended for Production:**
+- [ ] `SENTRY_ENVIRONMENT=production`
+- [ ] `SENTRY_TRACES_SAMPLE_RATE=0.1-0.2`
+- [ ] `GIT_COMMIT_SHA` (for release tracking)
+- [ ] Log aggregation setup (ELK/S3/CloudWatch)
+- [ ] Monitoring dashboards configured
 
 ---
 
@@ -236,6 +419,7 @@ docker-compose exec backend psql -U postgres -d forecaster_enterprise -c "SELECT
 - [x] `ADMIN_EMAIL`, `ADMIN_PASSWORD` - Admin user
 - [x] `ENVIRONMENT=development` - For local testing
 - [x] `DEBUG=true` - For local testing
+- [ ] `SENTRY_DSN` - Automatically ignored in development
 
 ### **Optional (Have Defaults):**
 - [ ] `CLIENT_NAME` - Default: "Demo Client"
@@ -277,5 +461,6 @@ echo "NUXT_SESSION_PASSWORD=$(openssl rand -hex 32)" >> .env
 1. ✅ Use strong, unique passwords
 2. ✅ Store secrets in secret management service
 3. ✅ Set `ENVIRONMENT=production` and `DEBUG=false`
-4. ✅ Never commit secrets to version control
-5. ✅ Rotate secrets regularly
+4. ✅ Configure Sentry error monitoring (see Sentry section above)
+5. ✅ Never commit secrets to version control
+6. ✅ Rotate secrets regularly

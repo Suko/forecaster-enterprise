@@ -7,6 +7,7 @@ from fastapi import APIRouter, Depends, HTTPException, status, Query, Request
 from sqlalchemy.ext.asyncio import AsyncSession
 from typing import Optional
 from datetime import date
+import logging
 
 from models import get_db, User
 from auth import get_current_user
@@ -15,15 +16,20 @@ from schemas.forecast import (
     ForecastRequest,
     ForecastResponse,
     InventoryCalculationRequest,
-    InventoryCalculationResponse,
+    InventoryCalculationTaskResponse,
+    InventoryCalculationTaskStatus,
     BackfillActualsRequest,
     BackfillActualsResponse,
     QualityResponse,
     SKUClassificationInfo,
+    ForecastRefreshRequest,
+    ForecastRefreshResponse,
 )
 from forecasting.services.forecast_service import ForecastService
 from forecasting.services.quality_calculator import QualityCalculator
 from forecasting.applications.inventory.calculator import InventoryCalculator
+
+logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/api/v1", tags=["forecast"])
 
@@ -37,30 +43,48 @@ async def create_forecast(
     """
     Generate forecast for specified items.
 
-    Authentication (choose one):
-    - JWT token (user calls): client_id from user's JWT token (request.client_id ignored)
+    **IMPORTANT**: 
+    - Regular user calls (without skip_persistence): Rejected - forecasts run automatically in background
+    - Testbed/experiments (with skip_persistence=true): Allowed - for testing/comparison purposes only
+    - System/automated calls: Allowed - use service API key
+    
+    Authentication:
     - Service API key (system calls): X-API-Key header + client_id in request body
+    - User calls with skip_persistence=true (testbed): Allowed for experiments
+    - User calls without skip_persistence: Rejected - forecasts run automatically in background
 
     Returns predictions from recommended method (primary if successful, baseline if not).
-    Both methods are stored in database for future quality analysis.
+    Both methods are stored in database for future quality analysis (unless skip_persistence=true).
     """
-    # Get client_id from JWT token OR service API key + request body
-    # Supports both user calls (JWT) and system calls (API key)
-    client_id = await get_client_id_from_request_or_token(
-        request_obj,
-        client_id=request.client_id,  # Optional: for system calls
-        x_api_key=request_obj.headers.get("X-API-Key"),
-        db=db,
-    )
-
-    # Get user_id if available (for user calls)
+    # Check if this is a user call (has JWT token)
+    is_user_call = False
     try:
         current_user = await get_current_user(request_obj, db)
+        is_user_call = True
         user_id = current_user.id
     except HTTPException:
         # No JWT token - this is a system call
-        # Use None instead of "system" since user_id is nullable
         user_id = None
+    
+    # Reject synchronous forecasts for user calls UNLESS it's testbed mode (skip_persistence=true)
+    # Testbed is a special experiments page where users explicitly want to generate forecasts
+    if is_user_call and not request.skip_persistence:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=(
+                "Synchronous forecast generation is not available for user calls. "
+                "Forecasts are automatically generated in the background when forecast data is older than 7 days. "
+                "Use service API key for system/automated forecast generation, or use the Testbed page for experiments."
+            ),
+        )
+    
+    # Get client_id from service API key + request body (system calls only)
+    client_id = await get_client_id_from_request_or_token(
+        request_obj,
+        client_id=request.client_id,  # Required for system calls
+        x_api_key=request_obj.headers.get("X-API-Key"),
+        db=db,
+    )
 
     # All data is stored in ts_demand_daily table, filtered by client_id
     # Test users have test data in the table, real users have real data
@@ -233,20 +257,23 @@ async def create_forecast(
         )
 
 
-@router.post("/inventory/calculate", response_model=InventoryCalculationResponse, status_code=status.HTTP_201_CREATED)
+@router.post("/inventory/calculate", response_model=InventoryCalculationTaskResponse, status_code=status.HTTP_202_ACCEPTED)
 async def calculate_inventory(
     request: InventoryCalculationRequest,
     request_obj: Request,
     db: AsyncSession = Depends(get_db),
 ):
     """
-    Calculate inventory metrics from forecasts.
+    Calculate inventory metrics from forecasts asynchronously.
+
+    **IMPORTANT**: This endpoint now runs calculations in the background and returns immediately.
+    Use the returned task_id to poll for completion status.
 
     Authentication (choose one):
     - JWT token (user calls): client_id from user's JWT token
     - Service API key (system calls): X-API-Key header + client_id in request body
 
-    Generates forecast first, then calculates inventory metrics using industry-standard formulas.
+    Returns a task ID immediately. Poll /inventory/calculate/{task_id} for results.
     """
     # Get client_id from JWT token OR service API key + request body
     client_id = await get_client_id_from_request_or_token(
@@ -256,123 +283,95 @@ async def calculate_inventory(
         db=db,
     )
 
-    # Get user_id if available
+    # Get user_id if authenticated
+    user_id = None
     try:
         current_user = await get_current_user(request_obj, db)
         user_id = current_user.id
     except HTTPException:
-        user_id = None
+        pass  # System call without user context
 
-    # All data is stored in ts_demand_daily table, filtered by client_id
-    forecast_service = ForecastService(db)
-    inventory_calc = InventoryCalculator()
+    # Start background calculation task
+    from services.inventory_service import InventoryService
+    from uuid import UUID
 
-    try:
-        # Generate forecast
-        forecast_run = await forecast_service.generate_forecast(
-            client_id=client_id,
-            user_id=user_id,
-            item_ids=request.item_ids,
-            prediction_length=request.prediction_length,
-            primary_model=request.model or "chronos-2",
-            include_baseline=False,  # Only need one method for inventory
-        )
+    inventory_service = InventoryService(db)
+    task_id = await inventory_service.start_inventory_calculation_task(
+        client_id=UUID(client_id),
+        user_id=user_id,
+        item_ids=request.item_ids,
+        prediction_length=request.prediction_length,
+        inventory_params={k: v.dict() for k, v in request.inventory_params.items()},  # Convert to dict
+        model=request.model or "chronos-2",
+    )
 
-        # Fetch forecast results
-        results_by_item = await forecast_service.get_forecast_results(
-            forecast_run_id=forecast_run.forecast_run_id,
-        )
+    # Estimate completion time based on number of items
+    estimated_seconds = max(10, len(request.item_ids) * 2)  # Rough estimate
 
-        results = []
-        for item_id in request.item_ids:
-            if item_id not in request.inventory_params:
-                continue
+    from schemas.forecast import InventoryCalculationTaskResponse
 
-            params = request.inventory_params[item_id]
+    return InventoryCalculationTaskResponse(
+        task_id=task_id,
+        status="pending",
+        message=f"Inventory calculation started for {len(request.item_ids)} items",
+        estimated_completion_seconds=estimated_seconds,
+    )
 
-            # Calculate average daily demand from forecast
-            if item_id in results_by_item and results_by_item[item_id]:
-                predictions = results_by_item[item_id]
-                total_forecast = sum(p["point_forecast"] for p in predictions)
-                avg_daily_demand = total_forecast / len(predictions) if predictions else 0.0
-            else:
-                # Fallback if no predictions
-                avg_daily_demand = 0.0
-                total_forecast = 0.0
 
-            if avg_daily_demand <= 0:
-                # Skip items with no forecast
-                continue
+@router.get("/inventory/calculate/{task_id}", response_model=InventoryCalculationTaskStatus)
+async def get_inventory_calculation_status(
+    task_id: str,
+    request_obj: Request,
+    db: AsyncSession = Depends(get_db),
+):
+    """
+    Get the status of an inventory calculation task.
 
-            # Calculate inventory metrics
-            dir_value = inventory_calc.calculate_days_of_inventory_remaining(
-                params.current_stock,
-                avg_daily_demand,
-            )
+    Poll this endpoint to check if the calculation is complete.
+    When status is 'completed', results will be included.
 
-            safety_stock = inventory_calc.calculate_safety_stock(
-                avg_daily_demand,
-                params.lead_time_days,
-                params.safety_stock_days,
-                params.service_level,
-            )
+    Authentication (choose one):
+    - JWT token (user calls): client_id from user's JWT token
+    - Service API key (system calls): X-API-Key header
+    """
+    # Get client_id to ensure user can only access their own tasks
+    client_id = await get_client_id_from_request_or_token(
+        request_obj,
+        client_id=None,  # Not in request body
+        x_api_key=request_obj.headers.get("X-API-Key"),
+        db=db,
+    )
 
-            reorder_point = inventory_calc.calculate_reorder_point(
-                avg_daily_demand,
-                params.lead_time_days,
-                safety_stock,
-            )
+    from services.inventory_service import InventoryService
+    inventory_service = InventoryService(db)
+    task_data = inventory_service.get_inventory_calculation_task_status(task_id)
 
-            recommended_qty = inventory_calc.calculate_recommended_order_quantity(
-                total_forecast,
-                safety_stock,
-                params.current_stock,
-                params.moq,
-            )
-
-            stockout_risk = inventory_calc.calculate_stockout_risk(
-                total_forecast,
-                params.current_stock,
-            )
-
-            stockout_date = inventory_calc.calculate_stockout_date(
-                params.current_stock,
-                avg_daily_demand,
-            )
-
-            recommendations = inventory_calc.get_recommended_action(
-                dir_value,
-                stockout_risk,
-            )
-
-            from schemas.forecast import InventoryMetrics, Recommendations, InventoryResult
-
-            results.append(
-                InventoryResult(
-                    item_id=item_id,
-                    inventory_metrics=InventoryMetrics(
-                        current_stock=params.current_stock,
-                        days_of_inventory_remaining=dir_value,
-                        safety_stock=safety_stock,
-                        reorder_point=reorder_point,
-                        recommended_order_quantity=recommended_qty,
-                        stockout_risk=stockout_risk,
-                        stockout_date=stockout_date,
-                    ),
-                    recommendations=Recommendations(**recommendations),
-                )
-            )
-
-        return InventoryCalculationResponse(
-            calculation_id=str(forecast_run.forecast_run_id),
-            results=results,
-        )
-
-    except Exception as e:
+    if not task_data:
         raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Inventory calculation failed: {str(e)}",
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Task {task_id} not found or expired",
         )
+
+    # Check if task belongs to this client (basic security)
+    if task_data.get("client_id") != client_id:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Access denied to this task",
+        )
+
+    from schemas.forecast import InventoryCalculationTaskStatus
+    from datetime import datetime
+
+    return InventoryCalculationTaskStatus(
+        task_id=task_data["task_id"],
+        status=task_data["status"],
+        progress_percentage=task_data.get("progress_percentage"),
+        message=task_data.get("message", ""),
+        created_at=task_data["created_at"],
+        completed_at=task_data.get("completed_at"),
+        results=task_data.get("results"),
+        error_message=task_data.get("error_message"),
+    )
 
 
 @router.post("/forecasts/actuals", response_model=BackfillActualsResponse)
@@ -403,8 +402,6 @@ async def backfill_actuals(
         db=db,
     )
     updated_count = 0
-    import logging
-    logger = logging.getLogger(__name__)
 
     try:
         logger.info(f"Backfilling actuals for item_id={request.item_id}, client_id={client_id}, count={len(request.actuals)}")
@@ -938,3 +935,79 @@ async def get_product_categories(
     categories = [row[0] for row in result.all() if row[0]]
 
     return {"categories": categories}
+
+
+@router.post("/refresh", response_model=ForecastRefreshResponse, status_code=status.HTTP_202_ACCEPTED)
+async def refresh_forecasts(
+    request: ForecastRefreshRequest,
+    request_obj: Request,
+    db: AsyncSession = Depends(get_db),
+):
+    """
+    Manually trigger forecast refresh for specified items.
+    
+    **Use Cases:**
+    - User clicks "Refresh Forecasts" button in UI
+    - Manual refresh when user wants updated forecasts immediately
+    
+    **Behavior:**
+    - Runs in background (non-blocking) - returns immediately
+    - If item_ids not provided, refreshes all active products for the client
+    - Uses existing forecast service with proper client isolation
+    
+    **Authentication:** Requires JWT token (user calls only)
+    
+    **Note:** Automatic refresh should be handled by scheduled system jobs (every 7 days).
+    This endpoint is for manual user-initiated refreshes only.
+    """
+    # Get client_id from JWT token (user calls only)
+    client_id = await get_client_id_from_request_or_token(
+        request_obj,
+        client_id=None,  # Not in request body for user calls
+        x_api_key=None,  # User calls only - no service API key
+        db=db,
+    )
+    
+    # Get user_id
+    try:
+        current_user = await get_current_user(request_obj, db)
+        user_id = current_user.id
+    except HTTPException:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Authentication required for manual forecast refresh",
+        )
+    
+    # If no item_ids provided, get all active products for the client
+    if not request.item_ids:
+        from sqlalchemy import select
+        from models.product import Product
+        
+        products_result = await db.execute(
+            select(Product.item_id).where(Product.client_id == client_id)
+        )
+        item_ids = [row[0] for row in products_result.all()]
+        
+        if not item_ids:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="No products found for this client",
+            )
+    else:
+        item_ids = request.item_ids
+    
+    # Trigger background refresh (non-blocking)
+    from services.inventory_service import InventoryService
+    inventory_service = InventoryService(db)
+    inventory_service._trigger_forecast_refresh(
+        client_id=client_id,
+        item_ids=item_ids,
+        user_id=user_id
+    )
+    
+    return ForecastRefreshResponse(
+        message=f"Forecast refresh started in background for {len(item_ids)} item(s)",
+        forecast_id=None,  # Not available immediately (background task)
+        item_count=len(item_ids),
+        status="started"
+    )

@@ -274,6 +274,7 @@ async def test_get_product_metrics(
 
 
 @pytest.mark.asyncio
+@pytest.mark.postgres
 async def test_get_dashboard(
     test_client: AsyncClient,
     db_session: AsyncSession,

@@ -4,7 +4,7 @@ Forecast API Schemas
 Pydantic models for request/response validation.
 """
 from typing import List, Optional, Dict, Tuple
-from datetime import date as date_type
+from datetime import date as date_type, datetime
 from pydantic import BaseModel, Field
 from uuid import UUID
 
@@ -204,6 +204,54 @@ class MethodQuality(BaseModel):
     mae: Optional[float] = Field(None, description="Mean Absolute Error (units)")
     rmse: Optional[float] = Field(None, description="Root Mean Squared Error")
     bias: Optional[float] = Field(None, description="Forecast Bias")
+
+
+class ForecastRefreshRequest(BaseModel):
+    """Request schema for manual forecast refresh"""
+
+    item_ids: Optional[List[str]] = Field(None, description="List of item IDs to refresh. If None, refreshes all active products for the client.")
+    prediction_length: int = Field(30, ge=1, le=365, description="Forecast horizon in days")
+
+
+class InventoryCalculationTaskResponse(BaseModel):
+    """Response schema for async inventory calculation task"""
+
+    task_id: str = Field(..., description="Unique task ID for polling")
+    status: str = Field(..., description="Task status: 'pending', 'processing', 'completed', 'failed'")
+    message: str = Field(..., description="Status message")
+    estimated_completion_seconds: Optional[int] = Field(None, description="Estimated time to completion")
+
+
+class InventoryCalculationTaskStatus(BaseModel):
+    """Response schema for checking inventory calculation task status"""
+
+    task_id: str = Field(..., description="Task ID")
+    status: str = Field(..., description="Task status: 'pending', 'processing', 'completed', 'failed'")
+    progress_percentage: Optional[int] = Field(None, description="Progress percentage (0-100)")
+    message: str = Field(..., description="Status message")
+    created_at: datetime = Field(..., description="Task creation time")
+    completed_at: Optional[datetime] = Field(None, description="Task completion time")
+    results: Optional[InventoryCalculationResponse] = Field(None, description="Results when completed")
+    error_message: Optional[str] = Field(None, description="Error message if failed")
+    model: Optional[str] = Field("chronos-2", description="Primary model to use")
+    
+    class Config:
+        json_schema_extra = {
+            "example": {
+                "item_ids": ["SKU001", "SKU002"],
+                "prediction_length": 30,
+                "model": "chronos-2",
+            }
+        }
+
+
+class ForecastRefreshResponse(BaseModel):
+    """Response schema for manual forecast refresh"""
+    
+    message: str = Field(..., description="Status message")
+    forecast_id: Optional[str] = Field(None, description="Forecast run ID if available")
+    item_count: int = Field(..., description="Number of items being forecasted")
+    status: str = Field(..., description="Status: 'started' (background) or 'completed' (synchronous)")
 
 
 class QualityResponse(BaseModel):

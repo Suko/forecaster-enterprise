@@ -1,5 +1,11 @@
 # Simulation Scaling: 200 Products Analysis
 
+> **🛑 DEPRECATED**: This document has been archived as the scaling concerns have been addressed through implementation work
+>
+> **Date Archived**: 2025-12-29
+>
+> This content is no longer maintained. Please refer to the consolidated documentation for current information.
+
 **Goal**: Run simulations for 200 products to check:
 1. **Global inventory level** (aggregated across all products)
 2. **Stockout potential reductions** vs real data

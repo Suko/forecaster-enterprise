@@ -1,5 +1,11 @@
 # Forecasting: Testing, Frequency, and Accuracy Tracking
 
+> **🛑 DEPRECATED**: This document has been consolidated into [forecasting/README.md](../forecasting/README.md)
+>
+> **Date Archived**: 2025-12-29
+>
+> This content is no longer maintained. Please refer to the consolidated documentation for current information.
+
 ## Forecast History & Accuracy Tracking
 
 ### ✅ **Current Implementation**

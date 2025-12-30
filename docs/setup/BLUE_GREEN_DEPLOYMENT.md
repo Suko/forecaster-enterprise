@@ -4,6 +4,24 @@
 
 ---
 
+## ⚠️ Recommendation: Do You Need This?
+
+**For low traffic (current state):**
+- ✅ **Stick with rolling deployment** - Simple, works fine
+- ✅ **Brief downtime acceptable** - 10-30 seconds is fine
+- ✅ **Lower complexity** - Easier to maintain
+- ✅ **Resource efficient** - No 2x container overhead
+
+**Consider blue-green when:**
+- Traffic grows significantly (1000+ concurrent users)
+- Zero downtime becomes critical
+- You need instant rollback capability
+- You want to test new version before switching
+
+**Current recommendation:** Keep rolling deployment for v0.0.1, consider blue-green for v1.0+ when traffic increases.
+
+---
+
 ## Overview
 
 **Blue-Green Deployment:**
@@ -595,22 +613,30 @@ fi
 | **Complexity** | Simple | Medium |
 | **Resources** | Normal | 2x during deploy |
 | **Risk** | Higher | Lower |
+| **Best For** | **Low traffic (v0.0.1)** ✅ | High traffic (v1.0+) |
 
 ---
 
 ## When to Use
 
 ### ✅ Use Blue-Green When:
-- Zero downtime is critical
-- Need instant rollback
-- Want to test before switching
-- Production traffic is high
+- **High traffic** (1000+ concurrent users, or revenue-critical)
+- Zero downtime is critical (SLA requirements)
+- Need instant rollback capability
+- Want to test new version before switching traffic
+- Have resources for 2x containers during deployment
 
-### ⚠️ Use Rolling When:
+### ⚠️ Use Rolling (Current) When:
+- **Low to medium traffic** (< 1000 concurrent users)
+- Brief downtime acceptable (10-30 seconds)
 - Simple setup preferred
-- Brief downtime acceptable
-- Low traffic
-- Resource constraints
+- Resource constraints (single server, limited RAM)
+- **Current recommendation for v0.0.1**
+
+### Migration Path:
+1. **v0.0.1:** Rolling deployment (current) ✅
+2. **v0.5+:** Monitor traffic, add smoke tests
+3. **v1.0+:** Consider blue-green if traffic grows or zero-downtime becomes critical
 
 ---
 

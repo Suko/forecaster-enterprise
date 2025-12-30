@@ -37,6 +37,7 @@ docs/
 ├── setup/                        # Setup & deployment
 │   ├── QUICK_START.md            # One-command setup
 │   ├── DEVELOPMENT_SETUP.md      # Docker & local development
+│   ├── DEPLOYMENT_FLOW.md        # Build → deploy → startup flow
 │   ├── ENV_MANAGEMENT.md         # Environment variables guide
 │   ├── FIRST_RELEASE_CHECKLIST.md # Release & deployment guide
 │   └── SHARED_TEST_DATA_SUPABASE.md # Seed data sharing

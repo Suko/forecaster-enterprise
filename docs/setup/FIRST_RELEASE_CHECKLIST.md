@@ -322,6 +322,7 @@ deploy_staging:
 
 ## Related Documentation
 
+- [Deployment Flow](./DEPLOYMENT_FLOW.md) - **Complete build → deploy → startup flow**
 - [Deployment & CI/CD Approaches](../system/DEPLOYMENT_CICD_APPROACHES.md)
 - [ML Dependencies Architecture](../system/ML_DEPENDENCIES_ARCHITECTURE.md)
 - [CI/CD Audit](../system/CICD_AUDIT.md)

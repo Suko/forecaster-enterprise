@@ -26,13 +26,42 @@ jobs:
 
           # SSH and deploy
           ssh -o StrictHostKeyChecking=no -i ~/.ssh/deploy_key $DEPLOY_USER@$DEPLOY_HOST << 'EOF'
+            set -e
             cd $DEPLOY_PATH
-            echo "Pulling: ghcr.io/$GITHUB_REPOSITORY/backend:${{ inputs.image_tag }}"
+            
+            echo "📦 Pulling image: ghcr.io/$GITHUB_REPOSITORY/backend:${{ inputs.image_tag }}"
             docker pull ghcr.io/$GITHUB_REPOSITORY/backend:${{ inputs.image_tag }}
             docker tag ghcr.io/$GITHUB_REPOSITORY/backend:${{ inputs.image_tag }} forecaster-backend:latest
+            
+            echo "🔄 Stopping old containers..."
             docker compose down || true
+            
+            echo "🚀 Starting containers..."
             docker compose up -d
-            sleep 15
-            curl -f http://localhost:8000/ready || (echo "❌ Health check failed" && exit 1)
-            echo "✅ Stage deployment successful!"
+            
+            echo "⏳ Waiting for backend to be ready (ML deps may install on first run, up to 5 min)..."
+            # Wait up to 6 minutes (health check start_period is 5 min)
+            MAX_WAIT=360
+            ELAPSED=0
+            while [ $ELAPSED -lt $MAX_WAIT ]; do
+              if curl -sf http://localhost:8000/ready > /dev/null 2>&1; then
+                echo "✅ Backend is ready!"
+                break
+              fi
+              echo "   Still waiting... ($ELAPSED/$MAX_WAIT seconds)"
+              sleep 10
+              ELAPSED=$((ELAPSED + 10))
+            done
+            
+            # Final check
+            if curl -sf http://localhost:8000/ready > /dev/null 2>&1; then
+              echo "✅ Stage deployment successful!"
+              echo "📊 Backend logs (last 20 lines):"
+              docker compose logs --tail=20 backend
+            else
+              echo "❌ Health check failed after $MAX_WAIT seconds"
+              echo "📊 Backend logs:"
+              docker compose logs backend
+              exit 1
+            fi
           EOF

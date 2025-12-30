@@ -256,6 +256,7 @@ docker exec forecast-backend python -c "import torch; import chronos_forecasting
 
 ## Related Documentation
 
+- [Best Practices Assessment](./DEPLOYMENT_BEST_PRACTICES_ASSESSMENT.md) - **Evaluation against industry standards**
 - [First Release Checklist](./FIRST_RELEASE_CHECKLIST.md)
 - [CI/CD Approaches](../system/DEPLOYMENT_CICD_APPROACHES.md)
 - [ML Dependencies Architecture](../system/ML_DEPENDENCIES_ARCHITECTURE.md)

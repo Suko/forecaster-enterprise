@@ -8,14 +8,24 @@
 
 ## Executive Summary
 
-The codebase is feature-complete for v1 (per `docs/roadmap/NEXT_STEPS.md`). The CI/CD pipelines are configured but deployments are placeholders. This checklist ensures safe first deployment.
+**Simplified Stage Deployment Plan** - Get v0.0.1 working on stage using GitHub Actions + GHCR.
 
-**Estimated Time:** 2-4 hours
-**Risk Level:** Medium (first-time deployment)
+**Goal:** Working deployment in 1-2 hours, then expand to production.
+
+**Current Status:** CI/CD configured, need deployment infrastructure.
+
+**Estimated Time:** 1-2 hours for stage
+**Risk Level:** Low (GitHub-managed, proven tools)
 
 ---
 
 ## Pre-Release Verification ✅
+
+**Note:** If switching to self-hosted GitLab, verify your server has sufficient resources:
+- **CPU:** 2+ cores for GitLab + runners
+- **RAM:** 4GB+ for GitLab instance
+- **Storage:** 50GB+ for container images and git repos
+- **Docker:** Latest version installed
 
 ### 1. Backend Health Checks
 - [ ] `/health` endpoint returns 200 (no DB dependency)
@@ -48,47 +58,93 @@ The codebase is feature-complete for v1 (per `docs/roadmap/NEXT_STEPS.md`). The 
 - [ ] Create `production` environment with required reviewers
 - [ ] Configure environment protection rules
 
-### 2. Deployment Secrets
-**Per environment (stage/prod) - store in GitHub Environment secrets**
+### 2. GitHub Container Registry (GHCR)
+**Using:** `ghcr.io` (automatic with GitHub Actions)
 
-- [ ] `DEPLOY_HOST` - Server hostname/IP (e.g., `stage.example.com`)
+**Image URL:** `ghcr.io/YOUR_USERNAME/forecaster-enterprise/backend:v0.0.1`
+
+**Setup:** Automatic - no configuration needed
+**Cost:** Included in GitHub Pro ($4/month for private repos)
+
+### 2. Stage Environment Secrets
+**Add to GitHub `stage` environment:**
+
+- [ ] `DEPLOY_HOST` - Your stage server IP/hostname
 - [ ] `DEPLOY_USER` - SSH username (e.g., `ubuntu`)
-- [ ] `DEPLOY_SSH_KEY` - Private SSH key for deploy user
-- [ ] `DEPLOY_PATH` - Remote directory (e.g., `/opt/forecaster`)
-- [ ] `DATABASE_URL` - Production database connection string
-- [ ] `SECRET_KEY` - Application secret key
-- [ ] Other runtime secrets (API keys, external service URLs)
+- [ ] `DEPLOY_SSH_KEY` - Private SSH key (generate with `ssh-keygen`)
+- [ ] `DEPLOY_PATH` - Directory on server (e.g., `/opt/forecaster`)
+- [ ] `DATABASE_URL` - Stage database connection
+- [ ] `SECRET_KEY` - Random secret key for the app
 
-### 3. Server Prerequisites
-**On target servers (stage/prod)**
+### 3. Stage Server Setup
+**On your stage server:**
 
-- [ ] Docker + Docker Compose installed
-- [ ] SSH access configured for deploy user
-- [ ] Deploy directory exists: `/opt/forecaster` (or configured path)
-- [ ] `docker-compose.yml` present in deploy directory
-- [ ] Environment file (`.env`) with runtime configuration
-- [ ] Database accessible from server
-- [ ] SSL certificates configured (if needed)
+- [ ] **Docker installed:** `curl -fsSL https://get.docker.com | sh`
+- [ ] **SSH key configured:** Add deploy public key to `~/.ssh/authorized_keys`
+- [ ] **Directory created:** `mkdir -p /opt/forecaster`
+- [ ] **docker-compose.yml:** Copy from your repo to `/opt/forecaster/`
+- [ ] **Database access:** Ensure server can reach your database
+- [ ] **Test connection:** `ssh ubuntu@your-stage-server "docker --version"`
 
 ---
 
-## Deployment Workflow Implementation 📋
+## Stage Deployment Implementation 📋
 
-### 1. Stage Deploy Workflow
-**File:** `.github/workflows/deploy-stage.yml`
+### 1. Update Deploy Stage Workflow
+**Replace `.github/workflows/deploy-stage.yml` with:**
 
-Current status: Placeholder only
-
-**Required implementation:**
 ```yaml
-# Replace the placeholder with actual deployment steps:
-- SSH into DEPLOY_HOST
-- cd $DEPLOY_PATH
-- docker compose pull ghcr.io/YOUR_REPO/backend:v0.0.1
-- docker compose up -d
-- Wait for /ready endpoint (curl with timeout)
-- Run basic smoke tests
-- Log success/failure
+name: Deploy Stage
+
+on:
+  workflow_dispatch:
+    inputs:
+      image_tag:
+        description: "Release tag to deploy (e.g., v0.0.1)"
+        required: true
+
+permissions:
+  contents: read
+
+concurrency:
+  group: deploy-stage
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment: stage
+    timeout-minutes: 15
+    steps:
+      - name: Deploy to stage
+        run: |
+          echo "🚀 Deploying ${{ inputs.image_tag }} to stage"
+          
+          # SSH and deploy
+          ssh -o StrictHostKeyChecking=no -i ~/.ssh/deploy_key $DEPLOY_USER@$DEPLOY_HOST << 'EOF'
+            cd $DEPLOY_PATH
+            echo "Pulling image: ghcr.io/$GITHUB_REPOSITORY/backend:${{ inputs.image_tag }}"
+            docker pull ghcr.io/$GITHUB_REPOSITORY/backend:${{ inputs.image_tag }}
+            docker tag ghcr.io/$GITHUB_REPOSITORY/backend:${{ inputs.image_tag }} forecaster-backend:latest
+            docker compose up -d
+            sleep 10
+            curl -f http://localhost:8000/ready || exit 1
+            echo "✅ Stage deployment successful!"
+          EOF
+```
+
+### 2. SSH Key Setup
+**Generate and configure SSH key:**
+
+```bash
+# On your local machine
+ssh-keygen -t rsa -b 4096 -C "deploy@forecaster" -f ~/.ssh/forecaster_deploy
+
+# Copy public key to GitHub secret DEPLOY_SSH_KEY
+cat ~/.ssh/forecaster_deploy
+
+# Copy public key to stage server
+ssh-copy-id -i ~/.ssh/forecaster_deploy ubuntu@your-stage-server
 ```
 
 ### 2. Production Deploy Workflow
@@ -135,6 +191,73 @@ Current status: Placeholder only
 4. [ ] Monitor deployment logs
 5. [ ] Verify production deployment
 6. [ ] Monitor for 24 hours post-deployment
+
+---
+
+## Production Deployment (Phase 2)
+
+**After stage proves stable, set up production:**
+
+1. [ ] Create `production` environment with required reviewers
+2. [ ] Add production secrets (separate database, etc.)
+3. [ ] Set up production server with same prerequisites
+4. [ ] Update `deploy-production.yml` with production workflow
+5. [ ] Test production deployment process
+
+---
+
+## Alternative Approaches (Future)
+
+**If using GitLab locally hosted instead of GitHub Actions:**
+
+### Key Differences:
+- **CI/CD File**: `.gitlab-ci.yml` instead of `.github/workflows/`
+- **Container Registry**: GitLab registry instead of GHCR
+- **Secrets**: GitLab CI/CD variables instead of GitHub secrets
+- **Environments**: GitLab environments instead of GitHub environments
+- **Cost**: No monthly costs vs GitHub Actions limits
+
+### Required Changes:
+1. **Install GitLab** on your existing server
+2. **Replace GitHub workflows** with `.gitlab-ci.yml`
+3. **Update container image references** to use GitLab registry
+4. **Configure GitLab runners** on your server
+5. **Set up GitLab environments** with deployment approvals
+6. **Migrate secrets** to GitLab CI/CD variables
+
+### GitLab CI/CD Structure:
+```yaml
+stages:
+  - test
+  - build
+  - deploy
+
+variables:
+  DOCKER_IMAGE: $CI_REGISTRY_IMAGE/backend:$CI_COMMIT_TAG
+
+build:
+  stage: build
+  script:
+    - docker build -t $DOCKER_IMAGE ./backend
+    - docker push $DOCKER_IMAGE
+
+deploy_staging:
+  stage: deploy
+  environment:
+    name: staging
+    url: https://staging.your-domain.com
+  script:
+    - docker pull $DOCKER_IMAGE
+    - docker-compose up -d
+    - curl -f http://localhost:8000/ready
+```
+
+**Cost Comparison:**
+- **GitHub Actions**: 2,000 minutes/month free, then $0.008/minute (≈$4.80/month for 600 extra minutes)
+- **GitLab Self-Hosted**: $0 - runs on your existing server
+
+**Pros:** Zero cost, full control, runs on existing infrastructure
+**Cons:** Setup time (1-2 days), maintenance overhead
 
 ---
 

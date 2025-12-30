@@ -147,6 +147,35 @@ Optional (recommended): Add a smoke step to `release-images.yml` that boots the 
 
 ---
 
+## Alternative CI/CD Platforms
+
+### Self-Hosted GitLab CI/CD
+**When to choose:** Cost avoidance, full infrastructure control, existing server capacity.
+
+**Setup Requirements:**
+- GitLab instance on your server (Docker container)
+- GitLab runners (Docker-based, on your server)
+- GitLab container registry
+- `.gitlab-ci.yml` instead of GitHub workflows
+
+**Key Differences:**
+- `gitlab-ci.yml` syntax (stages, jobs, artifacts)
+- GitLab environments instead of GitHub environments
+- GitLab CI/CD variables for secrets
+- GitLab registry for container images
+- **Zero cost** - runs on your existing server
+
+**Quick Setup (1-2 days):**
+1. **Install GitLab:** `docker run -d --name gitlab gitlab/gitlab-ce:latest`
+2. **Convert workflows:** GitHub Actions → `.gitlab-ci.yml`
+3. **Register runners:** `gitlab-runner register` on your server
+4. **Configure registry** and update image references
+5. **Test pipeline** locally before going live
+
+**Cost Savings:** Eliminates GitHub Actions minute costs entirely
+
+---
+
 ## Wiring Stage/Production Deploy Workflows (SSH + Docker Compose)
 
 `Deploy Stage` and `Deploy Production` workflows exist but are placeholders until you connect them to your servers:

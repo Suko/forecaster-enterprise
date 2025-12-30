@@ -4,7 +4,7 @@ on:
   workflow_dispatch:
     inputs:
       image_tag:
-        description: "Release tag to deploy (e.g., v0.1.0)"
+        description: "Release tag to deploy (e.g., v0.0.1)"
         required: true
 
 permissions:
@@ -18,11 +18,21 @@ jobs:
   deploy:
     runs-on: ubuntu-latest
     environment: stage
-    timeout-minutes: 30
+    timeout-minutes: 15
     steps:
-      - name: Deploy placeholder
+      - name: Deploy to stage
         run: |
-          echo "Stage deploy is intentionally not implemented in-repo."
-          echo "Configure this job to pull images and run docker compose on your stage host."
-          echo "Use GitHub Environments to store secrets and (optionally) require approvals."
-          echo "Requested release tag='${{ inputs.image_tag }}'"
+          echo "🚀 Deploying ${{ inputs.image_tag }} to stage"
+
+          # SSH and deploy
+          ssh -o StrictHostKeyChecking=no -i ~/.ssh/deploy_key $DEPLOY_USER@$DEPLOY_HOST << 'EOF'
+            cd $DEPLOY_PATH
+            echo "Pulling: ghcr.io/$GITHUB_REPOSITORY/backend:${{ inputs.image_tag }}"
+            docker pull ghcr.io/$GITHUB_REPOSITORY/backend:${{ inputs.image_tag }}
+            docker tag ghcr.io/$GITHUB_REPOSITORY/backend:${{ inputs.image_tag }} forecaster-backend:latest
+            docker compose down || true
+            docker compose up -d
+            sleep 15
+            curl -f http://localhost:8000/ready || (echo "❌ Health check failed" && exit 1)
+            echo "✅ Stage deployment successful!"
+          EOF

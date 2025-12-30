@@ -80,72 +80,86 @@
 ### 3. Stage Server Setup
 **On your stage server:**
 
-- [ ] **Docker installed:** `curl -fsSL https://get.docker.com | sh`
-- [ ] **SSH key configured:** Add deploy public key to `~/.ssh/authorized_keys`
-- [ ] **Directory created:** `mkdir -p /opt/forecaster`
-- [ ] **docker-compose.yml:** Copy from your repo to `/opt/forecaster/`
-- [ ] **Database access:** Ensure server can reach your database
-- [ ] **Test connection:** `ssh ubuntu@your-stage-server "docker --version"`
+**3.1 Provision Server**
+- [ ] Get a server (VPS, AWS EC2, DigitalOcean, etc.)
+- [ ] Minimum specs: 2 CPU, 4GB RAM, 20GB disk
+- [ ] Install Docker: `curl -fsSL https://get.docker.com | sh`
+- [ ] Create deploy directory: `mkdir -p /opt/forecaster && chown $USER:$USER /opt/forecaster`
+
+**3.2 Set Up Database**
+- [ ] Option A: Use existing PostgreSQL (if available)
+- [ ] Option B: Run PostgreSQL in Docker on same server
+- [ ] Option C: Use managed database (AWS RDS, DigitalOcean DB, etc.)
+- [ ] Note connection details for `.env` file
+
+**3.3 Prepare Server**
+```bash
+# On stage server
+cd /opt/forecaster
+# Copy docker-compose.yml from repo
+# Create .env file with stage credentials
+```
+
+**3.4 SSH Key Setup**
+```bash
+# On your local machine
+ssh-keygen -t rsa -b 4096 -C "deploy@forecaster" -f ~/.ssh/forecaster_deploy -N ""
+
+# Copy PRIVATE key to GitHub secret DEPLOY_SSH_KEY
+cat ~/.ssh/forecaster_deploy
+
+# Copy PUBLIC key to stage server
+ssh-copy-id -i ~/.ssh/forecaster_deploy.pub ubuntu@YOUR_STAGE_IP
+
+# Test connection
+ssh ubuntu@YOUR_STAGE_IP "docker --version"
+```
 
 ---
 
 ## Stage Deployment Implementation 📋
 
-### 1. Update Deploy Stage Workflow
-**Replace `.github/workflows/deploy-stage.yml` with:**
+### 1. Deploy Stage Workflow
+**Status:** ✅ Already configured in `.github/workflows/deploy-stage.yml`
 
-```yaml
-name: Deploy Stage
+**Features:**
+- SSH key setup from secret
+- Image pull from GHCR
+- Health check wait (up to 6 min for ML deps)
+- Log output on success/failure
 
-on:
-  workflow_dispatch:
-    inputs:
-      image_tag:
-        description: "Release tag to deploy (e.g., v0.0.1)"
-        required: true
+### 2. Test Deployment
 
-permissions:
-  contents: read
-
-concurrency:
-  group: deploy-stage
-  cancel-in-progress: false
-
-jobs:
-  deploy:
-    runs-on: ubuntu-latest
-    environment: stage
-    timeout-minutes: 15
-    steps:
-      - name: Deploy to stage
-        run: |
-          echo "🚀 Deploying ${{ inputs.image_tag }} to stage"
-          
-          # SSH and deploy
-          ssh -o StrictHostKeyChecking=no -i ~/.ssh/deploy_key $DEPLOY_USER@$DEPLOY_HOST << 'EOF'
-            cd $DEPLOY_PATH
-            echo "Pulling image: ghcr.io/$GITHUB_REPOSITORY/backend:${{ inputs.image_tag }}"
-            docker pull ghcr.io/$GITHUB_REPOSITORY/backend:${{ inputs.image_tag }}
-            docker tag ghcr.io/$GITHUB_REPOSITORY/backend:${{ inputs.image_tag }} forecaster-backend:latest
-            docker compose up -d
-            sleep 10
-            curl -f http://localhost:8000/ready || exit 1
-            echo "✅ Stage deployment successful!"
-          EOF
+**2.1 Create Test Tag**
+```bash
+git tag v0.0.1-test
+git push origin v0.0.1-test
 ```
 
-### 2. SSH Key Setup
-**Generate and configure SSH key:**
+**2.2 Trigger Build**
+- [ ] Wait for `release-images.yml` to complete
+- [ ] Verify image in GHCR: `ghcr.io/USER/forecaster-enterprise/backend:v0.0.1-test`
 
+**2.3 Deploy to Stage**
+- [ ] Go to GitHub Actions → "Deploy Stage"
+- [ ] Click "Run workflow"
+- [ ] Enter `image_tag: v0.0.1-test`
+- [ ] Monitor deployment logs
+
+**2.4 Verify Deployment**
 ```bash
-# On your local machine
-ssh-keygen -t rsa -b 4096 -C "deploy@forecaster" -f ~/.ssh/forecaster_deploy
+# SSH to stage server
+ssh ubuntu@YOUR_STAGE_IP
 
-# Copy public key to GitHub secret DEPLOY_SSH_KEY
-cat ~/.ssh/forecaster_deploy
+# Check containers
+docker ps
 
-# Copy public key to stage server
-ssh-copy-id -i ~/.ssh/forecaster_deploy ubuntu@your-stage-server
+# Check logs
+docker compose -f /opt/forecaster/docker-compose.yml logs backend
+
+# Test health
+curl http://localhost:8000/ready
+curl http://localhost:8000/api/v1/health
 ```
 
 ### 2. Production Deploy Workflow
@@ -317,6 +331,34 @@ deploy_staging:
 - 24-hour stability period
 - No customer-impacting issues
 - Rollback procedure validated
+
+---
+
+## High Priority Improvements (Before Production) 🔴
+
+### 1. Add Smoke Tests to Deployment
+**Update `.github/workflows/deploy-stage.yml` to include:**
+```yaml
+- name: Run smoke tests
+  run: |
+    ssh -o StrictHostKeyChecking=no -i ~/.ssh/deploy_key $DEPLOY_USER@$DEPLOY_HOST << 'EOF'
+      curl -f http://localhost:8000/ready || exit 1
+      curl -f http://localhost:8000/api/v1/health || exit 1
+      curl -f http://localhost:8000/api/v1/products || exit 1
+      echo "✅ Smoke tests passed"
+    EOF
+```
+
+### 2. Document Rollback Procedure
+- [ ] Create rollback documentation
+- [ ] Test rollback process (deploy previous tag)
+- [ ] Document which tag to rollback to
+- [ ] Define rollback triggers (error thresholds)
+
+### 3. Add Deployment Notifications
+- [ ] Configure Slack/email notifications
+- [ ] Alert on deployment success/failure
+- [ ] Include deployment logs in notifications
 
 ---
 

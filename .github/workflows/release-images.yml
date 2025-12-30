@@ -68,7 +68,7 @@ jobs:
         uses: docker/build-push-action@v6
         with:
           context: ./backend
-          file: ./backend/Dockerfile
+          file: Dockerfile
           push: true
           # Use minimal cache mode to save disk space
           cache-from: type=gha

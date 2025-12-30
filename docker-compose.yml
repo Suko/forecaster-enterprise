@@ -31,8 +31,9 @@ services:
       - ./data:/data:ro
       # Shared volume for ML model cache (persists across releases)
       # Models downloaded once, reused on every backend restart/update
-      - ml_models_cache:/root/.cache/huggingface
-      - ml_pip_cache:/root/.cache/pip
+      # Note: Container runs as appuser, so cache goes to /home/appuser
+      - ml_models_cache:/home/appuser/.cache/huggingface
+      - ml_pip_cache:/home/appuser/.cache/pip
     env_file:
       - .env
     environment:
@@ -59,8 +60,9 @@ services:
       test: ["CMD", "curl", "-f", "http://localhost:8000/ready"]
       interval: 30s
       timeout: 10s
-      retries: 3
-      start_period: 60s
+      retries: 5
+      # Allow 5 minutes for first-time ML dependency installation
+      start_period: 300s
 
   frontend:
     build: ./frontend

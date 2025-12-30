@@ -99,8 +99,9 @@ services:
   backend:
     volumes:
       # Model cache - persists across releases
-      - ml_models_cache:/root/.cache/huggingface
-      - ml_pip_cache:/root/.cache/pip
+      # Container runs as appuser, so cache goes to /home/appuser
+      - ml_models_cache:/home/appuser/.cache/huggingface
+      - ml_pip_cache:/home/appuser/.cache/pip
 
 volumes:
   ml_models_cache:  # HuggingFace models

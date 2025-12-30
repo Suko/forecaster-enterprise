@@ -8,9 +8,11 @@
 ## Problem Statement
 
 ML dependencies are large:
-- **PyTorch + CUDA:** ~2GB
+- **PyTorch CPU-only:** ~500MB
 - **Chronos-2 model:** ~500MB (downloaded from HuggingFace)
-- **Total:** ~2.5GB per container
+- **Total:** ~1GB per deployment
+
+Note: `darts` is NOT used in production - only `chronos-forecasting` is needed for forecasting.
 
 This causes:
 - Slow Docker builds

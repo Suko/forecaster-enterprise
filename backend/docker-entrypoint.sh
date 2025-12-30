@@ -19,17 +19,16 @@ alembic upgrade head
 # First-time setup flag (check if users table has any records)
 FIRST_TIME_SETUP=$(PGPASSWORD=$DB_PASSWORD psql -h "$DB_HOST" -U "$DB_USER" -d "$DB_NAME" -tAc "SELECT CASE WHEN EXISTS (SELECT 1 FROM users) THEN 'false' ELSE 'true' END;" 2>/dev/null || echo "true")
 
-# Install PyTorch CPU-only and ML dependencies at runtime (saves ~2GB in Docker image)
+# Install PyTorch CPU-only and chronos-forecasting at runtime (saves ~2GB in Docker image)
 # Models are cached in shared volume (/home/appuser/.cache), so this only downloads on first run
-# Subsequent releases reuse cached packages from the pip cache volume
+# Note: darts is NOT used in production - only chronos-forecasting is needed
 if ! python -c "import torch" 2>/dev/null; then
-  echo "Installing PyTorch CPU-only and ML dependencies (this may take a few minutes on first run)..."
+  echo "Installing PyTorch CPU-only and chronos-forecasting (this may take a few minutes on first run)..."
   echo "Note: Packages will be cached and reused across releases"
   # Use pip (not uv pip --system) since we're running as appuser, not root
   pip install --quiet --no-warn-script-location \
     --extra-index-url https://download.pytorch.org/whl/cpu \
-    torch torchvision torchaudio \
-    chronos-forecasting darts || echo "Warning: Failed to install ML dependencies (forecasting may not work)"
+    torch chronos-forecasting || echo "Warning: Failed to install ML dependencies (forecasting may not work)"
 else
   echo "ML dependencies already installed (using cached packages from volume)"
 fi

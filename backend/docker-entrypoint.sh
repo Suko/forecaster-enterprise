@@ -25,8 +25,8 @@ FIRST_TIME_SETUP=$(PGPASSWORD=$DB_PASSWORD psql -h "$DB_HOST" -U "$DB_USER" -d "
 if ! python -c "import torch" 2>/dev/null; then
   echo "Installing PyTorch CPU-only and chronos-forecasting (this may take a few minutes on first run)..."
   echo "Note: Packages will be cached and reused across releases"
-  # Use pip (not uv pip --system) since we're running as appuser, not root
-  pip install --quiet --no-warn-script-location \
+  # Use uv pip to install into the active venv
+  uv pip install --quiet \
     --extra-index-url https://download.pytorch.org/whl/cpu \
     torch chronos-forecasting || echo "Warning: Failed to install ML dependencies (forecasting may not work)"
 else

@@ -45,6 +45,9 @@ RUN apt-get update && apt-get install -y \
     dos2unix \
     && rm -rf /var/lib/apt/lists/*
 
+# Copy uv for runtime package installation (ML deps installed at startup)
+COPY --from=ghcr.io/astral-sh/uv:latest /uv /usr/local/bin/uv
+
 # Create non-root user
 RUN groupadd -r appuser && useradd -r -g appuser appuser
 

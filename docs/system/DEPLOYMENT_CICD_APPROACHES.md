@@ -252,3 +252,25 @@ From repo root (local or in a CI runner):
 
 - **App rollback is easy** (deploy previous image tag).
 - **DB rollback is not always safe**. Prefer forward-fix migrations over downgrades, unless you explicitly test `downgrade()` paths and keep migrations backward-compatible.
+
+---
+
+## GitHub Container Registry (GHCR)
+
+**Image URL:** `ghcr.io/YOUR_USERNAME/forecaster-enterprise/backend:v0.0.1`
+
+**Automatic in GitHub Actions:**
+```bash
+# Login (automatic in GitHub Actions)
+echo $GITHUB_TOKEN | docker login ghcr.io -u $GITHUB_ACTOR --password-stdin
+
+# Build and push
+docker build -t ghcr.io/YOUR_USERNAME/forecaster-enterprise/backend:v0.0.1 ./backend
+docker push ghcr.io/YOUR_USERNAME/forecaster-enterprise/backend:v0.0.1
+
+# On deployment server
+docker pull ghcr.io/YOUR_USERNAME/forecaster-enterprise/backend:v0.0.1
+```
+
+**Pros:** Free, integrated with GitHub, automatic authentication
+**Cost:** Included in GitHub Pro ($4/month for private repos)

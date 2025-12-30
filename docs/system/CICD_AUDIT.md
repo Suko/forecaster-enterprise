@@ -1,7 +1,8 @@
 # CI/CD and Deployment Audit
 
 **Date:** 2025-12-30  
-**Status:** Issues identified, fixes proposed
+**Last Updated:** 2025-12-30  
+**Status:** ✅ Critical issues resolved, CI/CD pipeline operational
 
 ---
 
@@ -60,29 +61,28 @@
 
 ## Issues Identified
 
-### 🔴 Critical Issues
+### ✅ Fixed Issues
 
-#### 1. uv.lock Out of Sync
-**Problem:** Lock file still references chronos-forecasting and darts, even though removed from pyproject.toml  
-**Impact:** `uv sync --frozen` will still try to install them  
-**Fix:** Regenerate lock file with `uv lock`
+#### 1. ✅ uv.lock Out of Sync
+**Status:** FIXED  
+**Fix Applied:** Lock file regenerated to remove chronos-forecasting and darts from build-time deps
 
-#### 2. Container User Mismatch
-**Problem:** Container runs as `appuser`, but:
-- Volume mounts use `/root/.cache/` (wrong user home)
-- `uv pip install --system` may fail without root
+#### 2. ✅ Container User Mismatch
+**Status:** FIXED  
+**Fix Applied:** 
+- Volume mounts changed to `/home/appuser/.cache/huggingface` and `/home/appuser/.cache/pip`
+- `uv` copied to runner stage in Dockerfile
+- Using `uv pip install` (not `uv pip install --system`) - works as non-root user
 
-**Impact:** ML dependencies won't install, forecasting won't work  
-**Fix:** 
-- Change volume mounts to `/home/appuser/.cache/`
-- Or keep container as root for runtime installs
+#### 3. ✅ ML Deps Install Before App Starts
+**Status:** FIXED  
+**Fix Applied:** 
+- Health check `start_period` increased to `300s` (5 minutes)
+- ML deps check now verifies both `torch` and `chronos_forecasting` before skipping
 
-#### 3. ML Deps Install Before App Starts
-**Problem:** PyTorch download blocks app startup (2-3 min)  
-**Impact:** Health checks may timeout on first run  
-**Fix:** 
-- Increase start_period in health check
-- Or install in background
+### 🔴 Critical Issues (Remaining)
+
+None - all critical issues resolved!
 
 ### 🟡 Medium Issues
 
@@ -118,44 +118,34 @@
 
 ---
 
-## Proposed Fixes
+## Fixes Applied
 
-### Fix 1: Regenerate uv.lock (Required)
+### ✅ Fix 1: Regenerate uv.lock
+**Status:** COMPLETED  
+**Commit:** Lock file regenerated, ML deps removed from build-time
 
+### ✅ Fix 2: Fix Volume Mounts
+**Status:** COMPLETED  
+**Commit:** Volume mounts updated to `/home/appuser/.cache/*` paths
+
+### ✅ Fix 3: Fix ML Install Command
+**Status:** COMPLETED  
+**Implementation:**
 ```bash
-cd backend
-uv lock
+# docker-entrypoint.sh - uses uv pip install (not pip, not --system)
+uv pip install --quiet \
+  --extra-index-url https://download.pytorch.org/whl/cpu \
+  torch chronos-forecasting
 ```
+**Note:** Also added check for both `torch` and `chronos_forecasting` before skipping
 
-### Fix 2: Fix Volume Mounts
+### ✅ Fix 4: Increase Health Check Start Period
+**Status:** COMPLETED  
+**Implementation:** `start_period: 300s` in docker-compose.yml
 
-```yaml
-# docker-compose.yml
-volumes:
-  - ml_models_cache:/home/appuser/.cache/huggingface
-  - ml_pip_cache:/home/appuser/.cache/pip
-```
-
-### Fix 3: Fix ML Install Command
-
-```bash
-# docker-entrypoint.sh - run as appuser, use pip (not uv pip --system)
-pip install --quiet \
-  --index-url https://download.pytorch.org/whl/cpu \
-  torch torchvision torchaudio \
-  chronos-forecasting darts
-```
-
-### Fix 4: Increase Health Check Start Period
-
-```yaml
-# docker-compose.yml
-healthcheck:
-  start_period: 300s  # 5 minutes for first-time ML install
-```
-
-### Fix 5: Add Setup Completion Flag
-
+### ⏳ Fix 5: Add Setup Completion Flag
+**Status:** PENDING  
+**Proposed:**
 ```python
 # Check setup_status table instead of users
 SELECT completed FROM setup_status WHERE id = 1;
@@ -163,37 +153,50 @@ SELECT completed FROM setup_status WHERE id = 1;
 
 ---
 
-## Recommended Order of Changes
+## Implementation Status
 
-1. **Regenerate uv.lock** (removes old deps)
-2. **Fix volume mounts** (correct user path)
-3. **Fix ML install command** (use pip, not uv pip --system)
-4. **Test Docker build** locally
-5. **Push and test CI/CD**
-6. **Implement deploy workflows** (after build works)
+1. ✅ **Regenerate uv.lock** - COMPLETED
+2. ✅ **Fix volume mounts** - COMPLETED
+3. ✅ **Fix ML install command** - COMPLETED (using uv pip)
+4. ✅ **Test Docker build** - COMPLETED (39s build, successful)
+5. ✅ **Push and test CI/CD** - COMPLETED (builds successfully on tag push)
+6. ⏳ **Implement deploy workflows** - PENDING (placeholders exist)
 
 ---
 
 ## Testing Checklist
 
-- [ ] `uv lock` regenerates without errors
-- [ ] `docker build ./backend` succeeds
-- [ ] `docker-compose up` starts successfully
-- [ ] First-time setup creates admin user
-- [ ] ML dependencies install from cache on restart
-- [ ] Forecasting API works after ML install
-- [ ] Health check passes within timeout
+- [x] `uv lock` regenerates without errors
+- [x] `docker build ./backend` succeeds (✅ 39s build time)
+- [x] `docker-compose up` starts successfully
+- [x] ML dependencies install from cache on restart
+- [x] Health check passes within timeout
+- [ ] First-time setup creates admin user (needs manual testing)
+- [ ] Forecasting API works after ML install (needs manual testing)
 
 ---
 
-## Files to Modify
+## Files Modified
 
-1. `backend/uv.lock` - Regenerate
-2. `backend/docker-entrypoint.sh` - Fix ML install
-3. `docker-compose.yml` - Fix volume mounts, health check
-4. `.github/workflows/deploy-stage.yml` - Implement deployment
-5. `.github/workflows/deploy-production.yml` - Implement deployment
+1. ✅ `backend/uv.lock` - Regenerated (ML deps removed)
+2. ✅ `backend/docker-entrypoint.sh` - Fixed ML install (uv pip, checks both packages)
+3. ✅ `backend/Dockerfile` - Added uv to runner stage
+4. ✅ `docker-compose.yml` - Fixed volume mounts, increased health check timeout
+5. ⏳ `.github/workflows/deploy-stage.yml` - Still placeholder
+6. ⏳ `.github/workflows/deploy-production.yml` - Still placeholder
 
 ---
 
-**Next Steps:** Fix issues in order, test locally, then push to trigger CI/CD.
+## Remaining Work
+
+### Medium Priority
+- **First-Time Detection:** Consider dedicated `setup_completed` flag table
+- **Deploy Workflows:** Implement actual deployment logic (SSH/API-based)
+
+### Low Priority
+- **Disk Cleanup:** More targeted cleanup in workflows
+- **Smoke Tests:** Add API verification after deployment
+
+---
+
+**Status:** All critical issues resolved. CI/CD pipeline working. Ready for deployment testing.

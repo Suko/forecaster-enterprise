@@ -29,6 +29,10 @@ services:
       - "8000:8000"
     volumes:
       - ./data:/data:ro
+      # Shared volume for ML model cache (persists across releases)
+      # Models downloaded once, reused on every backend restart/update
+      - ml_models_cache:/root/.cache/huggingface
+      - ml_pip_cache:/root/.cache/pip
     env_file:
       - .env
     environment:
@@ -115,3 +119,8 @@ services:
 volumes:
   postgres_data:
   license_data:
+  # ML model cache - persists across backend container updates
+  # HuggingFace models (Chronos-2) cached here
+  ml_models_cache:
+  # Python package cache for PyTorch/ML dependencies
+  ml_pip_cache:

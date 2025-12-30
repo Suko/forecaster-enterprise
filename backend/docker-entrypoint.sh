@@ -19,6 +19,20 @@ alembic upgrade head
 # First-time setup flag (check if users table has any records)
 FIRST_TIME_SETUP=$(PGPASSWORD=$DB_PASSWORD psql -h "$DB_HOST" -U "$DB_USER" -d "$DB_NAME" -tAc "SELECT CASE WHEN EXISTS (SELECT 1 FROM users) THEN 'false' ELSE 'true' END;" 2>/dev/null || echo "true")
 
+# Install PyTorch CPU-only and ML dependencies at runtime (saves ~2GB in Docker image)
+# Models are cached in shared volume, so this only downloads on first run
+# Subsequent releases reuse cached models from /root/.cache/huggingface volume
+if ! python -c "import torch" 2>/dev/null; then
+  echo "Installing PyTorch CPU-only and ML dependencies (this may take a few minutes on first run)..."
+  echo "Note: Models will be cached and reused across releases"
+  uv pip install --system --quiet \
+    --index-url https://download.pytorch.org/whl/cpu \
+    torch torchvision torchaudio \
+    chronos-forecasting darts || echo "Warning: Failed to install ML dependencies (forecasting may not work)"
+else
+  echo "ML dependencies already installed (using cached models from volume)"
+fi
+
 if [ "$FIRST_TIME_SETUP" = "true" ]; then
   echo "First-time setup detected, running setup.sh..."
   

@@ -20,18 +20,28 @@ jobs:
     environment: stage
     timeout-minutes: 15
     steps:
-      - name: Deploy to stage
+      - name: Set up SSH key
         run: |
-          echo "🚀 Deploying ${{ inputs.image_tag }} to stage"
+          mkdir -p ~/.ssh
+          echo "$DEPLOY_SSH_KEY" > ~/.ssh/deploy_key
+          chmod 600 ~/.ssh/deploy_key
+          ssh-keyscan -H $DEPLOY_HOST >> ~/.ssh/known_hosts || true
+
+      - name: Deploy to stage
+        env:
+          IMAGE_TAG: ${{ inputs.image_tag }}
+          REPO: ${{ github.repository }}
+        run: |
+          echo "🚀 Deploying ${IMAGE_TAG} to stage"
 
           # SSH and deploy
-          ssh -o StrictHostKeyChecking=no -i ~/.ssh/deploy_key $DEPLOY_USER@$DEPLOY_HOST << 'EOF'
+          ssh -o StrictHostKeyChecking=no -i ~/.ssh/deploy_key $DEPLOY_USER@$DEPLOY_HOST << EOF
             set -e
             cd $DEPLOY_PATH
             
-            echo "📦 Pulling image: ghcr.io/$GITHUB_REPOSITORY/backend:${{ inputs.image_tag }}"
-            docker pull ghcr.io/$GITHUB_REPOSITORY/backend:${{ inputs.image_tag }}
-            docker tag ghcr.io/$GITHUB_REPOSITORY/backend:${{ inputs.image_tag }} forecaster-backend:latest
+            echo "📦 Pulling image: ghcr.io/${REPO}/backend:${IMAGE_TAG}"
+            docker pull ghcr.io/${REPO}/backend:${IMAGE_TAG}
+            docker tag ghcr.io/${REPO}/backend:${IMAGE_TAG} forecaster-backend:latest
             
             echo "🔄 Stopping old containers..."
             docker compose down || true

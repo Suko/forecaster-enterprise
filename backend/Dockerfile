@@ -26,14 +26,17 @@ FROM base AS deps
 COPY pyproject.toml uv.lock ./
 
 # Install dependencies with cache mount
-# Note: PyTorch with CUDA is large (~2GB), but required by chronos-forecasting
+# Note: Installing CPU-only PyTorch to save ~2GB disk space
+# chronos-forecasting uses device_map="cpu" by default, so CPU-only should work
 # Build tools (gcc, g++) are only in this stage, not in final image
-# Using cache mount to persist downloads between builds
-# Set link mode to copy to avoid hardlink issues in Docker
 RUN --mount=type=cache,target=/root/.cache/uv \
     --mount=type=cache,target=/tmp/uv-cache \
     UV_LINK_MODE=copy \
-    uv sync --frozen --no-dev
+    uv sync --frozen --no-dev && \
+    # Replace CUDA PyTorch with CPU-only version to save space
+    uv pip install --system --force-reinstall --no-deps \
+    --index-url https://download.pytorch.org/whl/cpu \
+    torch torchvision torchaudio || true
 
 # Stage 3: Production
 FROM python:3.12-slim AS runner

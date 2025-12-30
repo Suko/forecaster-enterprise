@@ -16,7 +16,10 @@ echo "Database is ready!"
 echo "Running database migrations..."
 alembic upgrade head
 
-# First-time setup flag (check if users table has any records)
+# First-time setup detection: skip if any users exist (prevents duplicate user creation)
+# Behavior: If database has ANY users → skip setup.sh (correct for production)
+#           If database is empty → run setup.sh (creates admin/test users)
+# Note: create_user.py already checks for existing users and fails gracefully
 FIRST_TIME_SETUP=$(PGPASSWORD=$DB_PASSWORD psql -h "$DB_HOST" -U "$DB_USER" -d "$DB_NAME" -tAc "SELECT CASE WHEN EXISTS (SELECT 1 FROM users) THEN 'false' ELSE 'true' END;" 2>/dev/null || echo "true")
 
 # Install PyTorch CPU-only and chronos-forecasting at runtime (saves ~2GB in Docker image)
@@ -37,6 +40,8 @@ if [ "$FIRST_TIME_SETUP" = "true" ]; then
   echo "First-time setup detected, running setup.sh..."
   
   # Build arguments array for setup.sh (properly handles spaces in values)
+  # Production mode (default): Creates client + users only, NO data import
+  # To import demo data: Set WITH_DEMO_DATA=true or pass --with-demo-data to setup.sh
   SETUP_ARGS=()
   [ -n "$ADMIN_EMAIL" ] && SETUP_ARGS+=("--admin-email" "$ADMIN_EMAIL")
   [ -n "$ADMIN_PASSWORD" ] && SETUP_ARGS+=("--admin-password" "$ADMIN_PASSWORD")
@@ -47,6 +52,7 @@ if [ "$FIRST_TIME_SETUP" = "true" ]; then
   [ -n "$CSV_PATH" ] && SETUP_ARGS+=("--csv-path" "$CSV_PATH")
   [ "$SKIP_TEST_DATA" = "true" ] && SETUP_ARGS+=("--skip-test-data")
   [ "$SKIP_CSV_IMPORT" = "true" ] && SETUP_ARGS+=("--skip-csv-import")
+  [ "$WITH_DEMO_DATA" = "true" ] && SETUP_ARGS+=("--with-demo-data")
   
   # Run setup script (migrations already done, but alembic is idempotent)
   bash /app/setup.sh "${SETUP_ARGS[@]}" || echo "Setup completed with warnings"

@@ -22,7 +22,7 @@ FIRST_TIME_SETUP=$(PGPASSWORD=$DB_PASSWORD psql -h "$DB_HOST" -U "$DB_USER" -d "
 # Install PyTorch CPU-only and chronos-forecasting at runtime (saves ~2GB in Docker image)
 # Models are cached in shared volume (/home/appuser/.cache), so this only downloads on first run
 # Note: darts is NOT used in production - only chronos-forecasting is needed
-if ! python -c "import torch" 2>/dev/null; then
+if ! python -c "import torch; import chronos_forecasting" 2>/dev/null; then
   echo "Installing PyTorch CPU-only and chronos-forecasting (this may take a few minutes on first run)..."
   echo "Note: Packages will be cached and reused across releases"
   # Use uv pip to install into the active venv

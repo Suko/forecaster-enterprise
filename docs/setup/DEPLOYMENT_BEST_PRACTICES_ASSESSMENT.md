@@ -79,7 +79,7 @@
 **Recommendation:**
 - ✅ **Acceptable for v0.0.1** - Simple, works
 - 🔄 **Improve for production:**
-  - Blue-green: Run new version alongside old, switch traffic
+  - **Blue-green:** See [Blue-Green Deployment Guide](./BLUE_GREEN_DEPLOYMENT.md) for implementation
   - Canary: Gradual traffic shift (10% → 50% → 100%)
   - Automated rollback on health check failure
 

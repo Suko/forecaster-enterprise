@@ -20,7 +20,7 @@
 |------|---------------|
 | **Developer** | [Quick Start](setup/QUICK_START.md) → [API Reference](backend/API_REFERENCE.md) → [Architecture](backend/ARCHITECTURE.md) → [Contracts](system/CONTRACTS.md) |
 | **Product Manager** | [Next Steps](roadmap/NEXT_STEPS.md) → [User Stories](roadmap/product/USER_STORIES.md) → [Workflows](roadmap/product/WORKFLOWS.md) |
-| **DevOps** | [Quick Start](setup/QUICK_START.md) → [Development Setup](setup/DEVELOPMENT_SETUP.md) → [ENV Management](setup/ENV_MANAGEMENT.md) |
+| **DevOps** | [First Release Checklist](setup/FIRST_RELEASE_CHECKLIST.md) → [CI/CD Approaches](system/DEPLOYMENT_CICD_APPROACHES.md) → [ENV Management](setup/ENV_MANAGEMENT.md) |
 
 ---
 
@@ -34,11 +34,12 @@ docs/
 ├── STOCK_AGGREGATION.md          # How stock is aggregated
 ├── QUICK_TEST_GUIDE.md           # Quick test guide
 │
-├── setup/                        # Setup & development
+├── setup/                        # Setup & deployment
 │   ├── QUICK_START.md            # One-command setup
 │   ├── DEVELOPMENT_SETUP.md      # Docker & local development
-│   ├── SETUP_SCRIPT_GUIDE.md     # Detailed setup options
-│   └── ENV_MANAGEMENT.md         # Environment variables guide
+│   ├── ENV_MANAGEMENT.md         # Environment variables guide
+│   ├── FIRST_RELEASE_CHECKLIST.md # Release & deployment guide
+│   └── SHARED_TEST_DATA_SUPABASE.md # Seed data sharing
 │
 ├── backend/                      # Backend technical docs
 │   ├── README.md                 # Backend quick reference
@@ -54,6 +55,9 @@ docs/
 ├── system/                       # System contracts & integration
 │   ├── CONTRACTS.md              # API contracts, naming conventions
 │   ├── INTEGRATION.md            # Frontend ↔ Backend integration rules
+│   ├── DEPLOYMENT_CICD_APPROACHES.md # CI/CD strategies
+│   ├── ML_DEPENDENCIES_ARCHITECTURE.md # ML deps handling
+│   ├── CICD_AUDIT.md             # CI/CD audit & status
 │   ├── SIMULATION_SYSTEM.md      # Simulation system docs
 │   └── LOGGING_STRATEGY.md       # Logging implementation
 │

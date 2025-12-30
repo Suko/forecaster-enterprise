@@ -1,7 +1,7 @@
 # First Release Checklist (v0.0.1)
 
-**Last Updated:** 2025-12-29
-**Status:** Pre-release
+**Last Updated:** 2025-12-30
+**Status:** ✅ CI/CD operational, ready for deployment
 **Goal:** Safely deploy v0.0.1 to stage, then production
 
 ---
@@ -12,7 +12,7 @@
 
 **Goal:** Working deployment in 1-2 hours, then expand to production.
 
-**Current Status:** CI/CD configured, need deployment infrastructure.
+**Current Status:** ✅ CI/CD operational (39s builds). Ready for stage deployment.
 
 **Estimated Time:** 1-2 hours for stage
 **Risk Level:** Low (GitHub-managed, proven tools)
@@ -41,8 +41,9 @@
 - [ ] `docker compose down` cleans up properly
 
 ### 3. CI/CD Gates Pass
-- [ ] `backend-ci.yml` passes on PR (lint + tests)
-- [ ] `docker-build.yml` builds successfully on Dockerfile changes
+- [x] `backend-ci.yml` passes on PR (lint + tests)
+- [x] `docker-build.yml` builds successfully on Dockerfile changes
+- [x] `release-images.yml` builds and pushes to GHCR (✅ 39s build time)
 - [ ] No linter errors or test failures
 - [ ] **Test Suite Status**: 264 test functions discovered, no skipped tests
 - [ ] **Lint Status**: Minor issues present (import sorting, deprecated typing) - acceptable for v0.0.1
@@ -322,8 +323,10 @@ deploy_staging:
 ## Related Documentation
 
 - [Deployment & CI/CD Approaches](../system/DEPLOYMENT_CICD_APPROACHES.md)
-- [Environment Management](../setup/ENV_MANAGEMENT.md)
-- [Development Setup](../setup/DEVELOPMENT_SETUP.md)
+- [ML Dependencies Architecture](../system/ML_DEPENDENCIES_ARCHITECTURE.md)
+- [CI/CD Audit](../system/CICD_AUDIT.md)
+- [Environment Management](./ENV_MANAGEMENT.md)
+- [Development Setup](./DEVELOPMENT_SETUP.md)
 - [System Integration](../system/INTEGRATION.md)
 
 ---

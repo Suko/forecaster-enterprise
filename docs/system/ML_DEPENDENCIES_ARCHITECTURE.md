@@ -112,12 +112,12 @@ volumes:
 
 ### What Gets Cached
 
-1. **HuggingFace Models** (`/root/.cache/huggingface`)
+1. **HuggingFace Models** (`/home/appuser/.cache/huggingface`)
    - Chronos-2 model weights
    - Other pretrained models
    - Downloaded once, reused forever
 
-2. **Python Packages** (`/root/.cache/pip`)
+2. **Python Packages** (`/home/appuser/.cache/pip`)
    - PyTorch wheels
    - Other ML dependencies
    - Speeds up reinstallations
@@ -229,7 +229,7 @@ PYTORCH_INDEX_URL=https://download.pytorch.org/whl/cu121
 
 **Fix:** Check volume mount:
 ```bash
-docker exec forecast-backend ls -la /root/.cache/huggingface
+docker exec forecast-backend ls -la /home/appuser/.cache/huggingface
 ```
 
 ### Disk Space Issues

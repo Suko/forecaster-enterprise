@@ -26,12 +26,13 @@ FROM base AS deps
 COPY pyproject.toml uv.lock ./
 
 # Install dependencies with cache mount
-# Note: PyTorch pulls in CUDA libraries (~2GB) even for CPU usage
-# This is because chronos-forecasting and darts require full PyTorch
+# Note: PyTorch with CUDA is large (~2GB), but required by chronos-forecasting
 # Build tools (gcc, g++) are only in this stage, not in final image
 # Using cache mount to persist downloads between builds
+# Set link mode to copy to avoid hardlink issues in Docker
 RUN --mount=type=cache,target=/root/.cache/uv \
     --mount=type=cache,target=/tmp/uv-cache \
+    UV_LINK_MODE=copy \
     uv sync --frozen --no-dev
 
 # Stage 3: Production

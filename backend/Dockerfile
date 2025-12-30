@@ -26,19 +26,15 @@ FROM base AS deps
 COPY pyproject.toml uv.lock ./
 
 # Install dependencies with cache mount
+# Note: PyTorch pulls in CUDA libraries (~2GB) even for CPU usage
+# This is because chronos-forecasting and darts require full PyTorch
+# Build tools (gcc, g++) are only in this stage, not in final image
+# Using cache mount to persist downloads between builds
 RUN --mount=type=cache,target=/root/.cache/uv \
+    --mount=type=cache,target=/tmp/uv-cache \
     uv sync --frozen --no-dev
 
-# Stage 3: Builder
-FROM base AS builder
-
-# Copy dependencies from deps stage
-COPY --from=deps /app/.venv /app/.venv
-
-# Copy application code
-COPY . .
-
-# Stage 4: Production
+# Stage 3: Production
 FROM python:3.12-slim AS runner
 
 # Install runtime dependencies only
@@ -55,9 +51,12 @@ RUN groupadd -r appuser && useradd -r -g appuser appuser
 # Set working directory
 WORKDIR /app
 
-# Copy virtual environment and application from builder
-COPY --from=builder --chown=appuser:appuser /app/.venv /app/.venv
-COPY --from=builder --chown=appuser:appuser /app /app
+# Copy virtual environment directly from deps (skip intermediate builder stage)
+# This saves disk space by avoiding duplicate .venv copy
+COPY --from=deps --chown=appuser:appuser /app/.venv /app/.venv
+
+# Copy application code
+COPY --chown=appuser:appuser . .
 
 # Copy and set permissions for entrypoint and setup scripts
 COPY --chown=appuser:appuser docker-entrypoint.sh /app/

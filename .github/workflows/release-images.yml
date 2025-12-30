@@ -21,6 +21,25 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
+      - name: Free disk space
+        run: |
+          echo "Disk space before cleanup:"
+          df -h
+          # Stop all containers
+          docker ps -aq | xargs -r docker stop || true
+          docker ps -aq | xargs -r docker rm || true
+          # Remove all images
+          docker images -q | xargs -r docker rmi -f || true
+          # Clean up Docker system (more aggressive)
+          docker system prune -af --volumes || true
+          # Remove old build cache
+          docker builder prune -af || true
+          # Clean up GitHub Actions cache/temp files
+          sudo rm -rf /tmp/* || true
+          sudo rm -rf /var/tmp/* || true
+          echo "Disk space after cleanup:"
+          df -h
+
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
 
@@ -38,16 +57,33 @@ jobs:
           echo "sha=${GITHUB_SHA}" >> "$GITHUB_OUTPUT"
           echo "repo=${GITHUB_REPOSITORY,,}" >> "$GITHUB_OUTPUT"
 
+      - name: Check disk space before build
+        run: |
+          echo "Disk space before build:"
+          df -h
+          echo "Available space:"
+          df -h / | tail -1
+
       - name: Build & push backend image
         uses: docker/build-push-action@v6
         with:
           context: ./backend
           file: ./backend/Dockerfile
           push: true
+          # Use minimal cache mode to save disk space
+          cache-from: type=gha
+          cache-to: type=gha,mode=min
           tags: |
             ghcr.io/${{ steps.meta.outputs.repo }}/backend:${{ steps.meta.outputs.tag }}
             ghcr.io/${{ steps.meta.outputs.repo }}/backend:${{ steps.meta.outputs.sha }}
             ghcr.io/${{ steps.meta.outputs.repo }}/backend:latest
+
+      - name: Clean up after build
+        if: always()
+        run: |
+          # Clean up Docker to free space for next job
+          docker system prune -af || true
+          docker builder prune -af || true
 
       # Frontend is in a separate repository; build/push handled there.
       # If you co-locate frontend, uncomment:

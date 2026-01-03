@@ -25,8 +25,9 @@ services:
     env_file:
       - .env
     environment:
-      - DB_HOST=db
-      - DATABASE_URL=postgresql://${DB_USER:-postgres}:${DB_PASSWORD:-postgres123}@db:5432/${DB_NAME:-forecaster_enterprise}?sslmode=disable
+      - DB_HOST=${DB_HOST:-db}
+      - DB_PORT=${DB_PORT:-5432}
+      - DATABASE_URL=postgresql://${DB_USER:-postgres}:${DB_PASSWORD:-postgres123}@${DB_HOST:-db}:${DB_PORT:-5432}/${DB_NAME:-forecaster_enterprise}
       - ADMIN_EMAIL=${ADMIN_EMAIL:-admin@example.com}
       - ADMIN_PASSWORD=${ADMIN_PASSWORD:-admin123}
       - ADMIN_NAME=${ADMIN_NAME:-Admin User}

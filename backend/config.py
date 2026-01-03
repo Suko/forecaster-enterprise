@@ -37,7 +37,16 @@ def _enforce_database_tls(database_url: str) -> str:
     """
     parsed = urlparse(database_url)
     # Allow non-SSL for localhost and Docker internal hostnames
-    is_internal = parsed.hostname in ["localhost", "127.0.0.1", "::1", "db", "postgres", "database"]
+    is_internal = parsed.hostname in [
+        "localhost",
+        "127.0.0.1",
+        "::1",
+        "db",
+        "postgres",
+        "database",
+        # Common Docker-to-host alias (Linux/macOS/Windows). When used, the DB is on the same machine.
+        "host.docker.internal",
+    ]
 
     if is_internal:
         return database_url
@@ -176,4 +185,3 @@ class Settings(BaseSettings):
 
 # Global settings instance
 settings = Settings()
-

@@ -38,9 +38,9 @@ services:
       - .env
     environment:
       # Database connection (credentials from .env file)
-      - DB_HOST=db
-      # sslmode=disable is safe here - traffic stays within Docker's isolated network
-      - DATABASE_URL=postgresql://${DB_USER}:${DB_PASSWORD}@db:5432/${DB_NAME}?sslmode=disable
+      - DB_HOST=${DB_HOST:-db}
+      - DB_PORT=${DB_PORT:-5432}
+      - DATABASE_URL=postgresql://${DB_USER}:${DB_PASSWORD}@${DB_HOST:-db}:${DB_PORT:-5432}/${DB_NAME}
 
       # Application
       - ENVIRONMENT=${ENVIRONMENT:-production}

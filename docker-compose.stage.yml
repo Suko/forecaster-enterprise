@@ -1,0 +1,32 @@
+services:
+  backend:
+    image: ${BACKEND_IMAGE:-forecaster-backend:latest}
+    container_name: forecast-backend-stage
+    restart: unless-stopped
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./data:/data:ro
+      - ml_models_cache:/home/appuser/.cache/huggingface
+      - ml_pip_cache:/home/appuser/.cache/pip
+    # Allows using `DB_HOST=host.docker.internal` on Linux to reach a Postgres installed on the VM host
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    env_file:
+      - .env
+    environment:
+      - DB_HOST=${DB_HOST:?Set DB_HOST in /opt/forecaster/.env (use 'db', 'host.docker.internal', or a DB hostname)}
+      - DB_PORT=${DB_PORT:-5432}
+      - DATABASE_URL=postgresql://${DB_USER}:${DB_PASSWORD}@${DB_HOST}:${DB_PORT:-5432}/${DB_NAME}
+      - ENVIRONMENT=${ENVIRONMENT:-production}
+      - DEBUG=${DEBUG:-false}
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/ready"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 300s
+
+volumes:
+  ml_models_cache:
+  ml_pip_cache:

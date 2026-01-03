@@ -68,11 +68,12 @@
 **What happens:**
 1. SSH to stage server
 2. Pull image from GHCR
-3. Stop old containers: `docker compose down`
-4. Start new containers: `docker compose up -d`
+3. Start DB if needed (first deploy only)
+4. Update backend container (no DB restart)
 5. **Wait for `/ready` endpoint** (up to 6 minutes)
    - Accounts for ML deps installation on first run
    - Uses cached deps on subsequent deployments
+6. Run smoke checks (`/api/v1/health`)
 
 **Time:** 
 - First deployment: ~3-5 minutes (ML deps download)
@@ -214,7 +215,11 @@ git push origin v0.0.1
 # Or manually on server:
 cd /opt/forecaster
 docker pull ghcr.io/USER/forecaster-enterprise/backend:v0.0.1
-docker compose up -d
+export BACKEND_IMAGE=ghcr.io/USER/forecaster-enterprise/backend:v0.0.1
+docker compose -f docker-compose.stage.yml up -d db || true
+docker compose -f docker-compose.stage.yml up -d --no-deps --force-recreate backend
+curl -sf http://localhost:8000/ready
+curl -sf http://localhost:8000/api/v1/health
 ```
 
 ---

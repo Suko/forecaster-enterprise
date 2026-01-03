@@ -5,7 +5,8 @@ echo "Starting Forecaster Enterprise Backend..."
 
 # Wait for database to be ready
 echo "Waiting for database..."
-until PGPASSWORD=$DB_PASSWORD psql -h "$DB_HOST" -U "$DB_USER" -d "$DB_NAME" -c '\q' 2>/dev/null; do
+DB_PORT="${DB_PORT:-5432}"
+until PGPASSWORD=$DB_PASSWORD psql -h "$DB_HOST" -p "$DB_PORT" -U "$DB_USER" -d "$DB_NAME" -c '\q' 2>/dev/null; do
   echo "Database is unavailable - sleeping"
   sleep 2
 done
@@ -20,7 +21,7 @@ alembic upgrade head
 # Behavior: If database has ANY users → skip setup.sh (correct for production)
 #           If database is empty → run setup.sh (creates admin/test users)
 # Note: create_user.py already checks for existing users and fails gracefully
-FIRST_TIME_SETUP=$(PGPASSWORD=$DB_PASSWORD psql -h "$DB_HOST" -U "$DB_USER" -d "$DB_NAME" -tAc "SELECT CASE WHEN EXISTS (SELECT 1 FROM users) THEN 'false' ELSE 'true' END;" 2>/dev/null || echo "true")
+FIRST_TIME_SETUP=$(PGPASSWORD=$DB_PASSWORD psql -h "$DB_HOST" -p "$DB_PORT" -U "$DB_USER" -d "$DB_NAME" -tAc "SELECT CASE WHEN EXISTS (SELECT 1 FROM users) THEN 'false' ELSE 'true' END;" 2>/dev/null || echo "true")
 
 # Install PyTorch CPU-only and chronos-forecasting at runtime (saves ~2GB in Docker image)
 # Models are cached in shared volume (/home/appuser/.cache), so this only downloads on first run

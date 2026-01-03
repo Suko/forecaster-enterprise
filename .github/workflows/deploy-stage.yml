@@ -19,6 +19,17 @@ jobs:
     runs-on: ubuntu-latest
     environment: stage
     timeout-minutes: 15
+    env:
+      DEPLOY_HOST: ${{ secrets.DEPLOY_HOST }}
+      DEPLOY_USER: ${{ secrets.DEPLOY_USER }}
+      DEPLOY_SSH_KEY: ${{ secrets.DEPLOY_SSH_KEY }}
+      DEPLOY_PATH: ${{ secrets.DEPLOY_PATH }}
+      # Optional: choose which compose file is used on the remote host.
+      # Example: docker-compose.stage.with-db.yml
+      DEPLOY_COMPOSE_FILE: ${{ secrets.DEPLOY_COMPOSE_FILE }}
+      # Optional (recommended for private repos): allow the remote host to pull from GHCR
+      GHCR_USERNAME: ${{ secrets.GHCR_USERNAME }}
+      GHCR_TOKEN: ${{ secrets.GHCR_TOKEN }}
     steps:
       - name: Set up SSH key
         run: |
@@ -38,16 +49,26 @@ jobs:
           ssh -o StrictHostKeyChecking=no -i ~/.ssh/deploy_key $DEPLOY_USER@$DEPLOY_HOST << EOF
             set -e
             cd $DEPLOY_PATH
-            
-            echo "📦 Pulling image: ghcr.io/${REPO}/backend:${IMAGE_TAG}"
-            docker pull ghcr.io/${REPO}/backend:${IMAGE_TAG}
-            docker tag ghcr.io/${REPO}/backend:${IMAGE_TAG} forecaster-backend:latest
-            
-            echo "🔄 Stopping old containers..."
-            docker compose down || true
-            
-            echo "🚀 Starting containers..."
-            docker compose up -d
+            COMPOSE_FILE="\${DEPLOY_COMPOSE_FILE:-docker-compose.stage.yml}"
+
+            REPO_LOWER=\$(printf '%s' "$REPO" | tr '[:upper:]' '[:lower:]')
+            export BACKEND_IMAGE="ghcr.io/\${REPO_LOWER}/backend:${IMAGE_TAG}"
+
+            if [ -n "$GHCR_TOKEN" ] && [ -n "$GHCR_USERNAME" ]; then
+              echo "🔐 Logging in to GHCR on remote host..."
+              echo "$GHCR_TOKEN" | docker login ghcr.io -u "$GHCR_USERNAME" --password-stdin
+            fi
+
+            # Start DB on first deploy (no-op if already running)
+            if docker compose -f "\$COMPOSE_FILE" config --services 2>/dev/null | grep -qx db; then
+              docker compose -f "\$COMPOSE_FILE" up -d db
+            fi
+
+            echo "📦 Pulling image: \${BACKEND_IMAGE}"
+            BACKEND_IMAGE="\${BACKEND_IMAGE}" docker compose -f "\$COMPOSE_FILE" pull backend
+
+            echo "🚀 Updating backend (no DB restart)..."
+            BACKEND_IMAGE="\${BACKEND_IMAGE}" docker compose -f "\$COMPOSE_FILE" up -d --no-deps --force-recreate backend
             
             echo "⏳ Waiting for backend to be ready (ML deps may install on first run, up to 5 min)..."
             # Wait up to 6 minutes (health check start_period is 5 min)
@@ -65,13 +86,16 @@ jobs:
             
             # Final check
             if curl -sf http://localhost:8000/ready > /dev/null 2>&1; then
+              echo "🧪 Smoke checks..."
+              curl -sf http://localhost:8000/api/v1/health > /dev/null
+              curl -sf http://localhost:8000/ > /dev/null
               echo "✅ Stage deployment successful!"
               echo "📊 Backend logs (last 20 lines):"
-              docker compose logs --tail=20 backend
+              docker compose -f "\$COMPOSE_FILE" logs --tail=20 backend
             else
               echo "❌ Health check failed after $MAX_WAIT seconds"
               echo "📊 Backend logs:"
-              docker compose logs backend
+              docker compose -f "\$COMPOSE_FILE" logs --tail=200 backend
               exit 1
             fi
           EOF

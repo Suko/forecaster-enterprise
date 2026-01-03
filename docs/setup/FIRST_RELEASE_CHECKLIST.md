@@ -67,15 +67,21 @@
 **Setup:** Automatic - no configuration needed
 **Cost:** Included in GitHub Pro ($4/month for private repos)
 
-### 2. Stage Environment Secrets
+### 3. Stage Environment Secrets (for Deploy Workflow)
 **Add to GitHub `stage` environment:**
 
 - [ ] `DEPLOY_HOST` - Your stage server IP/hostname
 - [ ] `DEPLOY_USER` - SSH username (e.g., `ubuntu`)
 - [ ] `DEPLOY_SSH_KEY` - Private SSH key (generate with `ssh-keygen`)
 - [ ] `DEPLOY_PATH` - Directory on server (e.g., `/opt/forecaster`)
-- [ ] `DATABASE_URL` - Stage database connection
-- [ ] `SECRET_KEY` - Random secret key for the app
+
+**Optional (recommended for private repos / private GHCR packages):**
+- [ ] `GHCR_USERNAME` - GitHub username/org that owns the package
+- [ ] `GHCR_TOKEN` - PAT with `read:packages` to allow the server to `docker pull`
+
+**App secrets live on the server** (in `/opt/forecaster/.env`), not in GitHub Secrets:
+- `DATABASE_URL` (or `DB_*` vars used to build it)
+- `JWT_SECRET_KEY` (required for stage/production)
 
 ### 3. Stage Server Setup
 **On your stage server:**
@@ -96,7 +102,9 @@
 ```bash
 # On stage server
 cd /opt/forecaster
-# Copy docker-compose.yml from repo
+# Copy the desired compose to: /opt/forecaster/docker-compose.stage.yml
+# - Option A (Postgres in Docker on same VM): docker-compose.stage.with-db.yml
+# - Option B (Postgres not in Docker): docker-compose.stage.yml
 # Create .env file with stage credentials
 ```
 
@@ -155,7 +163,7 @@ ssh ubuntu@YOUR_STAGE_IP
 docker ps
 
 # Check logs
-docker compose -f /opt/forecaster/docker-compose.yml logs backend
+docker compose -f /opt/forecaster/docker-compose.stage.yml logs backend
 
 # Test health
 curl http://localhost:8000/ready
@@ -337,17 +345,11 @@ deploy_staging:
 ## High Priority Improvements (Before Production) 🔴
 
 ### 1. Add Smoke Tests to Deployment
-**Update `.github/workflows/deploy-stage.yml` to include:**
-```yaml
-- name: Run smoke tests
-  run: |
-    ssh -o StrictHostKeyChecking=no -i ~/.ssh/deploy_key $DEPLOY_USER@$DEPLOY_HOST << 'EOF'
-      curl -f http://localhost:8000/ready || exit 1
-      curl -f http://localhost:8000/api/v1/health || exit 1
-      curl -f http://localhost:8000/api/v1/products || exit 1
-      echo "✅ Smoke tests passed"
-    EOF
-```
+**Status:** ✅ Included in `.github/workflows/deploy-stage.yml` (checks `/ready` + `/api/v1/health`)
+
+**Optional improvements:**
+- Add a small authenticated smoke test (only if you have a safe service token/user)
+- Keep unauthenticated checks limited to health/readiness endpoints
 
 ### 2. Document Rollback Procedure
 - [ ] Create rollback documentation
